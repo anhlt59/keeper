@@ -1,5 +1,5 @@
 {
-  "name": "zoo-tmp",
+  "name": "zoo",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -9,18 +9,31 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@base-ui/react": "^1.3.0",
+    "@prisma/client": "^7.5.0",
+    "@tanstack/react-query": "^5.95.2",
+    "better-auth": "^1.5.6",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "lucide-react": "^1.6.0",
     "next": "16.2.1",
+    "prisma": "^7.5.0",
     "react": "19.2.4",
-    "react-dom": "19.2.4"
+    "react-dom": "19.2.4",
+    "recharts": "^3.8.0",
+    "shadcn": "^4.1.0",
+    "tailwind-merge": "^3.5.0",
+    "tw-animate-css": "^1.4.0",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "eslint": "^9",
-    "eslint-config-next": "16.2.1",
-    "tailwindcss": "^4",
-    "typescript": "^5"
+    "@types/node": "^20.19.37",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "eslint": "^9.39.4",
+    "eslint-config-next": "^16.2.1",
+    "tailwindcss": "^4.2.2",
+    "typescript": "^5.9.3"
   }
 }
