@@ -1,7 +1,47 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
+"use client";
+
+import { useQuery } from "@tanstack/react-query";
+import { PackageIcon, DollarSignIcon, WrenchIcon, ClockIcon } from "lucide-react";
+import { KpiCard } from "@/components/dashboard/kpi-card";
+import { AssetStatusChart } from "@/components/dashboard/asset-status-chart";
+import { RecentEvents } from "@/components/dashboard/recent-events";
+import { AssetStatus } from "@prisma/client";
+
+interface DashboardData {
+  totalAssets: number;
+  totalValue: number | string;
+  byStatus: { status: AssetStatus; count: number }[];
+  maintenanceCostMTD: number | string;
+  recentEvents: Array<{
+    id: string;
+    asset?: { id: string; name: string; code: string };
+    eventType: string;
+    description: string | null;
+    createdAt: string;
+  }>;
+}
+
+function formatVND(value: number | string): string {
+  const num = typeof value === "string" ? parseFloat(value) : value;
+  if (isNaN(num)) return "—";
+  return new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND", maximumFractionDigits: 0 }).format(num);
+}
 
 export default function DashboardPage() {
+  const { data, isLoading } = useQuery<DashboardData>({
+    queryKey: ["dashboard"],
+    queryFn: () => fetch("/api/dashboard").then((r) => {
+      if (!r.ok) throw new Error("Failed to load dashboard");
+      return r.json();
+    }),
+  });
+
+  const totalValue = data?.totalValue ?? 0;
+  const maintenanceCost = data?.maintenanceCostMTD ?? 0;
+  const pendingCount = (data?.byStatus ?? [])
+    .filter((s) => s.status === "MAINTENANCE")
+    .reduce((sum, s) => sum + s.count, 0);
+
   return (
     <div className="space-y-6">
       <div>
@@ -13,62 +53,46 @@ export default function DashboardPage() {
 
       {/* KPI Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {[
-          { label: "Total Assets", value: "—", sub: "Loading..." },
-          { label: "In Use", value: "—", sub: "Loading..." },
-          { label: "Maintenance", value: "—", sub: "Loading..." },
-          { label: "Total Value", value: "—", sub: "Loading..." },
-        ].map((kpi) => (
-          <Card key={kpi.label}>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                {kpi.label}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{kpi.value}</div>
-              <p className="text-xs text-muted-foreground mt-1">{kpi.sub}</p>
-            </CardContent>
-          </Card>
-        ))}
+        <KpiCard
+          label="Total Assets"
+          value={isLoading ? "—" : data?.totalAssets ?? 0}
+          subtext="Active assets"
+          icon={<PackageIcon />}
+          loading={isLoading}
+        />
+        <KpiCard
+          label="Total Value"
+          value={isLoading ? "—" : formatVND(totalValue)}
+          subtext="All assets"
+          icon={<DollarSignIcon />}
+          loading={isLoading}
+        />
+        <KpiCard
+          label="Maintenance Cost (MTD)"
+          value={isLoading ? "—" : formatVND(maintenanceCost)}
+          subtext="This month"
+          icon={<WrenchIcon />}
+          loading={isLoading}
+        />
+        <KpiCard
+          label="In Maintenance"
+          value={isLoading ? "—" : pendingCount}
+          subtext="Pending assets"
+          icon={<ClockIcon />}
+          loading={isLoading}
+        />
       </div>
 
-      {/* Placeholder rows */}
+      {/* Charts Row */}
       <div className="grid gap-4 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Recent Assets</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="flex items-center gap-3">
-                  <Skeleton className="h-8 w-8 rounded" />
-                  <div className="flex-1 space-y-1">
-                    <Skeleton className="h-3 w-32" />
-                    <Skeleton className="h-2 w-20" />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Status Distribution</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {["Purchased", "In Use", "Maintenance", "Retired"].map((s) => (
-                <div key={s} className="flex items-center justify-between">
-                  <span className="text-sm">{s}</span>
-                  <Skeleton className="h-2 w-24 rounded-full" />
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+        <AssetStatusChart
+          data={data?.byStatus ?? []}
+          loading={isLoading}
+        />
+        <RecentEvents
+          events={(data?.recentEvents ?? []) as DashboardData["recentEvents"]}
+          loading={isLoading}
+        />
       </div>
     </div>
   );

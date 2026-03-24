@@ -47,9 +47,30 @@ export function getAvailableTransitions(
   return ASSET_TRANSITIONS.filter((t) => t.from === currentStatus);
 }
 
+/**
+ * Validate a status transition. Throws if invalid.
+ */
+export function validateTransition(from: AssetStatus, to: AssetStatus): FSMTransition {
+  const transition = canTransition(from, to);
+  if (!transition) {
+    throw new Error(
+      `Invalid FSM transition: '${from}' → '${to}'. ` +
+      `Available transitions from '${from}': ${getAvailableTransitions(from).map(t => t.to).join(", ") || "none"}.`
+    );
+  }
+  return transition;
+}
+
+/**
+ * Derive AssetEventType from a status change transition.
+ */
+export function buildEventType(transition: FSMTransition): AssetEventType {
+  return transition.eventType;
+}
+
 // Status display config
 export const STATUS_CONFIG: Record<
-  AssetStatus,
+  string,
   { label: string; color: string; bgClass: string; textClass: string }
 > = {
   PURCHASED: {
