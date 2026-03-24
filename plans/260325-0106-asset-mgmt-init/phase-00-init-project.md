@@ -5,7 +5,7 @@
 ## Overview
 
 - Priority: Critical
-- Status: Pending
+- Status: Completed
 - Description: Bootstrap Next.js project + Prisma + PostgreSQL + Better Auth. Create the foundation for the entire system.
 
 ## Key Insights
@@ -105,30 +105,30 @@ components/
 
 ## Implementation Steps
 
-1. [ ] Run `npx create-next-app@latest . --typescript --tailwind --eslint --app --src-dir=false --import-alias="@/*" --yes`
-2. [ ] Install dependencies: `prisma @prisma/client better-auth @tanstack/react-query zod recharts`
-3. [ ] Install shadcn/ui: `npx shadcn@latest init` + add components (button, card, table, form, dialog, badge, input, label, select, textarea, alert, dropdown-menu, tabs, breadcrumb)
-4. [ ] Setup `docker-compose.yml` with PostgreSQL 16
-5. [ ] Init Prisma: `prisma init` + write full schema.prisma
-6. [ ] Run `prisma migrate dev` to create database
-7. [ ] Setup Better Auth with session + CSRF + rate limiting
-8. [ ] Create `lib/db.ts`, `lib/auth.ts`, `lib/fsm.ts`
-9. [ ] Create `lib/validators/*.ts` for all entities
-10. [ ] Create `app/providers.tsx` with TanStack Query
-11. [ ] Create `app/layout.tsx` and `app/(auth)/login/page.tsx`
-12. [ ] Create `app/(dashboard)/layout.tsx` with sidebar + header
-13. [ ] Create `.env.local.example` with all required env vars
-14. [ ] Create `prisma/seed.ts` with sample data
-15. [ ] Run lint + verify build pass
+1. [x] Run `npx create-next-app@latest . --typescript --tailwind --eslint --app --src-dir=false --import-alias="@/*" --yes`
+2. [x] Install dependencies: `prisma @prisma/client better-auth @tanstack/react-query zod recharts`
+3. [x] Install shadcn/ui: `npx shadcn@latest init` + add components (button, card, table, form, dialog, badge, input, label, select, textarea, alert, dropdown-menu, tabs, breadcrumb)
+4. [x] Setup `docker-compose.yml` with PostgreSQL 16
+5. [x] Init Prisma: `prisma init` + write full schema.prisma
+6. [x] Run `prisma migrate dev` to create database
+7. [x] Setup Better Auth with session + CSRF + rate limiting
+8. [x] Create `lib/db.ts`, `lib/auth.ts`, `lib/fsm.ts`
+9. [x] Create `lib/validators/*.ts` for all entities
+10. [x] Create `app/providers.tsx` with TanStack Query
+11. [x] Create `app/layout.tsx` and `app/(auth)/login/page.tsx`
+12. [x] Create `app/(dashboard)/layout.tsx` with sidebar + header
+13. [x] Create `.env.local.example` with all required env vars
+14. [x] Create `prisma/seed.ts` with sample data
+15. [x] Run lint + verify build pass
 
 ## Todo List
 
-- [ ] Project bootstrap
-- [ ] Prisma schema + migration
-- [ ] Better Auth setup
-- [ ] Directory structure foundation
-- [ ] Environment config
-- [ ] Seed data
+- [x] Project bootstrap
+- [x] Prisma schema + migration
+- [x] Better Auth setup
+- [x] Directory structure foundation
+- [x] Environment config
+- [x] Seed data
 
 ## Success Criteria
 

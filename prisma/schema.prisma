@@ -1,0 +1,282 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─────────────────────────────────────────────
+// Auth / User
+// ─────────────────────────────────────────────
+model User {
+  id        String    @id @default(cuid())
+  email     String    @unique
+  name      String
+  password  String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  isDeleted Boolean   @default(false)
+  deletedAt DateTime?
+
+  sessions   Session[]
+  auditLogs AuditLog[]
+
+  @@index([isDeleted])
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+// ─────────────────────────────────────────────
+// Asset Category
+// ─────────────────────────────────────────────
+model Category {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  description String?
+  parentId    String?
+  parent      Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children    Category[] @relation("CategoryHierarchy")
+  assets      Asset[]
+  attributeDefinitions AttributeDefinition[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  isDeleted  Boolean   @default(false)
+  deletedAt  DateTime?
+
+  @@index([isDeleted])
+}
+
+// ─────────────────────────────────────────────
+// Asset
+// ─────────────────────────────────────────────
+model Asset {
+  id          String      @id @default(cuid())
+  code        String      @unique
+  name        String
+  description String?
+  categoryId  String
+  category    Category    @relation(fields: [categoryId], references: [id])
+  status      AssetStatus @default(PURCHASED)
+
+  // QR Code
+  qrImage String?
+
+  // Assignment
+  assignedTo   String?
+  assignedDate DateTime?
+
+  // Purchase info
+  purchaseDate   DateTime?
+  purchasePrice  Decimal?  @db.Decimal(12, 2)
+  vendor         String?
+  warrantyMonths Int?
+
+  // Maintenance
+  nextMaintenanceDate DateTime?
+
+  // Disposal
+  disposedAt  DateTime?
+  disposedNote String?
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  isDeleted Boolean  @default(false)
+  deletedAt DateTime?
+
+  // Lifecycle events
+  events  AssetEvent[]
+  maintenanceRecords Maintenance[]
+
+  @@index([isDeleted])
+  @@index([status])
+}
+
+enum AssetStatus {
+  PURCHASED
+  ASSIGNED
+  IN_USE
+  MAINTENANCE
+  RETIRED
+  DISPOSED
+}
+
+// ─────────────────────────────────────────────
+// Asset Lifecycle Event (append-only audit log)
+// ─────────────────────────────────────────────
+model AssetEvent {
+  id         String        @id @default(cuid())
+  assetId    String
+  asset      Asset         @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  eventType  AssetEventType
+  fromStatus AssetStatus?
+  toStatus   AssetStatus?
+  description String?
+  performedBy String     @default("system")
+  metadata    Json?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  isDeleted  Boolean  @default(false)
+  deletedAt  DateTime?
+
+  @@index([assetId])
+  @@index([isDeleted])
+}
+
+enum AssetEventType {
+  CREATED
+  STATUS_CHANGE
+  ASSIGNED
+  RECALLED
+  MAINTENANCE_CREATED
+  MAINTENANCE_COMPLETED
+  ATTRIBUTE_UPDATED
+  DISPOSED
+  RESTORED
+}
+
+// ─────────────────────────────────────────────
+// Maintenance
+// ─────────────────────────────────────────────
+model Maintenance {
+  id           String            @id @default(cuid())
+  assetId      String
+  asset        Asset             @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  type         MaintenanceType
+  description  String
+  cost         Decimal?          @db.Decimal(12, 2)
+  startDate    DateTime
+  endDate      DateTime?
+  status       MaintenanceStatus @default(SCHEDULED)
+  performedBy  String?
+  notes        String?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  isDeleted   Boolean           @default(false)
+  deletedAt   DateTime?
+
+  @@index([isDeleted])
+  @@index([assetId])
+}
+
+enum MaintenanceType {
+  PREVENTIVE
+  CORRECTIVE
+  UPGRADE
+}
+
+enum MaintenanceStatus {
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+// ─────────────────────────────────────────────
+// Audit Log (system-wide)
+// ─────────────────────────────────────────────
+model AuditLog {
+  id         String   @id @default(cuid())
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  action     String
+  entityType String
+  entityId   String?
+  description String?
+  ipAddress  String?
+  userAgent  String?
+  metadata   Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  isDeleted Boolean  @default(false)
+  deletedAt DateTime?
+
+  @@index([userId])
+  @@index([entityType, entityId])
+  @@index([isDeleted])
+}
+
+// ─────────────────────────────────────────────
+// Invoice (Phase 2)
+// ─────────────────────────────────────────────
+model Invoice {
+  id              String        @id @default(cuid())
+  invoiceNumber   String?
+  vendor          String?
+  invoiceDate     DateTime?
+  totalAmount     Decimal?      @db.Decimal(12, 2)
+  filePath        String?
+  status          InvoiceStatus @default(PENDING)
+  ocrExtractionId String? @unique
+  ocrExtraction   OcrExtraction? @relation(fields: [ocrExtractionId], references: [id])
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  isDeleted       Boolean       @default(false)
+  deletedAt       DateTime?
+
+  @@index([isDeleted])
+}
+
+enum InvoiceStatus {
+  PENDING
+  CONFIRMED
+  REJECTED
+}
+
+model OcrExtraction {
+  id             String    @id @default(cuid())
+  rawResponse    Json
+  extractedData  Json
+  confidence     Float
+  confirmed      Boolean   @default(false)
+  invoice        Invoice?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  isDeleted      Boolean   @default(false)
+  deletedAt      DateTime?
+}
+
+// ─────────────────────────────────────────────
+// Dynamic Attribute Definitions (Phase 2)
+// ─────────────────────────────────────────────
+model AttributeDefinition {
+  id          String           @id @default(cuid())
+  name        String
+  description String?
+  fieldType   AttributeFieldType
+  categoryId  String?
+  category    Category?         @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  required    Boolean          @default(false)
+  options     String?
+  validation  Json?
+  order       Int              @default(0)
+  createdAt  DateTime          @default(now())
+  updatedAt  DateTime          @updatedAt
+  isDeleted  Boolean           @default(false)
+  deletedAt  DateTime?
+
+  @@unique([categoryId, name])
+  @@index([isDeleted])
+}
+
+enum AttributeFieldType {
+  TEXT
+  NUMBER
+  BOOLEAN
+  DATE
+  SELECT
+}
