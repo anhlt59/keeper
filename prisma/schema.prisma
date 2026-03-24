@@ -101,6 +101,7 @@ model Asset {
   // Lifecycle events
   events  AssetEvent[]
   maintenanceRecords Maintenance[]
+  attributeValue AssetAttributeValue?
 
   @@index([isDeleted])
   @@index([status])
@@ -248,6 +249,20 @@ model OcrExtraction {
   updatedAt      DateTime  @updatedAt
   isDeleted      Boolean   @default(false)
   deletedAt      DateTime?
+}
+
+// ─────────────────────────────────────────────
+// Asset Attribute Values (Phase 2) — stores dynamic attrs per asset
+// ─────────────────────────────────────────────
+model AssetAttributeValue {
+  id        String   @id @default(cuid())
+  assetId   String   @unique
+  asset     Asset    @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  values    Json     @default("{}") // Record<string, unknown>
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([assetId])
 }
 
 // ─────────────────────────────────────────────

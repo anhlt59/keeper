@@ -20,7 +20,8 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AssetStatus } from "@prisma/client";
+import { AssetStatus, AttributeFieldType } from "@prisma/client";
+import { DynamicFieldRenderer } from "@/components/attributes/dynamic-field-renderer";
 
 interface Category {
   id: string;
@@ -39,6 +40,7 @@ interface AssetDetail {
   warrantyMonths: number | null;
   status: AssetStatus;
   category: { id: string; name: string };
+  attributeValue: { values: Record<string, unknown> } | null;
 }
 
 export default function EditAssetPage({ params }: { params: Promise<{ id: string }> }) {
@@ -56,6 +58,14 @@ export default function EditAssetPage({ params }: { params: Promise<{ id: string
   const { data: categories = [] } = useQuery<Category[]>({
     queryKey: ["categories"],
     queryFn: () => fetch("/api/categories").then((r) => r.json()),
+  });
+
+  const { data: attrDefinitions = [] } = useQuery<Array<{
+    id: string; name: string; fieldType: AttributeFieldType; required: boolean; options: string | null
+  }>>({
+    queryKey: ["attribute-definitions", asset?.categoryId],
+    queryFn: () => fetch(`/api/attributes/definitions${asset?.categoryId ? `?categoryId=${asset.categoryId}` : ""}`).then((r) => r.json()),
+    enabled: !!asset,
   });
 
   const [form, setForm] = useState<{
@@ -77,6 +87,11 @@ export default function EditAssetPage({ params }: { params: Promise<{ id: string
   });
 
   const [loading, setLoading] = useState(false);
+  const [attrValues, setAttrValues] = useState<Record<string, unknown>>({});
+
+  function handleAttrChange(name: string, value: unknown) {
+    setAttrValues((v) => ({ ...v, [name]: value }));
+  }
 
   // Sync form when asset loads
   if (asset && form.name !== asset.name && typeof window !== "undefined") {
@@ -89,6 +104,7 @@ export default function EditAssetPage({ params }: { params: Promise<{ id: string
       vendor: asset.vendor ?? "",
       warrantyMonths: asset.warrantyMonths ? String(asset.warrantyMonths) : "",
     });
+    setAttrValues((asset.attributeValue?.values ?? {}) as Record<string, unknown>);
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -109,6 +125,7 @@ export default function EditAssetPage({ params }: { params: Promise<{ id: string
           purchasePrice: form.purchasePrice ? parseFloat(form.purchasePrice) : null,
           vendor: form.vendor.trim() || null,
           warrantyMonths: form.warrantyMonths ? parseInt(form.warrantyMonths) : null,
+          attributeValues: attrValues,
         }),
       });
       if (!res.ok) {
@@ -252,6 +269,21 @@ export default function EditAssetPage({ params }: { params: Promise<{ id: string
             </div>
           </CardContent>
         </Card>
+
+        {attrDefinitions.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Custom Attributes</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <DynamicFieldRenderer
+                definitions={attrDefinitions}
+                values={attrValues}
+                onChange={handleAttrChange}
+              />
+            </CardContent>
+          </Card>
+        )}
 
         <div className="flex justify-end gap-3">
           <Link href={`/assets/${id}`}>

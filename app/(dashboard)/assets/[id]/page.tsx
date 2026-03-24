@@ -11,6 +11,7 @@ import {
   WrenchIcon,
   RefreshCwIcon,
   ArrowRightIcon,
+  QrCodeIcon,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -19,6 +20,7 @@ import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { AssetTimeline } from "@/components/assets/asset-timeline";
 import { AssignDialog } from "@/components/assets/assign-dialog";
 import { MaintenanceForm } from "@/components/assets/maintenance-form";
+import { QRPreviewModal } from "@/components/assets/qr-preview-modal";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Table,
@@ -46,7 +48,10 @@ interface AssetDetail {
   purchasePrice: string | number | null;
   vendor: string | null;
   warrantyMonths: number | null;
+  qrImage: string | null;
+  categoryId: string;
   category: { id: string; name: string };
+  attributeValue: { values: Record<string, unknown> } | null;
   events: Array<{
     id: string;
     eventType: string;
@@ -123,9 +128,18 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
     enabled: !!asset,
   });
 
+  const { data: attrDefinitions = [] } = useQuery<Array<{
+    id: string; name: string; fieldType: string; required: boolean; options: string | null
+  }>>({
+    queryKey: ["attribute-definitions", asset?.categoryId],
+    queryFn: () => fetch(`/api/attributes/definitions?categoryId=${asset?.categoryId ?? ""}`).then((r) => r.json()),
+    enabled: !!asset,
+  });
+
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [transitioning, setTransitioning] = useState(false);
+  const [qrModalOpen, setQrModalOpen] = useState(false);
 
   const transitions = asset ? getAvailableTransitions(asset.status) : [];
 
@@ -221,6 +235,11 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
             </Button>
           </Link>
 
+          <Button variant="outline" size="sm" onClick={() => setQrModalOpen(true)}>
+            <QrCodeIcon className="h-4 w-4" />
+            QR
+          </Button>
+
           {transitions.map((t) => {
             if (t.to === AssetStatus.MAINTENANCE) {
               return (
@@ -290,6 +309,7 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
       <Tabs defaultValue="info">
         <TabsList>
           <TabsTrigger value="info">Info</TabsTrigger>
+          <TabsTrigger value="attributes">Attributes</TabsTrigger>
           <TabsTrigger value="timeline">Timeline</TabsTrigger>
           <TabsTrigger value="maintenance">Maintenance ({maintenance.length})</TabsTrigger>
         </TabsList>
@@ -320,6 +340,36 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
                   </div>
                 ))}
               </dl>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Attributes Tab */}
+        <TabsContent value="attributes" className="mt-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Custom Attributes</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {attrDefinitions.length === 0 ? (
+                <p className="text-sm text-muted-foreground py-4 text-center">
+                  No custom attributes defined for this category.
+                </p>
+              ) : (
+                <dl className="grid grid-cols-2 gap-x-8 gap-y-4 text-sm">
+                  {attrDefinitions.map((def) => {
+                    const vals = asset.attributeValue?.values ?? {};
+                    return (
+                      <div key={def.id} className="space-y-1">
+                        <dt className="text-muted-foreground text-xs font-medium uppercase tracking-wide">{def.name}</dt>
+                        <dd className="font-medium">
+                          {vals[def.name] != null ? String(vals[def.name]) : "—"}
+                        </dd>
+                      </div>
+                    );
+                  })}
+                </dl>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -399,6 +449,14 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
       </Tabs>
 
       {/* Delete Dialog */}
+      <QRPreviewModal
+        open={qrModalOpen}
+        onOpenChange={setQrModalOpen}
+        assetName={asset.name}
+        assetCode={asset.code}
+        qrImage={asset.qrImage}
+        assetId={asset.id}
+      />
       <ConfirmDialog
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}

@@ -10,6 +10,8 @@ import {
   FileText,
   ScrollText,
   ChevronRight,
+  QrCodeIcon,
+  Settings2Icon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -26,9 +28,11 @@ const navItems = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
   { href: "/assets", label: "Assets", icon: Package },
   { href: "/categories", label: "Categories", icon: Tags },
+  { href: "/attributes", label: "Attributes", icon: Settings2Icon },
   { href: "/maintenance", label: "Maintenance", icon: Wrench },
   { href: "/invoices", label: "Invoices", icon: FileText },
   { href: "/audit-logs", label: "Audit Logs", icon: ScrollText },
+  { href: "/scan", label: "Scan", icon: QrCodeIcon },
 ];
 
 function Sidebar() {

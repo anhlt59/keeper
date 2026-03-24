@@ -15,7 +15,7 @@
 |-------|------|--------|-----------------|
 | 0 | [Init Project](./phase-00-init-project.md) | ✅ Done | Next.js scaffold, Prisma schema, Better Auth, directory structure |
 | 1 | [Asset + Lifecycle + Dashboard](./phase-01-asset-lifecycle-dashboard.md) | ✅ Done | Asset CRUD, FSM lifecycle, Assignment/Recall, Maintenance, Audit, Dashboard KPI |
-| 2 | [Dynamic Attrs + QR + OCR](./phase-02-dynamic-attrs-qr-ocr.md) | ⏳ Pending | Dynamic attrs, QR generation/print, Mobile scan, OCR invoice |
+| 2 | [Dynamic Attrs + QR + OCR](./phase-02-dynamic-attrs-qr-ocr.md) | ✅ Done | Dynamic attrs, QR generation/print, Mobile scan, OCR invoice |
 
 ### Future (Out of MVP Scope)
 - Phase 3: Periodic Inventory Cycle + Performance optimization + Hardening

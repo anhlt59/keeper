@@ -18,6 +18,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { DynamicFieldRenderer } from "@/components/attributes/dynamic-field-renderer";
+import { AttributeFieldType } from "@prisma/client";
 
 interface Category {
   id: string;
@@ -43,11 +45,24 @@ export default function NewAssetPage() {
     vendor: "",
     warrantyMonths: "",
   });
+  const [attrValues, setAttrValues] = useState<Record<string, unknown>>({});
 
   const { data: categories = [] } = useQuery<Category[]>({
     queryKey: ["categories"],
     queryFn: () => fetch("/api/categories").then((r) => r.json()),
   });
+
+  const { data: attrDefinitions = [] } = useQuery<Array<{
+    id: string; name: string; fieldType: AttributeFieldType; required: boolean; options: string | null
+  }>>({
+    queryKey: ["attribute-definitions", form.categoryId],
+    queryFn: () => fetch(`/api/attributes/definitions${form.categoryId ? `?categoryId=${form.categoryId}` : ""}`).then((r) => r.json()),
+    enabled: true,
+  });
+
+  function handleAttrChange(name: string, value: unknown) {
+    setAttrValues((v) => ({ ...v, [name]: value }));
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -67,6 +82,7 @@ export default function NewAssetPage() {
           purchasePrice: form.purchasePrice ? parseFloat(form.purchasePrice) : null,
           vendor: form.vendor.trim() || null,
           warrantyMonths: form.warrantyMonths ? parseInt(form.warrantyMonths) : null,
+          attributeValues: attrValues,
         }),
       });
       if (!res.ok) {
@@ -209,6 +225,21 @@ export default function NewAssetPage() {
             </div>
           </CardContent>
         </Card>
+
+        {attrDefinitions.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Custom Attributes</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <DynamicFieldRenderer
+                definitions={attrDefinitions}
+                values={attrValues}
+                onChange={handleAttrChange}
+              />
+            </CardContent>
+          </Card>
+        )}
 
         <div className="flex justify-end gap-3">
           <Link href="/assets">

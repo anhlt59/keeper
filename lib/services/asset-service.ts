@@ -6,6 +6,7 @@ import { prisma } from "@/lib/db";
 import { AssetEventType, AssetStatus, Prisma } from "@prisma/client";
 import { validateTransition } from "@/lib/fsm";
 import { logAssetEvent } from "@/lib/audit-logger";
+import { generateQRCode } from "@/lib/qr-generator";
 import type { CreateAssetInput, UpdateAssetInput, ListAssetsInput } from "@/lib/validators/asset";
 
 function generateAssetCode(): string {
@@ -39,6 +40,34 @@ export async function createAsset(
     },
     include: { category: true },
   });
+
+  // Generate and store QR code
+  try {
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000";
+    const qrDataUrl = await generateQRCode(asset.id, baseUrl);
+    await prisma.asset.update({
+      where: { id: asset.id },
+      data: { qrImage: qrDataUrl },
+    });
+    // Refresh asset to include qrImage
+    const refreshed = await prisma.asset.findUnique({
+      where: { id: asset.id },
+      include: { category: true },
+    });
+    if (refreshed) Object.assign(asset, { qrImage: refreshed.qrImage });
+  } catch (err) {
+    // Non-fatal: log but don't fail creation
+    console.error("Failed to generate QR code:", err);
+  }
+
+  // Save dynamic attribute values if provided
+  if (data.attributeValues) {
+    await prisma.assetAttributeValue.upsert({
+      where: { assetId: asset.id },
+      create: { assetId: asset.id, values: data.attributeValues as Prisma.InputJsonValue },
+      update: { values: data.attributeValues as Prisma.InputJsonValue },
+    });
+  }
 
   await logAssetEvent({
     assetId: asset.id,
@@ -86,6 +115,15 @@ export async function updateAsset(
     data: updateData,
     include: { category: true },
   });
+
+  // Update dynamic attribute values if provided
+  if (data.attributeValues !== undefined) {
+    await prisma.assetAttributeValue.upsert({
+      where: { assetId: id },
+      create: { assetId: id, values: data.attributeValues as Prisma.InputJsonValue },
+      update: { values: data.attributeValues as Prisma.InputJsonValue },
+    });
+  }
 
   // FSM: if status changed, validate and log
   if (data.status && data.status !== previousStatus) {
@@ -138,6 +176,7 @@ export async function getAsset(id: string) {
       category: true,
       events: { orderBy: { createdAt: "desc" }, take: 50 },
       maintenanceRecords: { orderBy: { createdAt: "desc" } },
+      attributeValue: true,
     },
   });
 }
