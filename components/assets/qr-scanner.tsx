@@ -43,7 +43,7 @@ export function QRScanner() {
         const el = document.getElementById(scannerId);
         if (!el || !mounted) return;
 
-        scanner = new Html5Qrcode(scannerId);
+        const scanner = new Html5Qrcode(scannerId);
 
         // Assign ref AFTER scanner is instantiated, not after start()
         html5QrRef.current = scanner;

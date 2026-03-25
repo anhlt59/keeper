@@ -1,7 +1,7 @@
 import { PrismaClient, AssetStatus, MaintenanceType, MaintenanceStatus } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
-import bcrypt from "bcryptjs";
+import { hashPassword } from "better-auth/crypto";
 import { config } from "dotenv";
 import path from "path";
 
@@ -28,14 +28,26 @@ const prisma = new PrismaClient({ adapter });
 async function main() {
   console.log("🌱 Seeding database...");
 
-  // Create admin user
-  const hashedPassword = await bcrypt.hash("admin123", 10);
+  // Create admin user with Better Auth account
+  const hashedPassword = await hashPassword("admin123");
   const admin = await prisma.user.upsert({
     where: { email: "admin@zoo.local" },
     update: {},
     create: {
       email: "admin@zoo.local",
       name: "Admin User",
+      emailVerified: true,
+    },
+  });
+  // Create credential account for the admin user
+  await prisma.account.upsert({
+    where: { id: `credential-${admin.id}` },
+    update: { password: hashedPassword },
+    create: {
+      id: `credential-${admin.id}`,
+      userId: admin.id,
+      accountId: admin.id,
+      providerId: "credential",
       password: hashedPassword,
     },
   });

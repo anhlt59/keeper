@@ -1,14 +1,13 @@
 import { betterAuth } from "better-auth";
+import { openAPI } from "better-auth/plugins"
 import { prismaAdapter } from "better-auth/adapters/prisma";
-import { PrismaPg } from "@prisma/adapter-pg";
-import { Pool } from "pg";
-
-const pool = new Pool({ connectionString: process.env.DATABASE_URL! });
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const adapter = new PrismaPg(pool as any);
+import { prisma } from "@/lib/db";
 
 export const auth = betterAuth({
-  database: prismaAdapter(adapter, {
+  plugins: [
+    openAPI(), 
+  ],
+  database: prismaAdapter(prisma, {
     provider: "postgresql",
   }),
   emailAndPassword: {
@@ -32,4 +31,3 @@ export const auth = betterAuth({
 // Type exports
 export type Session = typeof auth.$Infer.Session;
 export type SessionUser = typeof auth.$Infer.Session.user;
-export type { PrismaPg };

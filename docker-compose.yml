@@ -1,7 +1,6 @@
-version: "3.9"
-
 services:
   postgres:
+    platform: linux/amd64
     image: postgres:16-alpine
     container_name: zoo-postgres
     restart: unless-stopped
@@ -12,13 +11,13 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - .local/data/postgres:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U zoo -d zoo_dev"]
       interval: 5s
       timeout: 5s
       retries: 10
 
-volumes:
-  postgres_data:
-    driver: local
+# volumes:
+#   postgres_data:
+#     driver: local
