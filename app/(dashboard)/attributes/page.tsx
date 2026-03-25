@@ -5,9 +5,15 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { PlusIcon, PencilIcon, Trash2Icon, Settings2Icon } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableHead,
+  TableRow,
+  TableCell,
+} from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Badge } from "@/components/ui/badge";
 import { DefinitionForm } from "@/components/attributes/definition-form";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { AttributeFieldType } from "@prisma/client";
@@ -19,6 +25,8 @@ const FIELD_TYPE_COLORS: Record<AttributeFieldType, string> = {
   DATE: "bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300",
   SELECT: "bg-pink-50 text-pink-700 dark:bg-pink-950 dark:text-pink-300",
 };
+
+const COL_COUNT = 6;
 
 interface Definition {
   id: string;
@@ -75,15 +83,8 @@ export default function AttributesPage() {
     onError: () => toast.error("Failed to delete definition"),
   });
 
-  // Group definitions by category
-  const globalDefs = definitions.filter((d) => !d.categoryId);
-  const byCategory = categories.reduce<Record<string, Definition[]>>((acc, c) => {
-    acc[c.id] = definitions.filter((d) => d.categoryId === c.id);
-    return acc;
-  }, {});
-
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold tracking-tight">Attribute Definitions</h2>
@@ -100,69 +101,79 @@ export default function AttributesPage() {
         </Button>
       </div>
 
-      {isLoading ? (
-        <div className="space-y-3">
-          {[1, 2, 3].map((i) => <Skeleton key={i} className="h-20 w-full" />)}
-        </div>
-      ) : definitions.length === 0 ? (
-        <Card>
-          <CardContent className="py-12 text-center">
-            <Settings2Icon className="h-10 w-10 mx-auto mb-3 text-muted-foreground/40" />
-            <p className="font-medium">No attribute definitions yet</p>
-            <p className="text-sm text-muted-foreground mt-1">
-              Create custom fields like RAM, Storage, or Color per category.
-            </p>
-            <Button className="mt-4" size="sm" onClick={() => { setEditDef(null); setShowForm(true); }}>
-              <PlusIcon className="h-4 w-4" />
-              Create First Attribute
-            </Button>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="space-y-6">
-          {/* Global definitions */}
-          {globalDefs.length > 0 && (
-            <div>
-              <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-2">
-                Global (All Categories)
-              </h3>
-              <div className="grid gap-3">
-                {globalDefs.map((def) => (
-                  <DefinitionCard
-                    key={def.id}
-                    definition={def}
-                    onEdit={() => { setEditDef(def); setShowForm(true); }}
-                    onDelete={() => setDeleteTarget(def)}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* By category */}
-          {categories.map((cat) => {
-            const catDefs = byCategory[cat.id] ?? [];
-            if (catDefs.length === 0) return null;
-            return (
-              <div key={cat.id}>
-                <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-2">
-                  {cat.name}
-                </h3>
-                <div className="grid gap-3">
-                  {catDefs.map((def) => (
-                    <DefinitionCard
-                      key={def.id}
-                      definition={def}
-                      onEdit={() => { setEditDef(def); setShowForm(true); }}
-                      onDelete={() => setDeleteTarget(def)}
-                    />
-                  ))}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
+      <div className="border rounded-lg overflow-hidden">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+              <TableHead>Type</TableHead>
+              <TableHead>Category</TableHead>
+              <TableHead>Required</TableHead>
+              <TableHead>Description</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {isLoading
+              ? Array.from({ length: 4 }).map((_, i) => (
+                  <TableRow key={i}>
+                    {Array.from({ length: COL_COUNT }).map((_, j) => (
+                      <TableCell key={j}>
+                        <Skeleton className="h-4 w-full" />
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              : definitions.length === 0
+              ? (
+                <TableRow>
+                  <TableCell colSpan={COL_COUNT} className="text-center py-12 text-muted-foreground">
+                    <Settings2Icon className="h-10 w-10 mx-auto mb-3 opacity-30" />
+                    <p className="font-medium">No attribute definitions yet</p>
+                    <p className="text-sm mt-1">
+                      Create custom fields like RAM, Storage, or Color per category.
+                    </p>
+                    <Button className="mt-4" size="sm" onClick={() => { setEditDef(null); setShowForm(true); }}>
+                      <PlusIcon className="h-4 w-4" />
+                      Create First Attribute
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              )
+              : definitions.map((def) => (
+                <TableRow key={def.id}>
+                  <TableCell className="font-medium">{def.name}</TableCell>
+                  <TableCell>
+                    <span className={`inline-flex text-xs px-1.5 py-0.5 rounded font-medium ${FIELD_TYPE_COLORS[def.fieldType] ?? ""}`}>
+                      {def.fieldType}
+                    </span>
+                  </TableCell>
+                  <TableCell className="text-muted-foreground text-sm">
+                    {def.category?.name ?? "Global"}
+                  </TableCell>
+                  <TableCell className="text-sm">
+                    {def.required
+                      ? <span className="text-destructive font-medium">Yes</span>
+                      : <span className="text-muted-foreground">No</span>}
+                  </TableCell>
+                  <TableCell className="text-muted-foreground text-sm max-w-[200px] truncate">
+                    {def.description ?? "—"}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex items-center justify-end gap-1">
+                      <Button variant="ghost" size="icon-sm" onClick={() => { setEditDef(def); setShowForm(true); }}>
+                        <PencilIcon className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button variant="ghost" size="icon-sm" onClick={() => setDeleteTarget(def)} className="text-destructive hover:text-destructive">
+                        <Trash2Icon className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+          </TableBody>
+        </Table>
+      </div>
 
       {/* Create/Edit Form */}
       <DefinitionForm
@@ -186,46 +197,5 @@ export default function AttributesPage() {
         variant="destructive"
       />
     </div>
-  );
-}
-
-function DefinitionCard({
-  definition: def,
-  onEdit,
-  onDelete,
-}: {
-  definition: Definition;
-  onEdit: () => void;
-  onDelete: () => void;
-}) {
-  const colorClass = FIELD_TYPE_COLORS[def.fieldType] ?? "";
-  return (
-    <Card className="flex items-center gap-3 px-4 py-3">
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2">
-          <span className="font-medium text-sm">{def.name}</span>
-          <span className={`inline-flex text-xs px-1.5 py-0.5 rounded font-medium ${colorClass}`}>
-            {def.fieldType}
-          </span>
-          {def.required && (
-            <span className="text-xs text-destructive font-medium">Required</span>
-          )}
-          {def.category && (
-            <Badge variant="outline" className="text-xs">{def.category.name}</Badge>
-          )}
-        </div>
-        {def.description && (
-          <p className="text-xs text-muted-foreground mt-0.5 truncate">{def.description}</p>
-        )}
-      </div>
-      <div className="flex gap-1 shrink-0">
-        <Button variant="ghost" size="icon-sm" onClick={onEdit}>
-          <PencilIcon className="h-3.5 w-3.5" />
-        </Button>
-        <Button variant="ghost" size="icon-sm" onClick={onDelete} className="text-destructive hover:text-destructive">
-          <Trash2Icon className="h-3.5 w-3.5" />
-        </Button>
-      </div>
-    </Card>
   );
 }

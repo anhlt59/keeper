@@ -78,6 +78,22 @@ async function main() {
   ]);
   console.log(`✅ Created ${categories.length} categories`);
 
+  // Create employees
+  const employeeData = [
+    { name: "Nguyen Van A", email: "a.nguyen@zoo.local", department: "Engineering", position: "Developer" },
+    { name: "Tran Thi B", email: "b.tran@zoo.local", department: "Design", position: "UI Designer" },
+    { name: "Le Van C", email: "c.le@zoo.local", department: "Engineering", position: "Developer" },
+    { name: "Pham Van D", email: "d.pham@zoo.local", department: "Operations", position: "IT Support" },
+  ];
+  // Delete existing employees first (seed is idempotent via reset)
+  await prisma.employee.deleteMany();
+  const employees = [];
+  for (const emp of employeeData) {
+    const employee = await prisma.employee.create({ data: emp });
+    employees.push(employee);
+  }
+  console.log(`✅ Created ${employees.length} employees`);
+
   // Create sample assets
   const assets = [
     {
@@ -85,6 +101,7 @@ async function main() {
       name: "MacBook Pro 14\" M3",
       categoryId: categories[0].id,
       status: AssetStatus.IN_USE,
+      employeeId: employees[0].id,
       assignedTo: "Nguyen Van A",
       purchaseDate: new Date("2024-01-15"),
       purchasePrice: 34990000,
@@ -96,6 +113,7 @@ async function main() {
       name: "Dell UltraSharp 27\"",
       categoryId: categories[1].id,
       status: AssetStatus.ASSIGNED,
+      employeeId: employees[1].id,
       assignedTo: "Tran Thi B",
       purchaseDate: new Date("2024-03-01"),
       purchasePrice: 12500000,
@@ -107,6 +125,7 @@ async function main() {
       name: "Logitech MX Keys + MX Master 3",
       categoryId: categories[2].id,
       status: AssetStatus.IN_USE,
+      employeeId: employees[2].id,
       assignedTo: "Le Van C",
       purchaseDate: new Date("2024-02-20"),
       purchasePrice: 4500000,
@@ -128,6 +147,7 @@ async function main() {
       name: "ThinkPad X1 Carbon Gen 11",
       categoryId: categories[0].id,
       status: AssetStatus.MAINTENANCE,
+      employeeId: employees[3].id,
       assignedTo: "Pham Van D",
       purchaseDate: new Date("2023-11-10"),
       purchasePrice: 28900000,

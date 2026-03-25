@@ -1,10 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Dialog,
@@ -14,6 +13,18 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+interface Employee {
+  id: string;
+  name: string;
+}
 
 interface AssignDialogProps {
   assetId: string;
@@ -23,13 +34,26 @@ interface AssignDialogProps {
 
 export function AssignDialog({ assetId, assetName, trigger }: AssignDialogProps) {
   const [open, setOpen] = useState(false);
-  const [assignedTo, setAssignedTo] = useState("");
+  const [employeeId, setEmployeeId] = useState<string | null>(null);
+  const [employees, setEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
+  // Fetch employees when dialog opens
+  useEffect(() => {
+    if (!open) return;
+    fetch("/api/employees")
+      .then((res) => {
+        if (!res.ok) throw new Error("Failed to load employees");
+        return res.json();
+      })
+      .then((data) => setEmployees(data))
+      .catch(() => toast.error("Failed to load employees"));
+  }, [open]);
+
   const handleAssign = async () => {
-    if (!assignedTo.trim()) {
-      toast.error("Please enter the assignee name");
+    if (!employeeId) {
+      toast.error("Please select an employee");
       return;
     }
     setLoading(true);
@@ -37,15 +61,16 @@ export function AssignDialog({ assetId, assetName, trigger }: AssignDialogProps)
       const res = await fetch(`/api/assets/${assetId}/assign`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ assignedTo: assignedTo.trim() }),
+        body: JSON.stringify({ employeeId }),
       });
       if (!res.ok) {
         const data = await res.json();
         throw new Error(data.error ?? "Failed to assign");
       }
-      toast.success(`Asset assigned to ${assignedTo}`);
+      const selected = employees.find((e) => e.id === employeeId);
+      toast.success(`Asset assigned to ${selected?.name ?? "employee"}`);
       setOpen(false);
-      setAssignedTo("");
+      setEmployeeId(null);
       router.refresh();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to assign asset");
@@ -61,24 +86,35 @@ export function AssignDialog({ assetId, assetName, trigger }: AssignDialogProps)
         <DialogHeader>
           <DialogTitle>Assign Asset</DialogTitle>
           <DialogDescription>
-            Assign <strong>{assetName}</strong> to an employee or department.
+            Assign <strong>{assetName}</strong> to an employee.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-2">
-          <Label htmlFor="assignedTo">Assigned To</Label>
-          <Input
-            id="assignedTo"
-            placeholder="e.g. Nguyen Van A"
-            value={assignedTo}
-            onChange={(e) => setAssignedTo(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleAssign()}
-          />
+          <Label>Employee</Label>
+          <Select value={employeeId} onValueChange={setEmployeeId}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Select an employee" />
+            </SelectTrigger>
+            <SelectContent>
+              {employees.length === 0 ? (
+                <div className="px-2 py-4 text-center text-sm text-muted-foreground">
+                  No employees found
+                </div>
+              ) : (
+                employees.map((emp) => (
+                  <SelectItem key={emp.id} value={emp.id}>
+                    {emp.name}
+                  </SelectItem>
+                ))
+              )}
+            </SelectContent>
+          </Select>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)} disabled={loading}>
             Cancel
           </Button>
-          <Button onClick={handleAssign} disabled={loading || !assignedTo.trim()}>
+          <Button onClick={handleAssign} disabled={loading || !employeeId}>
             {loading ? "Assigning..." : "Assign"}
           </Button>
         </DialogFooter>

@@ -3,7 +3,7 @@
  * All asset mutations go through here for consistency.
  */
 import { prisma } from "@/lib/db";
-import { AssetEventType, AssetStatus, Prisma } from "@prisma/client";
+import { AssetEventType, AssetStatus, MaintenanceStatus, Prisma } from "@prisma/client";
 import { validateTransition } from "@/lib/fsm";
 import { logAssetEvent } from "@/lib/audit-logger";
 import { generateQRCode } from "@/lib/qr-generator";
@@ -135,6 +135,22 @@ export async function updateAsset(
       description: `Status changed: ${previousStatus} → ${data.status}`,
       performedBy,
     });
+
+    // Complete active maintenance records when transitioning out of MAINTENANCE
+    if (transition.eventType === AssetEventType.MAINTENANCE_COMPLETED) {
+      await prisma.maintenance.updateMany({
+        where: {
+          assetId: id,
+          isDeleted: false,
+          status: { not: MaintenanceStatus.COMPLETED },
+        },
+        data: {
+          status: MaintenanceStatus.COMPLETED,
+          endDate: new Date(),
+        },
+      });
+    }
+
     // Return fresh asset with new status
     return prisma.asset.findUnique({ where: { id }, include: { category: true } });
   }

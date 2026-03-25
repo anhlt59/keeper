@@ -32,12 +32,21 @@ export async function POST(req: NextRequest, { params }: Params) {
 
   validateTransition(asset.status, AssetStatus.ASSIGNED);
 
+  // Look up employee to get name
+  const employee = await prisma.employee.findFirst({
+    where: { id: parsed.data.employeeId, isDeleted: false },
+  });
+  if (!employee) {
+    return NextResponse.json({ error: "Employee not found" }, { status: 404 });
+  }
+
   const [updated] = await prisma.$transaction([
     prisma.asset.update({
       where: { id },
       data: {
         status: AssetStatus.ASSIGNED,
-        assignedTo: parsed.data.assignedTo,
+        employeeId: employee.id,
+        assignedTo: employee.name,
         assignedDate: new Date(),
       },
       include: { category: true },
@@ -48,7 +57,7 @@ export async function POST(req: NextRequest, { params }: Params) {
         eventType: AssetEventType.ASSIGNED,
         fromStatus: asset.status,
         toStatus: AssetStatus.ASSIGNED,
-        description: parsed.data.description ?? `Assigned to ${parsed.data.assignedTo}`,
+        description: parsed.data.description ?? `Assigned to ${employee.name}`,
         performedBy: session.user.id,
       },
     }),

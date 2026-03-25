@@ -38,7 +38,7 @@ export const changeStatusSchema = z.object({
 
 // Assign
 export const assignAssetSchema = z.object({
-  assignedTo: z.string().min(1, "Assignee is required").max(200),
+  employeeId: z.string().cuid("Invalid employee ID"),
   description: z.string().max(500).optional(),
 });
 
