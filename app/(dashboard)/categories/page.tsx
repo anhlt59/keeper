@@ -37,7 +37,11 @@ export default function CategoriesPage() {
 
   const { data: categories = [], isLoading } = useQuery<Category[]>({
     queryKey: ["categories"],
-    queryFn: () => fetch("/api/categories").then((r) => r.json()),
+    queryFn: async () => {
+      const r = await fetch("/api/categories", { credentials: "include" });
+      if (!r.ok) throw new Error("Failed to load categories");
+      return r.json();
+    },
   });
 
   const handleDelete = async () => {

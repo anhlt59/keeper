@@ -82,7 +82,11 @@ function AuditLogsContent() {
 
   const { data, isLoading } = useQuery<ListResponse>({
     queryKey: ["audit-logs", params.toString()],
-    queryFn: () => fetch(`/api/audit-logs?${params}`).then((r) => r.json()),
+    queryFn: async () => {
+      const r = await fetch(`/api/audit-logs?${params}`, { credentials: "include" });
+      if (!r.ok) throw new Error("Failed to load audit logs");
+      return r.json();
+    },
   });
 
   const updateParam = (key: string, value: string | null) => {

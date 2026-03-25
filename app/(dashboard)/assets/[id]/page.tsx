@@ -110,7 +110,7 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
 
   const { data: asset, isLoading, error } = useQuery<AssetDetail>({
     queryKey: ["asset", id],
-    queryFn: () => fetch(`/api/assets/${id}`).then((r) => {
+    queryFn: () => fetch(`/api/assets/${id}`, { credentials: "include" }).then((r) => {
       if (!r.ok) throw new Error("Asset not found");
       return r.json();
     }),
@@ -118,13 +118,21 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
 
   const { data: eventsData, refetch: refetchEvents } = useQuery<AssetDetail["events"]>({
     queryKey: ["asset-events", id],
-    queryFn: () => fetch(`/api/assets/${id}/events`).then((r) => r.json()),
+    queryFn: async () => {
+      const r = await fetch(`/api/assets/${id}/events`, { credentials: "include" });
+      if (!r.ok) throw new Error("Failed to load events");
+      return r.json();
+    },
     enabled: !!asset,
   });
 
   const { data: maintenanceData } = useQuery<{ items: AssetDetail["maintenanceRecords"] }>({
     queryKey: ["asset-maintenance", id],
-    queryFn: () => fetch(`/api/assets/${id}/maintenance`).then((r) => r.json()),
+    queryFn: async () => {
+      const r = await fetch(`/api/assets/${id}/maintenance`, { credentials: "include" });
+      if (!r.ok) throw new Error("Failed to load maintenance records");
+      return r.json();
+    },
     enabled: !!asset,
   });
 
@@ -132,7 +140,11 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
     id: string; name: string; fieldType: string; required: boolean; options: string | null
   }>>({
     queryKey: ["attribute-definitions", asset?.categoryId],
-    queryFn: () => fetch(`/api/attributes/definitions?categoryId=${asset?.categoryId ?? ""}`).then((r) => r.json()),
+    queryFn: async () => {
+      const r = await fetch(`/api/attributes/definitions?categoryId=${asset?.categoryId ?? ""}`, { credentials: "include" });
+      if (!r.ok) throw new Error("Failed to load attribute definitions");
+      return r.json();
+    },
     enabled: !!asset,
   });
 

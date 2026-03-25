@@ -44,7 +44,7 @@ export function QRScanner() {
             if (match) {
               const assetId = match[1];
               try {
-                const res = await fetch(`/api/assets/${assetId}/lookup`);
+                const res = await fetch(`/api/assets/${assetId}/lookup`, { credentials: "include" });
                 if (res.ok) {
                   router.push(`/assets/${assetId}/lookup`);
                 } else {

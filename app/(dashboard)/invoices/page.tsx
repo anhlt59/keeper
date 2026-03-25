@@ -52,12 +52,16 @@ export default function InvoicesPage() {
 
   const { data, isLoading } = useQuery<{ items: Invoice[]; total: number }>({
     queryKey: ["invoices"],
-    queryFn: () => fetch("/api/invoices").then((r) => r.json()),
+    queryFn: async () => {
+      const r = await fetch("/api/invoices", { credentials: "include" });
+      if (!r.ok) throw new Error("Failed to load invoices");
+      return r.json();
+    },
   });
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const res = await fetch(`/api/invoices/${id}`, { method: "DELETE" });
+      const res = await fetch(`/api/invoices/${id}`, { method: "DELETE", credentials: "include" });
       if (!res.ok) throw new Error("Delete failed");
     },
     onSuccess: () => {

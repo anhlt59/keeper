@@ -46,12 +46,20 @@ export default function AttributesPage() {
 
   const { data: definitions = [], isLoading } = useQuery<Definition[]>({
     queryKey: ["attribute-definitions"],
-    queryFn: () => fetch("/api/attributes/definitions").then((r) => r.json()),
+    queryFn: async () => {
+      const r = await fetch("/api/attributes/definitions", { credentials: "include" });
+      if (!r.ok) throw new Error("Failed to load attribute definitions");
+      return r.json();
+    },
   });
 
   const { data: categories = [] } = useQuery<Category[]>({
     queryKey: ["categories"],
-    queryFn: () => fetch("/api/categories").then((r) => r.json()),
+    queryFn: async () => {
+      const r = await fetch("/api/categories", { credentials: "include" });
+      if (!r.ok) throw new Error("Failed to load categories");
+      return r.json();
+    },
   });
 
   const deleteMutation = useMutation({

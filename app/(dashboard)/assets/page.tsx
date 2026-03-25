@@ -81,12 +81,20 @@ function AssetsContent() {
 
   const { data, isLoading } = useQuery<ListResponse>({
     queryKey: ["assets", params.toString()],
-    queryFn: () => fetch(`/api/assets?${params}`).then((r) => r.json()),
+    queryFn: async () => {
+      const r = await fetch(`/api/assets?${params}`, { credentials: "include" });
+      if (!r.ok) throw new Error((await r.json()).error ?? "Failed to load assets");
+      return r.json();
+    },
   });
 
   const { data: categories = [] } = useQuery<Category[]>({
     queryKey: ["categories"],
-    queryFn: () => fetch("/api/categories").then((r) => r.json()),
+    queryFn: async () => {
+      const r = await fetch("/api/categories", { credentials: "include" });
+      if (!r.ok) throw new Error((await r.json()).error ?? "Failed to load categories");
+      return r.json();
+    },
   });
 
   const updateParam = (key: string, value: string) => {

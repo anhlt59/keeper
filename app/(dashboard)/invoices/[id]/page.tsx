@@ -51,7 +51,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
 
   const { data, isLoading, error } = useQuery<InvoiceDetail>({
     queryKey: ["invoice", id],
-    queryFn: () => fetch(`/api/invoices/${id}`).then((r) => {
+    queryFn: () => fetch(`/api/invoices/${id}`, { credentials: "include" }).then((r) => {
       if (!r.ok) throw new Error("Not found");
       return r.json() as Promise<InvoiceDetail>;
     }),
@@ -61,7 +61,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
     if (!data) return;
     setDeleting(true);
     try {
-      const res = await fetch(`/api/invoices/${data.id}`, { method: "DELETE" });
+      const res = await fetch(`/api/invoices/${data.id}`, { method: "DELETE", credentials: "include" });
       if (!res.ok) throw new Error("Delete failed");
       window.location.href = "/invoices";
     } catch {

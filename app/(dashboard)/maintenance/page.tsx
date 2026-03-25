@@ -93,7 +93,11 @@ function MaintenanceContent() {
 
   const { data, isLoading } = useQuery<ListResponse>({
     queryKey: ["maintenance", params.toString()],
-    queryFn: () => fetch(`/api/maintenance?${params}`).then((r) => r.json()),
+    queryFn: async () => {
+      const r = await fetch(`/api/maintenance?${params}`, { credentials: "include" });
+      if (!r.ok) throw new Error("Failed to load maintenance records");
+      return r.json();
+    },
   });
 
   const goPage = (p: number) => {

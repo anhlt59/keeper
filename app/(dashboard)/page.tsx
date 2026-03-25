@@ -30,7 +30,7 @@ function formatVND(value: number | string): string {
 export default function DashboardPage() {
   const { data, isLoading } = useQuery<DashboardData>({
     queryKey: ["dashboard"],
-    queryFn: () => fetch("/api/dashboard").then((r) => {
+    queryFn: () => fetch("/api/dashboard", { credentials: "include" }).then((r) => {
       if (!r.ok) throw new Error("Failed to load dashboard");
       return r.json();
     }),

@@ -57,14 +57,22 @@ export default function EditAssetPage({ params }: { params: Promise<{ id: string
 
   const { data: categories = [] } = useQuery<Category[]>({
     queryKey: ["categories"],
-    queryFn: () => fetch("/api/categories").then((r) => r.json()),
+    queryFn: async () => {
+      const r = await fetch("/api/categories", { credentials: "include" });
+      if (!r.ok) throw new Error("Failed to load categories");
+      return r.json();
+    },
   });
 
   const { data: attrDefinitions = [] } = useQuery<Array<{
     id: string; name: string; fieldType: AttributeFieldType; required: boolean; options: string | null
   }>>({
     queryKey: ["attribute-definitions", asset?.categoryId],
-    queryFn: () => fetch(`/api/attributes/definitions${asset?.categoryId ? `?categoryId=${asset.categoryId}` : ""}`).then((r) => r.json()),
+    queryFn: async () => {
+      const r = await fetch(`/api/attributes/definitions${asset?.categoryId ? `?categoryId=${asset.categoryId}` : ""}`, { credentials: "include" });
+      if (!r.ok) throw new Error("Failed to load attribute definitions");
+      return r.json();
+    },
     enabled: !!asset,
   });
 
