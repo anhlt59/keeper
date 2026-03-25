@@ -207,7 +207,9 @@ export default function EditAssetPage({ params }: { params: Promise<{ id: string
                   onValueChange={(v) => setForm((f) => ({ ...f, categoryId: v ?? "" }))}
                 >
                   <SelectTrigger>
-                    <SelectValue />
+                    <SelectValue>
+                      {(value) => categories.find((c) => c.id === value)?.name ?? "Select category"}
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     {categories.map((c) => (

@@ -133,7 +133,12 @@ function AssetsContent() {
 
         <Select value={categoryId} onValueChange={(v) => updateParam("categoryId", v ?? "")}>
           <SelectTrigger className="w-40">
-            <SelectValue placeholder="All Categories" />
+            <SelectValue placeholder="All Categories">
+              {(value) => {
+                if (!value || value === "__all__") return "All Categories";
+                return categories.find((c) => c.id === value)?.name ?? "All Categories";
+              }}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="__all__">All Categories</SelectItem>
