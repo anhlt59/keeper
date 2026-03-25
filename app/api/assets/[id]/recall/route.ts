@@ -21,9 +21,10 @@ export async function POST(req: NextRequest, { params }: Params) {
   const asset = await prisma.asset.findFirst({ where: { id, isDeleted: false } });
   if (!asset) return NextResponse.json({ error: "Asset not found" }, { status: 404 });
 
-  if (asset.status !== AssetStatus.ASSIGNED) {
+  const recallableStatuses: AssetStatus[] = [AssetStatus.ASSIGNED, AssetStatus.IN_USE];
+  if (!recallableStatuses.includes(asset.status)) {
     return NextResponse.json(
-      { error: `Cannot recall asset in '${asset.status}' status. Must be ASSIGNED.` },
+      { error: `Cannot recall asset in '${asset.status}' status. Must be ASSIGNED or IN_USE.` },
       { status: 400 }
     );
   }
@@ -35,6 +36,7 @@ export async function POST(req: NextRequest, { params }: Params) {
       where: { id },
       data: {
         status: AssetStatus.PURCHASED,
+        employeeId: null,
         assignedTo: null,
         assignedDate: null,
       },

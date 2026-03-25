@@ -12,6 +12,7 @@ import {
   RefreshCwIcon,
   ArrowRightIcon,
   QrCodeIcon,
+  Undo2Icon,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -156,6 +157,28 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
 
   const transitions = asset ? getAvailableTransitions(asset.status) : [];
 
+  const handleRecall = async () => {
+    setTransitioning(true);
+    try {
+      const res = await fetch(`/api/assets/${id}/recall`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error ?? "Recall failed");
+      }
+      toast.success("Asset recalled (unassigned)");
+      queryClient.invalidateQueries({ queryKey: ["asset", id] });
+      refetchEvents();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Recall failed");
+    } finally {
+      setTransitioning(false);
+    }
+  };
+
   const handleStatusChange = async (toStatus: AssetStatus, label: string) => {
     setTransitioning(true);
     try {
@@ -169,7 +192,8 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
         throw new Error(data.error ?? "Transition failed");
       }
       toast.success(`Asset ${label.toLowerCase()}`);
-      router.refresh();
+      queryClient.invalidateQueries({ queryKey: ["asset", id] });
+      refetchEvents();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Transition failed");
     } finally {
@@ -275,6 +299,20 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
                 />
               );
             }
+            if (t.to === AssetStatus.PURCHASED && t.eventType === "RECALLED") {
+              return (
+                <Button
+                  key={`recall-${t.from}`}
+                  variant="outline"
+                  size="sm"
+                  onClick={handleRecall}
+                  disabled={transitioning}
+                >
+                  <Undo2Icon className="h-4 w-4" />
+                  {t.label}
+                </Button>
+              );
+            }
             if (t.to === AssetStatus.ASSIGNED) {
               return (
                 <AssignDialog
@@ -287,6 +325,10 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
                       {t.label}
                     </Button>
                   }
+                  onSuccess={() => {
+                    queryClient.invalidateQueries({ queryKey: ["asset", id] });
+                    refetchEvents();
+                  }}
                 />
               );
             }

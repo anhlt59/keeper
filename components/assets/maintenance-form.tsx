@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -45,8 +44,6 @@ export function MaintenanceForm({
     cost: "",
     performedBy: "",
   });
-  const router = useRouter();
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.description.trim()) {
@@ -75,7 +72,6 @@ export function MaintenanceForm({
       setOpen(false);
       setForm({ type: "PREVENTIVE", description: "", startDate: new Date().toISOString().split("T")[0], cost: "", performedBy: "" });
       onSuccess?.();
-      router.refresh();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to create maintenance");
     } finally {

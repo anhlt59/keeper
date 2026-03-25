@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -30,14 +29,14 @@ interface AssignDialogProps {
   assetId: string;
   assetName: string;
   trigger?: React.ReactNode;
+  onSuccess?: () => void;
 }
 
-export function AssignDialog({ assetId, assetName, trigger }: AssignDialogProps) {
+export function AssignDialog({ assetId, assetName, trigger, onSuccess }: AssignDialogProps) {
   const [open, setOpen] = useState(false);
   const [employeeId, setEmployeeId] = useState<string | null>(null);
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
 
   // Fetch employees when dialog opens
   useEffect(() => {
@@ -71,7 +70,7 @@ export function AssignDialog({ assetId, assetName, trigger }: AssignDialogProps)
       toast.success(`Asset assigned to ${selected?.name ?? "employee"}`);
       setOpen(false);
       setEmployeeId(null);
-      router.refresh();
+      onSuccess?.();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to assign asset");
     } finally {

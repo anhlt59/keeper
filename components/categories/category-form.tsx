@@ -97,7 +97,6 @@ export function CategoryForm({
       await queryClient.invalidateQueries({ queryKey: ["categories"] });
       setOpen(false);
       onSuccess?.();
-      router.refresh();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to save category");
     } finally {

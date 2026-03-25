@@ -30,8 +30,9 @@ export const ASSET_TRANSITIONS: FSMTransition[] = [
   { from: AssetStatus.RETIRED, to: AssetStatus.DISPOSED, eventType: AssetEventType.DISPOSED, label: "Dispose asset" },
   // Disposed → retired (restore)
   { from: AssetStatus.DISPOSED, to: AssetStatus.RETIRED, eventType: AssetEventType.RESTORED, label: "Restore from disposal" },
-  // Recall: ASSIGNED → PURCHASED
+  // Recall: ASSIGNED/IN_USE → PURCHASED
   { from: AssetStatus.ASSIGNED, to: AssetStatus.PURCHASED, eventType: AssetEventType.RECALLED, label: "Recall (unassign)" },
+  { from: AssetStatus.IN_USE, to: AssetStatus.PURCHASED, eventType: AssetEventType.RECALLED, label: "Recall (unassign)" },
 ];
 
 export function canTransition(
