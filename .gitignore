@@ -1,5 +1,7 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+# Claude
 .claude/hooks/.logs/*
+.claude/worktrees/*
 
 # dependencies
 /node_modules
@@ -42,3 +44,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# python
+__pycache__/
+
+# uploads
+/public/uploads/

@@ -1,12 +1,13 @@
 "use client";
 
-import { use, useState } from "react";
+import { use, useState, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronLeftIcon, Trash2Icon } from "lucide-react";
+import { ChevronLeftIcon, ImageIcon, Trash2Icon } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -29,6 +30,7 @@ interface InvoiceDetail {
   invoiceDate: string | null;
   totalAmount: string | null;
   status: InvoiceStatus;
+  filePath: string | null;
   createdAt: string;
   ocrExtraction: InvoiceOcrExtraction | null;
 }
@@ -48,6 +50,11 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
   const { id } = use(params);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [imgError, setImgError] = useState(false);
+  const [imgOpen, setImgOpen] = useState(false);
+  // reset image state when navigating to a different invoice
+  const prevId = useRef(id);
+  if (prevId.current !== id) { prevId.current = id; setImgError(false); setImgOpen(false); }
 
   const { data, isLoading, error } = useQuery<InvoiceDetail>({
     queryKey: ["invoice", id],
@@ -115,16 +122,50 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
               { label: "Vendor", value: invoice.vendor },
               { label: "Invoice Date", value: formatDate(invoice.invoiceDate) },
               { label: "Total Amount", value: invoice.totalAmount ? `${parseFloat(invoice.totalAmount).toLocaleString()} VND` : null },
-              { label: "Created", value: new Date(invoice.createdAt).toLocaleString("vi-VN") },
             ].map(({ label, value }) => (
               <div key={label} className="space-y-1">
                 <dt className="text-muted-foreground text-xs font-medium uppercase">{label}</dt>
                 <dd className="font-medium">{value ?? "—"}</dd>
               </div>
             ))}
+            <div className="space-y-1">
+              <dt className="text-muted-foreground text-xs font-medium uppercase">Created</dt>
+              <dd className="font-medium">{new Date(invoice.createdAt).toLocaleString("vi-VN")}</dd>
+            </div>
+            {invoice.filePath ? (
+              <div className="space-y-1">
+                <dt className="text-muted-foreground text-xs font-medium uppercase">Invoice Image</dt>
+                <Button variant="outline" size="sm" onClick={() => setImgOpen(true)}>
+                  <ImageIcon className="h-4 w-4" />
+                  View Image
+                </Button>
+              </div>
+            ) : <div />}
           </dl>
         </CardContent>
       </Card>
+
+      {/* Invoice image popup */}
+      <Dialog open={imgOpen} onOpenChange={setImgOpen}>
+        <DialogContent className="w-auto flex flex-col">
+          <DialogHeader>
+            <DialogTitle>Invoice Image</DialogTitle>
+          </DialogHeader>
+          {imgError ? (
+            <p className="text-sm text-muted-foreground py-4">Image could not be loaded.</p>
+          ) : (
+            <div className="flex items-center justify-center overflow-hidden">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={invoice.filePath ?? ""}
+                alt="Invoice document"
+                className="rounded-md object-contain"
+                onError={() => setImgError(true)}
+              />
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {invoice.ocrExtraction != null ? (
         <Card>

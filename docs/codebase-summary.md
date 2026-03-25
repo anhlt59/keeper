@@ -199,5 +199,5 @@ zoo/                               # Git root
 
 ---
 
-*Unresolved: Invoice storage — local `public/` vs. cloud S3/Cloudflare R2?*
+*Resolved: Invoice images now saved to `public/uploads/invoices/YYYY/MM/` and stored as web-relative path in `Invoice.filePath`. Display implemented in invoice detail page.*
 *Unresolved: Backup provider — not yet selected*

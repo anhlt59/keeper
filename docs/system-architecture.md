@@ -150,8 +150,8 @@ IN_USE ──[retire]──▶ RETIRED ──[dispose]──▶ DISPOSED
     │
     ▼
 [POST /api/invoices/ocr]
-    └── Store raw file (local/cloud TBD — unresolved)
-    └── Create invoice_ocr_extraction (raw: null, status: pending)
+    └── Save image to public/uploads/invoices/YYYY/MM/ (web-relative path)
+    └── Create invoice_ocr_extraction + invoice record with filePath
     │
     ▼
 [lib/ocr.ts — extractInvoiceData()]
@@ -164,16 +164,18 @@ IN_USE ──[retire]──▶ RETIRED ──[dispose]──▶ DISPOSED
     └── invoice_ocr_extraction (raw: GPT output, status: extracted)
     │
     ▼
-[Admin reviews on confirmation page]
-    └── Shows confidence per field
-    └── Admin edits if needed
+[Admin reviews on detail page]
+    └── Displays uploaded invoice image from filePath
+    └── Shows OCR confidence per field
+    └── Admin can delete if needed
     │
     ▼
-[Admin confirms → create invoice]
-    └── invoice_ocr_extraction (confirmed_data: admin values, status: confirmed)
-    └── invoice (full record)
-    └── NO auto-create without confirmation
+[Create confirmed invoice]
+    └── invoice_ocr_extraction (confirmed_data: extracted values)
+    └── invoice (full record with vendor, invoiceDate, totalAmount, filePath)
 ```
+
+**Image Storage:** Local filesystem at `public/uploads/invoices/{YYYY}/{MM}/{timestamp}-{random}.{ext}`. Web-relative path stored in `Invoice.filePath`. Invoice detail page renders image when filePath present.
 
 **OCR Model:** `gpt-4o-mini` — no version tag pinned in code. For production, pin to a specific model version (e.g., `gpt-4o-mini-2024-07-18`).
 
@@ -388,7 +390,7 @@ prisma.$use(async (params, next) => {
 
 ---
 
-*Unresolved: Invoice storage — local filesystem vs. cloud (S3/R2)?*
-*Unresolved: Backup provider — not yet selected*
+*Resolved: Invoice images stored locally at `public/uploads/invoices/{YYYY}/{MM}/` with web-relative path in `Invoice.filePath`. Display implemented in invoice detail page.*
+*Unresolved: Backup provider for invoice images — not yet selected*
 *Unresolved: Periodic Inventory logic — needs detailed design when Phase 3 starts*
 *Unresolved: Prisma middleware for auto audit log — currently using explicit logAssetEvent()*
