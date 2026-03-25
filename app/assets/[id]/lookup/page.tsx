@@ -10,7 +10,7 @@ export default async function AssetLookupPage({ params }: Params) {
   const { id } = await params;
 
   const asset = await prisma.asset.findFirst({
-    where: { id, isDeleted: false },
+    where: { code: id, isDeleted: false },
     select: {
       id: true, name: true, code: true, status: true,
       assignedTo: true, description: true,
