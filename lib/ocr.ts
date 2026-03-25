@@ -53,7 +53,7 @@ Rules:
 - items: extract line items if visible, can be empty array
 - confidence: rate your overall confidence based on how clearly all fields are visible
 - If a field is illegible or not present, use null
-- Numbers: return as actual numbers, not strings`;
+- Numbers: return as actual numbers, not strings. If the number contains commas or dots as thousand separators, remove them.`;
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 30_000);
