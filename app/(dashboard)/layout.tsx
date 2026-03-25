@@ -97,8 +97,9 @@ function Sidebar() {
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem
-              onClick={() => {
-                window.location.href = "/api/auth/sign-out";
+              onClick={async () => {
+                await fetch("/api/auth/sign-out", { method: "POST" });
+                window.location.href = "/login";
               }}
             >
               Sign Out
