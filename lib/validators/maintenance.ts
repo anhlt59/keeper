@@ -5,11 +5,11 @@ export const createMaintenanceSchema = z.object({
   assetId: z.string().cuid("Invalid asset ID"),
   type: z.nativeEnum(MaintenanceType),
   description: z.string().min(1, "Description is required").max(1000),
-  cost: z.number().positive().optional(),
+  cost: z.number().positive().optional().nullable(),
   startDate: z.string().refine((val) => !isNaN(Date.parse(val)), { message: "Invalid date format" }),
   endDate: z.string().refine((val) => !val || !isNaN(Date.parse(val)), { message: "Invalid date format" }).optional(),
-  performedBy: z.string().max(200).optional(),
-  notes: z.string().max(1000).optional(),
+  performedBy: z.string().max(200).optional().nullable(),
+  notes: z.string().max(1000).optional().nullable(),
 });
 
 export const updateMaintenanceSchema = createMaintenanceSchema.partial().extend({

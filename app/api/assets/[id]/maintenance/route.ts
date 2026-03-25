@@ -65,7 +65,7 @@ export async function POST(req: NextRequest, { params }: Params) {
       assetId: id,
       type: parsed.data.type,
       description: parsed.data.description,
-      cost: parsed.data.cost !== undefined ? new Prisma.Decimal(parsed.data.cost) : undefined,
+      cost: parsed.data.cost != null ? new Prisma.Decimal(parsed.data.cost) : undefined,
       startDate: new Date(parsed.data.startDate),
       endDate: parsed.data.endDate ? new Date(parsed.data.endDate) : undefined,
       performedBy: parsed.data.performedBy,

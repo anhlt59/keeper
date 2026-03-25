@@ -1,7 +1,7 @@
 "use client";
 
 import { use, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -107,6 +107,7 @@ const MAINT_STATUS_CLASS: Record<string, string> = {
 export default function AssetDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   const { data: asset, isLoading, error } = useQuery<AssetDetail>({
     queryKey: ["asset", id],
@@ -126,7 +127,7 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
     enabled: !!asset,
   });
 
-  const { data: maintenanceData } = useQuery<{ items: AssetDetail["maintenanceRecords"] }>({
+  const { data: maintenanceData } = useQuery<AssetDetail["maintenanceRecords"]>({
     queryKey: ["asset-maintenance", id],
     queryFn: async () => {
       const r = await fetch(`/api/assets/${id}/maintenance`, { credentials: "include" });
@@ -214,7 +215,7 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
   }
 
   const events = eventsData ?? asset.events ?? [];
-  const maintenance = maintenanceData?.items ?? asset.maintenanceRecords ?? [];
+  const maintenance = maintenanceData ?? asset.maintenanceRecords ?? [];
 
   return (
     <div className="space-y-4">
@@ -265,7 +266,11 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
                       {t.label}
                     </Button>
                   }
-                  onSuccess={() => { refetchEvents(); router.refresh(); }}
+                  onSuccess={() => {
+                    queryClient.invalidateQueries({ queryKey: ["asset", id] });
+                    queryClient.invalidateQueries({ queryKey: ["asset-maintenance", id] });
+                    refetchEvents();
+                  }}
                 />
               );
             }
@@ -412,7 +417,11 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
                     Add Record
                   </Button>
                 }
-                onSuccess={() => router.refresh()}
+                onSuccess={() => {
+                  queryClient.invalidateQueries({ queryKey: ["asset", id] });
+                  queryClient.invalidateQueries({ queryKey: ["asset-maintenance", id] });
+                  refetchEvents();
+                }}
               />
             </CardHeader>
             <CardContent>

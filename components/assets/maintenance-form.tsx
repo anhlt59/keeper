@@ -59,6 +59,7 @@ export function MaintenanceForm({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          assetId,
           type: form.type,
           description: form.description.trim(),
           startDate: form.startDate,
