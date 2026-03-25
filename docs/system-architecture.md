@@ -156,8 +156,9 @@ IN_USE ──[retire]──▶ RETIRED ──[dispose]──▶ DISPOSED
     ▼
 [lib/ocr.ts — extractInvoiceData()]
     └── Model: gpt-4o-mini (pin to specific version in production)
-    └── System prompt: extract vendor, invoice_date, total_amount, line_items
+    └── System prompt: extract vendor, invoice_date, total_amount, line_items, categories
     └── Language priority: Vietnamese first, English fallback
+    └── Categories field: pre-fills the Upload Invoices category dropdown (UI reads from `extracted.categories` — not hardcoded)
     │
     ▼
 [Save raw extraction + confidence scores]

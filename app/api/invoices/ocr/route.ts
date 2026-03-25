@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
-import { extractInvoiceData } from "@/lib/ocr";
+import { extractInvoiceData, fetchCategoryNames } from "@/lib/ocr";
 import { Prisma } from "@prisma/client";
 import { writeFile, mkdir, unlink } from "fs/promises";
 import { join } from "path";
@@ -83,9 +83,10 @@ export async function POST(req: NextRequest) {
   }
 
   // Extract data via OpenAI; cleanup written file on failure
+  const categoryNames = await fetchCategoryNames();
   let result;
   try {
-    result = await extractInvoiceData(arrayBufferToBase64(arrayBuffer));
+    result = await extractInvoiceData(arrayBufferToBase64(arrayBuffer), categoryNames);
   } catch (err) {
     unlink(join(process.cwd(), "public", filePath.slice(1))).catch(() => {});
     const message = err instanceof Error ? err.message : "OCR extraction failed";
@@ -99,7 +100,7 @@ export async function POST(req: NextRequest) {
       prisma.ocrExtraction.create({
         data: {
           rawResponse: { raw: result.raw },
-          extractedData: result.extracted as Prisma.InputJsonValue,
+          extractedData: result.extracted as unknown as Prisma.InputJsonValue,
           confidence: result.confidence,
           confirmed: false,
         },

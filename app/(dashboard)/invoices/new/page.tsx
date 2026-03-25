@@ -11,6 +11,15 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { InvoiceUpload } from "@/components/invoices/invoice-upload";
 import { InvoicePreview } from "@/components/invoices/invoice-preview";
 import { InvoiceForm } from "@/components/invoices/invoice-form";
+import { type EditableAsset } from "@/components/invoices/editable-asset-row";
+
+interface ExtractedAsset {
+  name: string;
+  suggestedCategory: string | null;
+  quantity: number;
+  unitPrice: number | null;
+  warrantyMonths: number | null;
+}
 
 interface OcrResult {
   invoiceId: string;
@@ -27,6 +36,8 @@ interface OcrResult {
       unitPrice: number | null;
       amount: number | null;
     }>;
+    assets: ExtractedAsset[];
+    categories: string[];
   };
   confidence: number;
   raw: string;
@@ -40,6 +51,7 @@ export default function NewInvoicePage() {
   const [ocrResult, setOcrResult] = useState<OcrResult | null>(null);
   const [file, setFile] = useState<File | null>(null);
   const [formData, setFormData] = useState<Record<string, string>>({});
+  const [editableAssets, setEditableAssets] = useState<EditableAsset[]>([]);
   const [uploading, setUploading] = useState(false);
 
   function handleFileSelected(f: File) {
@@ -59,6 +71,13 @@ export default function NewInvoicePage() {
       }
       const result: OcrResult = await res.json();
       setOcrResult(result);
+      setEditableAssets(result.extracted.assets?.map((a) => ({
+        name: a.name,
+        category: a.suggestedCategory ?? "",
+        quantity: String(a.quantity ?? 1),
+        unitPrice: a.unitPrice != null ? String(a.unitPrice) : "",
+        warrantyMonths: a.warrantyMonths != null ? String(a.warrantyMonths) : "",
+      })) ?? []);
       setFormData({
         invoiceNumber: result.extracted.invoiceNumber ?? "",
         vendor: result.extracted.vendor ?? "",
@@ -76,6 +95,14 @@ export default function NewInvoicePage() {
 
   function handleFieldChange(field: string, value: string) {
     setFormData((f) => ({ ...f, [field]: value }));
+  }
+
+  function updateAsset(index: number, field: keyof EditableAsset, value: string) {
+    setEditableAssets((prev) => prev.map((a, i) => (i === index ? { ...a, [field]: value } : a)));
+  }
+
+  function removeAsset(index: number) {
+    setEditableAssets((prev) => prev.filter((_, i) => i !== index));
   }
 
   return (
@@ -154,8 +181,12 @@ export default function NewInvoicePage() {
             <InvoicePreview
               extracted={ocrResult.extracted}
               confidence={ocrResult.confidence}
+              editableAssets={editableAssets}
+              onAssetChange={updateAsset}
+              onAssetRemove={removeAsset}
               formData={formData}
               onFieldChange={handleFieldChange}
+              categories={ocrResult.extracted.categories ?? []}
             />
             <div className="flex justify-between">
               <Button variant="outline" onClick={() => setStep("upload")}>
@@ -183,6 +214,10 @@ export default function NewInvoicePage() {
               invoiceId={ocrResult.invoiceId}
               ocrExtractionId={ocrResult.ocrExtractionId}
               initialData={ocrResult.extracted}
+              assets={editableAssets}
+              vendor={ocrResult.extracted.vendor}
+              purchaseDate={ocrResult.extracted.invoiceDate}
+              categories={ocrResult.extracted.categories ?? []}
               onSuccess={() => {
                 if (typeof window !== "undefined") {
                   router.push("/invoices");

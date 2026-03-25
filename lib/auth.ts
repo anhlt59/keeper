@@ -5,7 +5,7 @@ import { prisma } from "@/lib/db";
 
 export const auth = betterAuth({
   plugins: [
-    openAPI(), 
+    openAPI(),
   ],
   database: prismaAdapter(prisma, {
     provider: "postgresql",

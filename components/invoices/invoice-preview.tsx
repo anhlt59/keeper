@@ -1,8 +1,17 @@
 "use client";
 
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { CheckCircleIcon, AlertCircleIcon } from "lucide-react";
+import { PackageIcon } from "lucide-react";
+import { EditableAssetRow, type EditableAsset } from "@/components/invoices/editable-asset-row";
+import { EditableInvoiceRow } from "@/components/invoices/editable-invoice-row";
+
+interface ExtractedAsset {
+  name: string;
+  suggestedCategory: string | null;
+  quantity: number;
+  unitPrice: number | null;
+  warrantyMonths: number | null;
+}
 
 interface InvoiceExtractedData {
   vendor: string | null;
@@ -16,56 +25,7 @@ interface InvoiceExtractedData {
     unitPrice: number | null;
     amount: number | null;
   }>;
-}
-
-interface FieldProps {
-  label: string;
-  value: string | number | null;
-  confidence: number | null;
-  editable?: boolean;
-  onChange?: (v: string) => void;
-  type?: "text" | "date" | "number";
-}
-
-function ConfidenceBadge({ confidence }: { confidence: number | null }) {
-  if (confidence == null) return null;
-  const pct = Math.round(confidence * 100);
-  const cls =
-    pct >= 90 ? "text-green-600 bg-green-50 dark:bg-green-950 dark:text-green-300"
-    : pct >= 70 ? "text-amber-600 bg-amber-50 dark:bg-amber-950 dark:text-amber-300"
-    : "text-red-600 bg-red-50 dark:bg-red-950 dark:text-red-300";
-  return (
-    <span className={`inline-flex items-center gap-0.5 text-xs font-medium px-1.5 py-0.5 rounded ${cls}`}>
-      {pct >= 70 ? <CheckCircleIcon className="h-3 w-3" /> : <AlertCircleIcon className="h-3 w-3" />}
-      {pct}%
-    </span>
-  );
-}
-
-function EditableField({ label, value, confidence, editable = true, onChange, type = "text" }: FieldProps) {
-  const isLow = confidence != null && confidence < 0.7;
-  return (
-    <div className="space-y-1">
-      <div className="flex items-center gap-1.5">
-        <Label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-          {label}
-        </Label>
-        <ConfidenceBadge confidence={confidence} />
-      </div>
-      {editable ? (
-        <Input
-          type={type}
-          value={value != null ? String(value) : ""}
-          onChange={(e) => onChange?.(e.target.value)}
-          className={isLow ? "border-amber-400 dark:border-amber-600" : ""}
-        />
-      ) : (
-        <p className={`text-sm font-medium py-1 ${!value ? "text-muted-foreground italic" : ""}`}>
-          {value ?? "—"}
-        </p>
-      )}
-    </div>
-  );
+  assets?: ExtractedAsset[];
 }
 
 interface InvoicePreviewProps {
@@ -73,6 +33,10 @@ interface InvoicePreviewProps {
   confidence: number;
   formData: Record<string, string>;
   onFieldChange: (field: string, value: string) => void;
+  editableAssets: EditableAsset[];
+  onAssetChange: (index: number, field: keyof EditableAsset, value: string) => void;
+  onAssetRemove: (index: number) => void;
+  categories: string[];
 }
 
 export function InvoicePreview({
@@ -80,6 +44,10 @@ export function InvoicePreview({
   confidence,
   formData,
   onFieldChange,
+  editableAssets,
+  onAssetChange,
+  onAssetRemove,
+  categories,
 }: InvoicePreviewProps) {
   const overallPct = Math.round(confidence * 100);
   const overallCls =
@@ -99,63 +67,45 @@ export function InvoicePreview({
         </p>
       </div>
 
-      {/* Extracted fields */}
-      <div className="grid grid-cols-2 gap-4">
-        <EditableField
-          label="Invoice Number"
-          value={formData.invoiceNumber ?? extracted.invoiceNumber ?? ""}
-          confidence={confidence > 0.8 ? confidence : confidence * 0.9}
-          onChange={(v) => onFieldChange("invoiceNumber", v)}
-        />
-        <EditableField
-          label="Vendor"
-          value={formData.vendor ?? extracted.vendor ?? ""}
-          confidence={confidence > 0.8 ? confidence : confidence * 0.9}
-          onChange={(v) => onFieldChange("vendor", v)}
-        />
-        <EditableField
-          label="Invoice Date"
-          value={formData.invoiceDate ?? extracted.invoiceDate ?? ""}
-          confidence={confidence > 0.8 ? confidence : confidence * 0.85}
-          type="date"
-          onChange={(v) => onFieldChange("invoiceDate", v)}
-        />
-        <EditableField
-          label={`Total Amount (${extracted.currency ?? "VND"})`}
-          value={formData.totalAmount ?? (extracted.totalAmount != null ? String(extracted.totalAmount) : "")}
-          confidence={confidence > 0.8 ? confidence : confidence * 0.8}
-          type="number"
-          onChange={(v) => onFieldChange("totalAmount", v)}
-        />
-      </div>
+      {/* Invoice */}
+      <EditableInvoiceRow
+        invoiceNumber={formData.invoiceNumber ?? extracted.invoiceNumber ?? ""}
+        vendor={formData.vendor ?? extracted.vendor ?? ""}
+        invoiceDate={formData.invoiceDate ?? extracted.invoiceDate ?? ""}
+        totalAmount={formData.totalAmount ?? (extracted.totalAmount != null ? String(extracted.totalAmount) : "")}
+        currency={extracted.currency ?? undefined}
+        confidence={{
+          invoiceNumber: confidence > 0.8 ? confidence : confidence * 0.9,
+          vendor: confidence > 0.8 ? confidence : confidence * 0.9,
+          invoiceDate: confidence > 0.8 ? confidence : confidence * 0.85,
+          totalAmount: confidence > 0.8 ? confidence : confidence * 0.8,
+        }}
+        onChange={onFieldChange}
+      />
 
-      {/* Line items */}
-      {extracted.items.length > 0 && (
-        <div className="space-y-2">
-          <Label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-            Line Items
+      {/* Detected Assets */}
+      {editableAssets && editableAssets.length > 0 && (
+        <div className="space-y-3">
+          <Label className="text-xs font-bold uppercase tracking-wide text-muted-foreground flex items-center gap-1.5">
+            <PackageIcon className="h-3.5 w-3.5" />
+            Detected Assets ({editableAssets.length})
           </Label>
-          <div className="border rounded-lg overflow-hidden">
-            <table className="w-full text-sm">
-              <thead className="bg-muted/50">
-                <tr>
-                  <th className="text-left px-3 py-2 font-medium text-muted-foreground">Description</th>
-                  <th className="text-right px-3 py-2 font-medium text-muted-foreground">Qty</th>
-                  <th className="text-right px-3 py-2 font-medium text-muted-foreground">Unit Price</th>
-                  <th className="text-right px-3 py-2 font-medium text-muted-foreground">Amount</th>
-                </tr>
-              </thead>
-              <tbody>
-                {extracted.items.map((item, i) => (
-                  <tr key={i} className="border-t">
-                    <td className="px-3 py-2">{item.description}</td>
-                    <td className="px-3 py-2 text-right">{item.quantity ?? "—"}</td>
-                    <td className="px-3 py-2 text-right">{item.unitPrice != null ? item.unitPrice.toLocaleString() : "—"}</td>
-                    <td className="px-3 py-2 text-right font-medium">{item.amount != null ? item.amount.toLocaleString() : "—"}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="space-y-3">
+            {editableAssets.map((asset, i) => (
+              <EditableAssetRow
+                key={i}
+                asset={asset}
+                index={i}
+                onChange={onAssetChange}
+                onRemove={onAssetRemove}
+                confidence={{
+                  name: confidence * 0.9,
+                  quantity: confidence * 0.85,
+                  unitPrice: confidence * 0.8,
+                }}
+                categories={categories}
+              />
+            ))}
           </div>
         </div>
       )}
