@@ -143,7 +143,7 @@ function MobileNav() {
 
 const pageConfig: Record<string, { title: string; action?: { label: string; href: string } }> = {
   "/": { title: "Dashboard" },
-  "/assets": { title: "Asset Management", action: { label: "+ New Asset", href: "/assets/new" } },
+  "/assets": { title: "Asset Management"},
   "/categories": { title: "Categories" },
   "/attributes": { title: "Attributes" },
   "/maintenance": { title: "Maintenance" },
