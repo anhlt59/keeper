@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { PackageIcon, DollarSignIcon, WrenchIcon, ClockIcon } from "lucide-react";
+import { PackageIcon, DollarSignIcon, WrenchIcon, ClockIcon, CalculatorIcon } from "lucide-react";
 import { KpiCard } from "@/components/dashboard/kpi-card";
 import { AssetStatusChart } from "@/components/dashboard/asset-status-chart";
 import { RecentEvents } from "@/components/dashboard/recent-events";
@@ -12,6 +12,7 @@ interface DashboardData {
   totalValue: number | string;
   byStatus: { status: AssetStatus; count: number }[];
   maintenanceCostMTD: number | string;
+  totalMaintenanceCost: number | string;
   recentEvents: Array<{
     id: string;
     asset?: { id: string; name: string; code: string };
@@ -38,6 +39,7 @@ export default function DashboardPage() {
 
   const totalValue = data?.totalValue ?? 0;
   const maintenanceCost = data?.maintenanceCostMTD ?? 0;
+  const totalMaintenance = data?.totalMaintenanceCost ?? 0;
   const pendingCount = (data?.byStatus ?? [])
     .filter((s) => s.status === "MAINTENANCE")
     .reduce((sum, s) => sum + s.count, 0);
@@ -45,7 +47,7 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6">
       {/* KPI Grid */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
         <KpiCard
           label="Total Assets"
           value={isLoading ? "—" : data?.totalAssets ?? 0}
@@ -65,6 +67,13 @@ export default function DashboardPage() {
           value={isLoading ? "—" : formatVND(maintenanceCost)}
           subtext="This month"
           icon={<WrenchIcon />}
+          loading={isLoading}
+        />
+        <KpiCard
+          label="Total Maintenance"
+          value={isLoading ? "—" : formatVND(totalMaintenance)}
+          subtext="All time"
+          icon={<CalculatorIcon />}
           loading={isLoading}
         />
         <KpiCard

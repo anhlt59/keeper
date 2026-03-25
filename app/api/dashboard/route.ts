@@ -15,6 +15,7 @@ export async function GET(req: NextRequest) {
     byStatus,
     byCategory,
     maintenanceCostMTD,
+    totalMaintenanceCost,
     recentEvents,
   ] = await Promise.all([
     // Total active assets
@@ -51,6 +52,15 @@ export async function GET(req: NextRequest) {
       _sum: { cost: true },
     }),
 
+    // Total maintenance cost (all time)
+    prisma.maintenance.aggregate({
+      where: {
+        isDeleted: false,
+        cost: { not: null },
+      },
+      _sum: { cost: true },
+    }),
+
     // Recent 10 events
     prisma.assetEvent.findMany({
       take: 10,
@@ -78,6 +88,7 @@ export async function GET(req: NextRequest) {
       count: c._count.categoryId,
     })),
     maintenanceCostMTD: maintenanceCostMTD._sum.cost ?? 0,
+    totalMaintenanceCost: totalMaintenanceCost._sum.cost ?? 0,
     recentEvents,
   });
 }
