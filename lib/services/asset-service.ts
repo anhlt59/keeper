@@ -100,9 +100,7 @@ export async function updateAsset(
     assignedTo: data.assignedTo,
     assignedDate: data.assignedDate ? new Date(data.assignedDate) : undefined,
     purchaseDate: data.purchaseDate ? new Date(data.purchaseDate) : undefined,
-    purchasePrice: data.purchasePrice !== undefined
-      ? new Prisma.Decimal(data.purchasePrice)
-      : undefined,
+    purchasePrice: data.purchasePrice != null ? new Prisma.Decimal(data.purchasePrice) : data.purchasePrice,
     vendor: data.vendor,
     warrantyMonths: data.warrantyMonths,
     nextMaintenanceDate: data.nextMaintenanceDate
