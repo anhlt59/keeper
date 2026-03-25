@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -66,12 +66,27 @@ export function DefinitionForm({
     name: initialData?.name ?? "",
     description: initialData?.description ?? null,
     fieldType: initialData?.fieldType ?? AttributeFieldType.TEXT,
-    categoryId: initialData?.categoryId ?? "",
+    categoryId: initialData?.categoryId ?? null,
     required: initialData?.required ?? false,
     options: initialData?.options ?? null,
     order: initialData?.order ?? 0,
   });
   const [loading, setLoading] = useState(false);
+
+  // Reset form when dialog opens with new data
+  useEffect(() => {
+    if (open) {
+      setForm({
+        name: initialData?.name ?? "",
+        description: initialData?.description ?? null,
+        fieldType: initialData?.fieldType ?? AttributeFieldType.TEXT,
+        categoryId: initialData?.categoryId ?? null,
+        required: initialData?.required ?? false,
+        options: initialData?.options ?? null,
+        order: initialData?.order ?? 0,
+      });
+    }
+  }, [open]);
 
   const isEdit = !!definitionId;
 
@@ -153,10 +168,12 @@ export function DefinitionForm({
             <Label htmlFor="def-category">Category</Label>
             <Select
               value={form.categoryId}
-              onValueChange={(v) => setForm((f) => ({ ...f, categoryId: v }))}
+              onValueChange={(v) => setForm((f) => ({ ...f, categoryId: v || null }))}
             >
               <SelectTrigger id="def-category">
-                <SelectValue placeholder="Global (all categories)" />
+                <SelectValue>
+                  {form.categoryId ? categories.find((c) => c.id === form.categoryId)?.name : "Global (all categories)"}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="">Global (all categories)</SelectItem>

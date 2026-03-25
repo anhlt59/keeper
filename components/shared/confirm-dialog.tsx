@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -14,7 +15,7 @@ interface ConfirmDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   title: string;
-  description: string;
+  description: React.ReactNode;
   onConfirm: () => void;
   loading?: boolean;
   confirmLabel?: string;

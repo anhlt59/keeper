@@ -28,6 +28,7 @@ interface Category {
   id: string;
   name: string;
   description: string | null;
+  parent?: { id: string; name: string } | null;
 }
 
 interface CategoryFormProps {
@@ -50,7 +51,7 @@ export function CategoryForm({
   const [form, setForm] = useState({
     name: initialData?.name ?? "",
     description: initialData?.description ?? "",
-    parentId: "",
+    parentId: initialData?.parent?.id ?? "",
   });
   const router = useRouter();
 
@@ -61,7 +62,7 @@ export function CategoryForm({
       setForm({
         name: initialData?.name ?? "",
         description: initialData?.description ?? "",
-        parentId: "",
+        parentId: initialData?.parent?.id ?? "",
       });
     }
     setOpen(val);
@@ -148,7 +149,7 @@ export function CategoryForm({
             >
               <SelectTrigger>
                 <SelectValue>
-                  {(value) => categories.find((c) => c.id === value)?.name ?? "None (top-level)"}
+                  {form.parentId ? categories.find((c) => c.id === form.parentId)?.name : "None (top-level)"}
                 </SelectValue>
               </SelectTrigger>
               <SelectContent>

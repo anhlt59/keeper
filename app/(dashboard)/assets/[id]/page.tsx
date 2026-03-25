@@ -154,6 +154,7 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
   const [deleting, setDeleting] = useState(false);
   const [transitioning, setTransitioning] = useState(false);
   const [qrModalOpen, setQrModalOpen] = useState(false);
+  const [retireDialogOpen, setRetireDialogOpen] = useState(false);
 
   const transitions = asset ? getAvailableTransitions(asset.status) : [];
 
@@ -330,6 +331,20 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
                     refetchEvents();
                   }}
                 />
+              );
+            }
+            if (t.to === AssetStatus.RETIRED) {
+              return (
+                <Button
+                  key={t.to}
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setRetireDialogOpen(true)}
+                  disabled={transitioning}
+                >
+                  <RefreshCwIcon className="h-4 w-4" />
+                  {t.label}
+                </Button>
               );
             }
             return (
@@ -522,10 +537,23 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
         assetId={asset.id}
       />
       <ConfirmDialog
+        open={retireDialogOpen}
+        onOpenChange={setRetireDialogOpen}
+        title="Retire Asset"
+        description={<>Are you sure you want to retire &quot;{asset.name}&quot; ({asset.code})?<br />This cannot be undone.</>}
+        onConfirm={() => {
+          setRetireDialogOpen(false);
+          handleStatusChange(AssetStatus.RETIRED, "Retired");
+        }}
+        loading={transitioning}
+        confirmLabel="Retire"
+        variant="destructive"
+      />
+      <ConfirmDialog
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
         title="Delete Asset"
-        description={`Are you sure you want to permanently delete "${asset.name}" (${asset.code})? This cannot be undone.`}
+        description={<>Are you sure you want to permanently delete &quot;{asset.name}&quot; ({asset.code})?<br />This cannot be undone.</>}
         onConfirm={handleDelete}
         loading={deleting}
         confirmLabel="Delete"

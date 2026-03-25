@@ -112,7 +112,7 @@ function AuditLogsContent() {
             <SelectValue placeholder="Entity Type" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="__all__">All Entities</SelectItem>
+            <SelectItem>All Entities</SelectItem>
             {ENTITY_OPTIONS.map((e) => (
               <SelectItem key={e} value={e}>{e}</SelectItem>
             ))}
@@ -124,7 +124,7 @@ function AuditLogsContent() {
             <SelectValue placeholder="Action Type" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="__all__">All Actions</SelectItem>
+            <SelectItem>All Actions</SelectItem>
             {ACTION_OPTIONS.map((a) => (
               <SelectItem key={a} value={a}>{a.replace(/_/g, " ")}</SelectItem>
             ))}
