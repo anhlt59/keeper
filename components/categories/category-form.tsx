@@ -14,7 +14,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import {
   Select,
@@ -104,7 +103,7 @@ export function CategoryForm({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger>{trigger}</DialogTrigger>
+      <div onClick={() => handleOpenChange(true)}>{trigger}</div>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>

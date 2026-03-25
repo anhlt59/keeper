@@ -21,7 +21,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 
 interface MaintenanceFormProps {
@@ -85,7 +84,7 @@ export function MaintenanceForm({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={trigger as React.ReactElement} />
+      <div onClick={() => setOpen(true)}>{trigger}</div>
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>Add Maintenance Record</DialogTitle>

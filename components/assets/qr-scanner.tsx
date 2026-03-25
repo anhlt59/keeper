@@ -5,39 +5,53 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { CameraIcon, KeyboardIcon, QrCodeIcon } from "lucide-react";
+import { CameraIcon, KeyboardIcon } from "lucide-react";
 import { toast } from "sonner";
 
 export function QRScanner() {
   const router = useRouter();
   const [cameraAllowed, setCameraAllowed] = useState<boolean | null>(null);
   const [manualId, setManualId] = useState("");
-  const [scanning, setScanning] = useState(false);
   const [showManual, setShowManual] = useState(false);
   const scannerRef = useRef<HTMLDivElement>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const html5QrRef = useRef<any>(null);
+  const scannerStartedRef = useRef(false);
 
   useEffect(() => {
     if (showManual) return;
+
     let mounted = true;
 
     async function startScanner() {
+      // 1. Check device availability first
+      try {
+        await navigator.mediaDevices.getUserMedia({ video: true });
+      } catch {
+        if (mounted) {
+          setCameraAllowed(false);
+          setShowManual(true);
+          toast.error("No camera found on this device");
+        }
+        return;
+      }
+
+      // 2. Load html5-qrcode
       try {
         const { Html5Qrcode } = await import("html5-qrcode");
         const scannerId = "qr-reader";
         const el = document.getElementById(scannerId);
         if (!el || !mounted) return;
 
-        const scanner = new Html5Qrcode(scannerId);
+        scanner = new Html5Qrcode(scannerId);
+
+        // Assign ref AFTER scanner is instantiated, not after start()
         html5QrRef.current = scanner;
-        setCameraAllowed(true);
 
         await scanner.start(
           { facingMode: "environment" },
           { fps: 10, qrbox: 250 },
           async (decodedText) => {
-            setScanning(true);
             // Expect URL like .../assets/{id}/lookup or just {id}
             const match = decodedText.match(/\/assets\/([a-z0-9]+)\/lookup/i)
               ?? decodedText.match(/([a-z0-9]{20,})/i);
@@ -49,24 +63,25 @@ export function QRScanner() {
                   router.push(`/assets/${assetId}/lookup`);
                 } else {
                   toast.error("Asset not found");
-                  setScanning(false);
                 }
               } catch {
                 toast.error("Failed to validate asset");
-                setScanning(false);
               }
             } else {
               toast.error("Invalid QR code format");
-              setScanning(false);
             }
           },
-          () => {} // ignore errors during scanning
+          () => {} // ignore scan errors
         );
+
+        scannerStartedRef.current = true;
+        if (mounted) setCameraAllowed(true);
       } catch (err) {
-        console.error("Camera error:", err);
+        // Camera not available or failed to start — fall back to manual
         if (mounted) {
           setCameraAllowed(false);
           setShowManual(true);
+          toast.error("Camera not available");
         }
       }
     }
@@ -75,8 +90,10 @@ export function QRScanner() {
 
     return () => {
       mounted = false;
-      if (html5QrRef.current) {
+      if (scannerStartedRef.current && html5QrRef.current) {
+        scannerStartedRef.current = false;
         html5QrRef.current.stop().catch(() => {});
+        html5QrRef.current = null;
       }
     };
   }, [showManual, router]);

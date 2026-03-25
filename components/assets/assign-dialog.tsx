@@ -13,7 +13,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 
 interface AssignDialogProps {
@@ -57,7 +56,7 @@ export function AssignDialog({ assetId, assetName, trigger }: AssignDialogProps)
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger>{trigger}</DialogTrigger>
+      <div onClick={() => setOpen(true)}>{trigger}</div>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Assign Asset</DialogTitle>
