@@ -6,8 +6,8 @@ export const createMaintenanceSchema = z.object({
   type: z.nativeEnum(MaintenanceType),
   description: z.string().min(1, "Description is required").max(1000),
   cost: z.number().positive().optional(),
-  startDate: z.string().datetime(),
-  endDate: z.string().datetime().optional(),
+  startDate: z.string().refine((val) => !isNaN(Date.parse(val)), { message: "Invalid date format" }),
+  endDate: z.string().refine((val) => !val || !isNaN(Date.parse(val)), { message: "Invalid date format" }).optional(),
   performedBy: z.string().max(200).optional(),
   notes: z.string().max(1000).optional(),
 });
@@ -17,7 +17,7 @@ export const updateMaintenanceSchema = createMaintenanceSchema.partial().extend(
 });
 
 export const completeMaintenanceSchema = z.object({
-  endDate: z.string().datetime(),
+  endDate: z.string().refine((val) => !isNaN(Date.parse(val)), { message: "Invalid date format" }),
   cost: z.number().positive().optional(),
   notes: z.string().max(1000).optional(),
 });

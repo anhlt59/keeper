@@ -12,18 +12,12 @@ export const createAssetSchema = z.object({
   categoryId: z.string().cuid("Invalid category ID"),
   status: assetStatusSchema.optional().default(AssetStatus.PURCHASED),
   assignedTo: z.string().max(200).optional(),
-  assignedDate: z.string().datetime().optional(),
-  purchaseDate: z
-    .string()
-    .refine(
-      (val) => !val || !isNaN(Date.parse(val)),
-      { message: "Invalid date format" }
-    )
-    .optional(),
+  assignedDate: z.string().refine((val) => !val || !isNaN(Date.parse(val)), { message: "Invalid date format" }).optional(),
+  purchaseDate: z.string().refine((val) => !val || !isNaN(Date.parse(val)), { message: "Invalid date format" }).optional(),
   purchasePrice: z.number().positive().optional(),
   vendor: z.string().max(200).optional(),
   warrantyMonths: z.number().int().min(0).max(120).optional(),
-  nextMaintenanceDate: z.string().datetime().optional(),
+  nextMaintenanceDate: z.string().refine((val) => !val || !isNaN(Date.parse(val)), { message: "Invalid date format" }).optional(),
   attributeValues: z.record(z.string(), z.unknown()).optional(),
 });
 
