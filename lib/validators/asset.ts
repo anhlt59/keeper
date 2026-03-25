@@ -13,7 +13,13 @@ export const createAssetSchema = z.object({
   status: assetStatusSchema.optional().default(AssetStatus.PURCHASED),
   assignedTo: z.string().max(200).optional(),
   assignedDate: z.string().datetime().optional(),
-  purchaseDate: z.string().datetime().optional(),
+  purchaseDate: z
+    .string()
+    .refine(
+      (val) => !val || !isNaN(Date.parse(val)),
+      { message: "Invalid date format" }
+    )
+    .optional(),
   purchasePrice: z.number().positive().optional(),
   vendor: z.string().max(200).optional(),
   warrantyMonths: z.number().int().min(0).max(120).optional(),
@@ -21,12 +27,13 @@ export const createAssetSchema = z.object({
   attributeValues: z.record(z.string(), z.unknown()).optional(),
 });
 
-// Update asset
+// Update asset — status has no default so it won't trigger FSM validation when omitted
 export const updateAssetSchema = createAssetSchema
-  .omit({ code: true })
+  .omit({ code: true, status: true })
   .partial()
   .extend({
     code: z.string().min(1).max(50).optional(),
+    status: assetStatusSchema.optional(),
   });
 
 // Status change
