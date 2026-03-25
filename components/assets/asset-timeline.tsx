@@ -22,6 +22,7 @@ interface TimelineEvent {
   toStatus?: string | null;
   description?: string | null;
   performedBy?: string | null;
+  performedByName?: string | null;
   createdAt: string | Date;
 }
 
@@ -125,9 +126,9 @@ export function AssetTimeline({ events }: AssetTimelineProps) {
                   {formatRelativeTime(event.createdAt)}
                 </span>
               </div>
-              {event.performedBy && event.performedBy !== "system" && (
+              {event.performedByName && event.performedByName !== "system" && (
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  by {event.performedBy}
+                  by {event.performedByName}
                 </p>
               )}
             </div>
