@@ -141,20 +141,41 @@ function MobileNav() {
   );
 }
 
+const pageConfig: Record<string, { title: string; action?: { label: string; href: string } }> = {
+  "/": { title: "Dashboard" },
+  "/assets": { title: "Asset Management", action: { label: "+ New Asset", href: "/assets/new" } },
+  "/categories": { title: "Categories" },
+  "/attributes": { title: "Attributes" },
+  "/maintenance": { title: "Maintenance" },
+  "/invoices": { title: "Invoices" },
+  "/audit-logs": { title: "Audit Logs" },
+  "/scan": { title: "Scan QR" },
+};
+
 function PageHeader() {
+  const pathname = usePathname();
+
+  // Match the most specific route
+  const config =
+    Object.entries(pageConfig)
+      .filter(([key]) => (key === "/" ? pathname === "/" : pathname.startsWith(key)))
+      .sort((a, b) => b[0].length - a[0].length)[0]?.[1] ?? { title: "Zoo" };
+
   return (
-    <header className="flex items-center justify-between px-6 h-16 border-b bg-background">
+    <header className="sticky top-0 z-10 flex items-center justify-between px-6 h-16 border-b bg-background">
       <div className="flex items-center gap-4">
-        <h1 className="text-lg font-semibold">Asset Management</h1>
+        <h1 className="text-lg font-semibold">{config.title}</h1>
       </div>
-      <div className="flex items-center gap-3">
-        <Link
-          href="/assets/new"
-          className="inline-flex shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground h-7 gap-1 px-2.5 text-[0.8rem] font-medium hover:bg-primary/80 transition-colors cursor-pointer"
-        >
-          + New Asset
-        </Link>
-      </div>
+      {config.action && (
+        <div className="flex items-center gap-3">
+          <Link
+            href={config.action.href}
+            className="inline-flex shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground h-7 gap-1 px-2.5 text-[0.8rem] font-medium hover:bg-primary/80 transition-colors cursor-pointer"
+          >
+            {config.action.label}
+          </Link>
+        </div>
+      )}
     </header>
   );
 }
@@ -167,9 +188,9 @@ export default function DashboardLayout({
   return (
     <div className="flex min-h-screen bg-background">
       <Sidebar />
-      <div className="flex-1 flex flex-col min-h-screen pb-16 lg:pb-0">
+      <div className="flex-1 flex flex-col h-screen overflow-hidden pb-16 lg:pb-0">
         <PageHeader />
-        <main className="flex-1 p-6">{children}</main>
+        <main className="flex-1 p-6 overflow-y-auto">{children}</main>
       </div>
       <MobileNav />
     </div>
