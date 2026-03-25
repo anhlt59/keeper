@@ -183,6 +183,11 @@ export default function NewInvoicePage() {
               invoiceId={ocrResult.invoiceId}
               ocrExtractionId={ocrResult.ocrExtractionId}
               initialData={ocrResult.extracted}
+              onSuccess={() => {
+                if (typeof window !== "undefined") {
+                  router.push("/invoices");
+                }
+              }}
             />
           </CardContent>
         </Card>

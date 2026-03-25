@@ -143,7 +143,6 @@ export default function EditAssetPage({ params }: { params: Promise<{ id: string
       }
       toast.success("Asset updated");
       await queryClient.invalidateQueries({ queryKey: ["asset", id] });
-      await queryClient.invalidateQueries({ queryKey: ["assets"] });
       router.push(`/assets/${id}`);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to update asset");

@@ -186,6 +186,7 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
         throw new Error(data.error ?? "Failed to delete");
       }
       toast.success("Asset deleted");
+      router.refresh();
       router.push("/assets");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to delete");

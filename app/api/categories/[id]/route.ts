@@ -93,9 +93,8 @@ export async function DELETE(req: NextRequest, { params }: Params) {
     );
   }
 
-  await prisma.category.update({
+  await prisma.category.delete({
     where: { id },
-    data: { isDeleted: true, deletedAt: new Date() },
   });
 
   return NextResponse.json({ success: true });

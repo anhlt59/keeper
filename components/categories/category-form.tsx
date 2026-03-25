@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -53,6 +54,8 @@ export function CategoryForm({
   });
   const router = useRouter();
 
+  const queryClient = useQueryClient();
+
   const handleOpenChange = (val: boolean) => {
     if (val) {
       setForm({
@@ -91,6 +94,7 @@ export function CategoryForm({
         throw new Error(data.error ?? "Failed to save category");
       }
       toast.success(mode === "edit" ? "Category updated" : "Category created");
+      await queryClient.invalidateQueries({ queryKey: ["categories"] });
       setOpen(false);
       onSuccess?.();
       router.refresh();

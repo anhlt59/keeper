@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { ChevronLeftIcon } from "lucide-react";
@@ -34,6 +35,7 @@ function generatePreviewCode(): string {
 
 export default function NewAssetPage() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [loading, setLoading] = useState(false);
   const [codePreview] = useState(generatePreviewCode);
   const [form, setForm] = useState({
@@ -99,6 +101,8 @@ export default function NewAssetPage() {
       }
       const asset = await res.json();
       toast.success("Asset created successfully");
+      await queryClient.invalidateQueries({ queryKey: ["assets"] });
+      router.refresh();
       router.push(`/assets/${asset.id}`);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to create asset");
