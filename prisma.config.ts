@@ -2,9 +2,9 @@ import path from "node:path";
 import { config } from "dotenv";
 import { defineConfig, env } from "prisma/config";
 
-// Load .env.local first, then .env as fallback
-config({ path: path.resolve(__dirname, ".env.local") });
+// Load .env first, then .env.local as override
 config();
+config({ path: path.resolve(__dirname, ".env.local") });
 
 export default defineConfig({
   schema: "prisma/schema.prisma",

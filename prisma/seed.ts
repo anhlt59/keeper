@@ -5,7 +5,8 @@ import bcrypt from "bcryptjs";
 import { config } from "dotenv";
 import path from "path";
 
-// Load .env.local first (must be before any process.env access)
+// Load .env first, then .env.local as override (must be before any process.env access)
+config();
 config({ path: path.resolve(__dirname, "..", ".env.local") });
 
 function buildPoolConfig() {
