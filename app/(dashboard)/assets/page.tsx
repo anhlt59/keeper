@@ -133,15 +133,12 @@ function AssetsContent() {
 
         <Select value={categoryId} onValueChange={(v) => updateParam("categoryId", v ?? "")}>
           <SelectTrigger className="w-40">
-            <SelectValue placeholder="All Categories">
-              {(value) => {
-                if (!value || value === "__all__") return "All Categories";
-                return categories.find((c) => c.id === value)?.name ?? "All Categories";
-              }}
+            <SelectValue>
+              {categoryId ? categories.find((c) => c.id === categoryId)?.name : "All Categories"}
             </SelectValue>
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="__all__">All Categories</SelectItem>
+            <SelectItem>All Categories</SelectItem>
             {categories.map((c) => (
               <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
             ))}
@@ -153,7 +150,7 @@ function AssetsContent() {
             <SelectValue placeholder="All Status" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="__all__">All Status</SelectItem>
+            <SelectItem>All Status</SelectItem>
             <SelectItem value="PURCHASED">Purchased</SelectItem>
             <SelectItem value="ASSIGNED">Assigned</SelectItem>
             <SelectItem value="IN_USE">In Use</SelectItem>

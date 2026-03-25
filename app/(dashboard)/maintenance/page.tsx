@@ -123,7 +123,7 @@ function MaintenanceContent() {
             <SelectValue placeholder="All Status" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="__all__">All Status</SelectItem>
+            <SelectItem>All Status</SelectItem>
             <SelectItem value="SCHEDULED">Scheduled</SelectItem>
             <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
             <SelectItem value="COMPLETED">Completed</SelectItem>
