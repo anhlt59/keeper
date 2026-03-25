@@ -2,7 +2,7 @@
 
 import { use, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { ChevronLeftIcon } from "lucide-react";
 import Link from "next/link";
@@ -46,6 +46,7 @@ interface AssetDetail {
 export default function EditAssetPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   const { data: asset, isLoading, error } = useQuery<AssetDetail>({
     queryKey: ["asset", id],
@@ -141,6 +142,8 @@ export default function EditAssetPage({ params }: { params: Promise<{ id: string
         throw new Error(data.error ?? "Failed to update asset");
       }
       toast.success("Asset updated");
+      await queryClient.invalidateQueries({ queryKey: ["asset", id] });
+      await queryClient.invalidateQueries({ queryKey: ["assets"] });
       router.push(`/assets/${id}`);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to update asset");
