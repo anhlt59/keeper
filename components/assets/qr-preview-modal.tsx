@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -24,9 +25,26 @@ export function QRPreviewModal({
   onOpenChange,
   assetName,
   assetCode,
-  qrImage,
+  qrImage: qrImageProp,
   assetId,
 }: QRPreviewModalProps) {
+  const [qrImage, setQrImage] = useState<string | null>(qrImageProp);
+
+  // Fetch QR from API if not stored on asset
+  useEffect(() => {
+    if (!open) return;
+    if (qrImage) return;
+    fetch(`/api/assets/${assetId}/qr`, { credentials: "include" })
+      .then((res) => {
+        if (!res.ok) throw new Error("Failed to fetch QR");
+        return res.blob();
+      })
+      .then((blob) => {
+        setQrImage(URL.createObjectURL(blob));
+      })
+      .catch(console.error);
+  }, [open, assetId, qrImage]);
+
   function handleDownload() {
     if (!qrImage) return;
     const link = document.createElement("a");
