@@ -1,6 +1,6 @@
 # Zoo — Deployment Guide
 
-> **Version:** 1.0.0 | **Current phase:** Local development
+> **Version:** 1.1.0 | **Current phase:** Local development
 > **Future:** Vercel deployment (Phase 2+)
 > **Ref:** [code-standards.md](./code-standards.md)
 
@@ -143,6 +143,8 @@ git commit -m "feat: add migration for ..."
 - Never edit committed migrations — create new migration instead
 
 ---
+
+> [SKETCH] Section 5 (Vercel Deployment Plan) is a sketch — CI/CD pipeline, build hooks, and environment variable propagation need full spec before Phase 2.
 
 ## 5. Vercel Deployment Plan (Future)
 

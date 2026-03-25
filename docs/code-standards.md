@@ -1,6 +1,6 @@
 # Zoo — Code Standards
 
-> **Version:** 1.0.0 | **Applies to:** All app code (`app/`, `lib/`, `components/`, `prisma/`)
+> **Version:** 1.1.0 | **Applies to:** All app code (`app/`, `lib/`, `components/`, `prisma/`)
 > **Ref:** [codebase-summary.md](./codebase-summary.md)
 
 ---
@@ -12,10 +12,10 @@
 | Pages | `page.tsx` | `app/assets/page.tsx` |
 | Layouts | `layout.tsx` | `app/(dashboard)/layout.tsx` |
 | API routes | `route.ts` | `app/api/assets/route.ts` |
-| Zod validators | `kebab-case.ts` | `asset-validator.ts` |
+| Zod validators | `kebab-case.ts` | `asset.ts`, `dynamic-attrs.ts` |
 | Service files | `kebab-case.service.ts` | `asset.service.ts` |
-| FSM / utilities | `kebab-case.ts` | `fsm.ts`, `qr.ts`, `ocr.ts` |
-| Components | `kebab-case.tsx` | `asset-list.tsx`, `kpi-cards.tsx` |
+| FSM / utilities | `kebab-case.ts` | `fsm.ts`, `qr-generator.ts`, `ocr.ts` |
+| Components | `kebab-case.tsx` | `kpi-card.tsx`, `qr-scanner.tsx` |
 | shadcn/ui | `ui/` dir | `components/ui/button.tsx` |
 
 **Rule:** Descriptive kebab-case names — LLMs infer purpose from filename without reading content.
@@ -30,44 +30,47 @@
 // Server Component (default) — data fetching, SEO, static UI
 // app/assets/page.tsx
 export default async function AssetListPage() {
-  const assets = await assetService.getAll(); // direct await in RSC
+  const assets = await assetService.listAssets({ page: 1 }); // direct await in RSC
   return <AssetList data={assets} />;
 }
 
 // Client Component — forms, dialogs, charts, real-time
-// components/assets/asset-list.tsx
+// components/assets/qr-scanner.tsx
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
 
-export function AssetList({ data }: { data: Asset[] }) {
-  const { data: freshData } = useQuery({ ... });
+export function QRScanner() {
+  const { data } = useQuery({ ... });
   // interactive logic here
 }
 ```
 
 **Rule:** Keep RSC for data fetching + static structure. Use `"use client"` only where interactivity, browser APIs, or TanStack Query is needed.
 
-### Server Actions
+### File-Level vs Inline `"use server"`
 
-```tsx
+```ts
+// File-level: entire file is a Server Action module
 // app/actions/asset-actions.ts
 "use server";
 
-import { assetService } from "@/lib/services/asset.service";
-import { assetValidator } from "@/lib/validators/asset-validator";
+import { assetService } from "@/lib/services/asset-service";
 import { revalidatePath } from "next/cache";
 
 export async function createAsset(formData: FormData) {
-  const parsed = assetValidator.safeParse(Object.fromEntries(formData));
-  if (!parsed.success) {
-    return { error: parsed.error.flatten() };
-  }
-  const asset = await assetService.create(parsed.data);
+  // ...
   revalidatePath("/assets");
   return { data: asset };
 }
+
+// Inline: only the exported function runs on the server
+// app/api/assets/route.ts  (no "use server" needed — API routes are server by default)
+import { NextRequest, NextResponse } from "next/server";
+// All code here runs on the server automatically.
 ```
+
+**Rule:** API route files (`route.ts`) do NOT need `"use server"` — Next.js treats them as server-only by default. Only Server Action files explicitly need `"use server"` at the top. Do NOT add `"use server"` to shared utility files — it would break client-side imports.
 
 ---
 
@@ -88,34 +91,34 @@ datasource db {
 // Soft delete mixin — all core tables include these fields
 model Asset {
   id          String    @id @default(cuid())
-  is_deleted  Boolean   @default(false)  @map("is_deleted")
-  deleted_at  DateTime? @db.Timestamp   @map("deleted_at")
-  created_at  DateTime  @default(now())  @map("created_at")
-  updated_at  DateTime  @updatedAt      @map("updated_at")
+  isDeleted   Boolean   @default(false)  @map("is_deleted")
+  deletedAt   DateTime? @db.Timestamp   @map("deleted_at")
+  createdAt   DateTime  @default(now())  @map("created_at")
+  updatedAt   DateTime  @updatedAt      @map("updated_at")
 
   // ... fields
 
-  @@index([is_deleted])
-  @@index([category_id])
+  @@index([isDeleted])
+  @@index([categoryId])
   @@map("assets")
 }
 
 // Append-only event log — NO soft delete, NO updatedAt
 model AssetEvent {
   id        String   @id @default(cuid())
-  asset_id  String   @map("asset_id")
-  type      String
+  assetId   String   @map("asset_id")
+  eventType String
   metadata  Json?
-  created_at DateTime @default(now()) @map("created_at")
+  createdAt DateTime @default(now()) @map("created_at")
 
-  @@index([asset_id, created_at])
+  @@index([assetId, createdAt])
   @@map("asset_events")
 }
 ```
 
 **Rules:**
-- All core tables: `is_deleted`, `deleted_at`, `created_at`, `updated_at`
-- Event/audit tables: only `id`, FK, `created_at` — append-only
+- All core tables: `isDeleted`, `deletedAt`, `createdAt`, `updatedAt`
+- Event/audit tables: only `id`, FK, `createdAt` — append-only
 - Index on: FKs, soft delete flag, frequently filtered fields
 - Prisma migrations must be committed in same PR as code that uses new fields
 
@@ -126,31 +129,38 @@ model AssetEvent {
 ```ts
 // lib/auth.ts
 import { betterAuth } from "better-auth";
-import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { drizzle } from "drizzle-orm/postgres-js";
-import * as schema from "@/prisma/db-schema"; // exported from Prisma
+import { prismaAdapter } from "better-auth/adapters/prisma";
+import { PrismaPg } from "@prisma/adapter-pg";
+import { Pool } from "pg";
+
+const pool = new Pool({ connectionString: process.env.DATABASE_URL! });
+const adapter = new PrismaPg(pool);
 
 export const auth = betterAuth({
-  database: drizzleAdapter(drizzle(db), {
-    provider: "pg",
-    schema,
+  database: prismaAdapter(adapter, {
+    provider: "postgresql",
   }),
   emailAndPassword: {
     enabled: true,
+    requireEmailVerification: false,
   },
   session: {
-    expiresIn: 60 * 60 * 24 * 7, // 7 days
-    updateAge: 60 * 60 * 24,     // update session every 24h
+    expiresIn: 60 * 60 * 24 * 7,        // 7 days
+    updateAge: 60 * 60 * 24,             // update session every 24h
+    cookieCache: {
+      enabled: true,
+      maxAge: 5 * 60,                    // cache session cookie for 5 min
+    },
   },
   rateLimit: {
     max: 5,
-    window: 15 * 60, // 5 attempts per 15 min
+    window: 15 * 60,                     // 5 attempts per 15 min
   },
-  secret: process.env.BETTER_AUTH_SECRET,
 });
 ```
 
 **Rules:**
+- Use `PrismaPg` adapter (not `drizzleAdapter`) — matches current codebase
 - Cookie: HttpOnly + Secure (production) + SameSite=Lax
 - Session expires: 7 days, update every 24h
 - Rate limit: 5 failed logins / 15 min per IP
@@ -161,33 +171,39 @@ export const auth = betterAuth({
 ## 5. Zod Validation Patterns
 
 ```ts
-// lib/validators/asset-validator.ts
+// lib/validators/asset.ts
 import { z } from "zod";
+import { AssetStatus } from "@prisma/client";
 
-export const assetCreateSchema = z.object({
-  name: z.string().min(1).max(255),
-  category_id: z.string().cuid(),
-  purchase_date: z.string().datetime().optional(),
-  purchase_price: z.number().positive().optional(),
-  serial_number: z.string().max(100).optional(),
-  notes: z.string().max(1000).optional(),
-  custom_attrs: z.record(z.unknown()).optional(),
+const assetStatusSchema = z.nativeEnum(AssetStatus);
+
+// Zod v4: use .cuid() directly (not .string().cuid())
+export const createAssetSchema = z.object({
+  code: z.string().min(1, "Asset code is required").max(50),
+  name: z.string().min(1, "Asset name is required").max(200),
+  description: z.string().max(1000).optional(),
+  categoryId: z.string().cuid("Invalid category ID"),        // Zod v4 chained
+  status: assetStatusSchema.optional().default(AssetStatus.PURCHASED),
+  purchaseDate: z.string().datetime().optional(),
+  purchasePrice: z.number().positive().optional(),
+  serialNumber: z.string().max(100).optional(),
+  assignedTo: z.string().max(200).optional(),
+  attributeValues: z.record(z.string(), z.unknown()).optional(),
 });
 
-export const assetTransitionSchema = z.object({
-  target_state: z.enum([
-    "assigned", "in_use", "maintenance", "retired", "disposed",
-  ]),
-  metadata: z.record(z.unknown()).optional(),
+export const changeStatusSchema = z.object({
+  toStatus: assetStatusSchema,
+  description: z.string().max(500).optional(),
 });
 
 // Type inference
-export type AssetCreateInput = z.infer<typeof assetCreateSchema>;
+export type CreateAssetInput = z.infer<typeof createAssetSchema>;
 ```
 
 **Rules:**
 - All API inputs validated before service call
 - Use `safeParse` + return structured errors (never throw Zod errors directly to client)
+- Zod v4: chain validators directly (e.g., `z.string().cuid()` not `z.string().min(1).cuid()` where min conflicts)
 - Shared schemas between API routes and Server Actions
 
 ---
@@ -196,49 +212,52 @@ export type AssetCreateInput = z.infer<typeof assetCreateSchema>;
 
 ```ts
 // lib/fsm.ts
-import { BadRequestError } from "@/lib/errors";
+import { AssetStatus, AssetEventType } from "@prisma/client";
 
-const STATES = [
-  "purchased",
-  "assigned",
-  "in_use",
-  "maintenance",
-  "retired",
-  "disposed",
-] as const;
+// States: PURCHASED → ASSIGNED → IN_USE ↔ MAINTENANCE → RETIRED → DISPOSED
+// RESTORED: DISPOSED → RETIRED   RECALLED: ASSIGNED → PURCHASED
 
-type AssetState = (typeof STATES)[number];
-
-const TRANSITIONS: Record<AssetState, AssetState[]> = {
-  purchased: ["assigned"],
-  assigned: ["in_use", "maintenance"],
-  in_use: ["assigned", "maintenance", "retired"],
-  maintenance: ["in_use"],
-  retired: ["disposed"],
-  disposed: [], // terminal
+export type FSMTransition = {
+  from: AssetStatus;
+  to: AssetStatus;
+  eventType: AssetEventType;
+  label: string;
 };
 
-export function validateTransition(
-  from: AssetState,
-  to: AssetState
-): void {
-  const allowed = TRANSITIONS[from];
-  if (!allowed.includes(to)) {
-    throw new BadRequestError(
-      `Invalid transition: ${from} → ${to}. Allowed: ${allowed.join(", ") || "none"}`
+export const ASSET_TRANSITIONS: FSMTransition[] = [
+  { from: AssetStatus.PURCHASED,   to: AssetStatus.ASSIGNED,    eventType: AssetEventType.ASSIGNED,             label: "Assign" },
+  { from: AssetStatus.ASSIGNED,   to: AssetStatus.IN_USE,      eventType: AssetEventType.STATUS_CHANGE,        label: "Mark in use" },
+  { from: AssetStatus.IN_USE,     to: AssetStatus.MAINTENANCE, eventType: AssetEventType.MAINTENANCE_CREATED, label: "Send to maintenance" },
+  { from: AssetStatus.MAINTENANCE, to: AssetStatus.IN_USE,     eventType: AssetEventType.MAINTENANCE_COMPLETED, label: "Maintenance complete" },
+  { from: AssetStatus.IN_USE,     to: AssetStatus.RETIRED,     eventType: AssetEventType.STATUS_CHANGE,        label: "Retire" },
+  { from: AssetStatus.ASSIGNED,   to: AssetStatus.RETIRED,     eventType: AssetEventType.STATUS_CHANGE,        label: "Retire (unassigned)" },
+  { from: AssetStatus.PURCHASED,  to: AssetStatus.RETIRED,     eventType: AssetEventType.STATUS_CHANGE,        label: "Retire (unused)" },
+  { from: AssetStatus.RETIRED,   to: AssetStatus.DISPOSED,    eventType: AssetEventType.DISPOSED,             label: "Dispose" },
+  { from: AssetStatus.DISPOSED,  to: AssetStatus.RETIRED,     eventType: AssetEventType.RESTORED,             label: "Restore" },
+  { from: AssetStatus.ASSIGNED,   to: AssetStatus.PURCHASED,  eventType: AssetEventType.RECALLED,            label: "Recall" },
+];
+
+export function validateTransition(from: AssetStatus, to: AssetStatus): FSMTransition {
+  const transition = ASSET_TRANSITIONS.find(t => t.from === from && t.to === to);
+  if (!transition) {
+    throw new Error(
+      `Invalid FSM transition: '${from}' → '${to}'. ` +
+      `Available from '${from}': ${getAvailableTransitions(from).map(t => t.to).join(", ") || "none"}.`
     );
   }
+  return transition;
 }
 
-export function getNextStates(current: AssetState): AssetState[] {
-  return TRANSITIONS[current] ?? [];
+export function getAvailableTransitions(current: AssetStatus): FSMTransition[] {
+  return ASSET_TRANSITIONS.filter(t => t.from === current);
 }
 ```
 
 **Rules:**
-- FSM validates BEFORE DB write — throw `BadRequestError` if invalid
+- FSM validates BEFORE DB write — throw plain `Error` if invalid
 - No direct state assignment without going through `validateTransition`
 - Service layer calls FSM validate then Prisma write in same logical unit
+- Use `AssetEventType` enums (from Prisma), NOT string literals for event types
 
 ---
 
@@ -248,14 +267,14 @@ export function getNextStates(current: AssetState): AssetState[] {
 // app/api/assets/route.ts — GET list, POST create
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { assetService } from "@/lib/services/asset.service";
-import { assetCreateSchema } from "@/lib/validators/asset-validator";
+import { assetService } from "@/lib/services/asset-service";
+import { createAssetSchema } from "@/lib/validators/asset";
 
 export async function GET(req: NextRequest) {
   const session = await auth.api.getSession({ headers: req.headers });
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const assets = await assetService.getAll();
+  const assets = await assetService.listAssets({ page: 1 });
   return NextResponse.json({ data: assets });
 }
 
@@ -264,13 +283,13 @@ export async function POST(req: NextRequest) {
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const body = await req.json();
-  const parsed = assetCreateSchema.safeParse(body);
+  const parsed = createAssetSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
   }
 
   try {
-    const asset = await assetService.create(parsed.data, session.user.id);
+    const asset = await assetService.createAsset(parsed.data, session.user.id);
     return NextResponse.json({ data: asset }, { status: 201 });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";
@@ -287,7 +306,48 @@ export async function POST(req: NextRequest) {
 
 ---
 
-## 8. Code Quality
+## 8. Audit Logging Patterns
+
+```ts
+// lib/audit.ts — set request-scoped context before work
+import { setAuditContext, clearAuditContext } from "@/lib/audit";
+
+// app/api/assets/[id]/route.ts
+export async function PUT(req: NextRequest, { params }: Params) {
+  const session = await auth.api.getSession({ headers: req.headers });
+  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  setAuditContext({
+    userId: session.user.id,
+    ipAddress: req.headers.get("x-forwarded-for") ?? undefined,
+    userAgent: req.headers.get("user-agent") ?? undefined,
+  });
+  try {
+    // ... service call
+  } finally {
+    clearAuditContext();
+  }
+}
+
+// lib/audit-logger.ts — atomic AssetEvent + AuditLog write
+import { logAssetEvent } from "@/lib/audit-logger";
+await logAssetEvent({
+  assetId: asset.id,
+  eventType: AssetEventType.CREATED,
+  toStatus: asset.status,
+  description: `Asset '${asset.name}' created`,
+  performedBy,
+});
+```
+
+**Rules:**
+- Call `setAuditContext()` at the start of every mutating API route handler
+- Use `logAssetEvent()` for lifecycle actions — it writes both `AssetEvent` (timeline) and `AuditLog` atomically
+- Wrap in `try/finally` to ensure `clearAuditContext()` is called
+
+---
+
+## 9. Code Quality
 
 | Check | Command | Target |
 |---|---|---|
@@ -295,13 +355,13 @@ export async function POST(req: NextRequest) {
 | ESLint | `npm run lint` | Zero errors |
 | Build | `npm run build` | Pass |
 | Max file size | — | < 200 LOC per file (modularize larger) |
-| Prisma | `prisma validate` | Valid schema |
+| Prisma | `npx prisma validate` | Valid schema |
 
 **Rule:** Pre-commit: lint + type-check. Pre-push: build + tests.
 
 ---
 
-## 9. Git Conventions
+## 10. Git Conventions
 
 ```
 feat:     new feature
@@ -320,36 +380,34 @@ chore:    maintenance, deps, config
 
 ---
 
-## 10. Error Handling
+## 11. Error Handling
 
 ```ts
-// lib/errors.ts
-export class BadRequestError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "BadRequestError";
-  }
-}
-
-export class NotFoundError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "NotFoundError";
-  }
-}
-
-export class ForbiddenError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "ForbiddenError";
-  }
+// Service layer — throw plain Error (typed errors via lib/errors.ts are optional)
+export async function updateAsset(id: string, data: UpdateAssetInput) {
+  const asset = await prisma.asset.findFirst({ where: { id, isDeleted: false } });
+  if (!asset) throw new Error("Asset not found"); // NotFoundError unused in current code
+  // ...
 }
 ```
 
 **Rules:**
-- Service layer throws typed errors (`BadRequestError`, `NotFoundError`)
+- Service layer throws plain `Error` for not-found and bad-request cases
 - API routes catch and return structured JSON responses
 - Never expose internal stack traces to client
+- `BadRequestError`/`NotFoundError` defined in code-standards as reference but not yet introduced in codebase
+
+---
+
+## 12. Testing Conventions
+
+> [TBD] — testing setup not yet introduced. When added:
+
+- Use **Vitest** for unit tests, **Playwright** for E2E
+- Unit: test FSM transitions, Zod validators, service functions
+- E2E: critical flows — asset CRUD, FSM transitions, OCR confirm
+- Mock Prisma client with `jest-mock` or `prisma-client-js` mock
+- Fixtures in `tests/fixtures/`
 
 ---
 

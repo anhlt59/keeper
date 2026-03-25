@@ -1,6 +1,6 @@
 # Zoo — Asset Management System: Overview & PDR
 
-> **Version:** 1.0.0 | **Type:** Asset Management System | **Status:** Phase 0 in progress
+> **Version:** 1.1.0 | **Root:** `/Users/anhlt/Projects/vibe/zoo/` | **Status:** Phase 0 in progress
 > **PRD:** [prd-v1.md](./prd-v1.md) | **Plan:** `plans/260325-0106-asset-mgmt-init/`
 
 ---
@@ -66,19 +66,20 @@ Zoo Asset Management System is a centralized enterprise asset management system 
 
 ## 5. Tech Stack (Locked)
 
-| Layer | Technology |
-|---|---|
-| Framework | Next.js 15 (App Router, TypeScript) |
-| ORM | Prisma + PostgreSQL |
-| Auth | Better Auth (session-based, single Admin role) |
-| AI/OCR | GPT-4o-mini (OpenAI API) |
-| Dynamic Attrs | PostgreSQL JSONB + Zod validation |
-| Lifecycle FSM | Custom FSM + validation (no xstate) |
-| Styling | Tailwind CSS + shadcn/ui |
-| State | TanStack Query + Zustand (if needed) |
-| QR | `qrcode` library |
-| Mobile Scan | `html5-qrcode` library |
-| Deployment | Local dev → Vercel (future) |
+| Layer | Technology | Version |
+|---|---|---|
+| Framework | Next.js (App Router, TypeScript) | 16.2.1 |
+| Language | TypeScript | 5.9.3 |
+| ORM | Prisma + PostgreSQL | 7.5.0 |
+| Auth | Better Auth (session-based, single Admin role) | 1.5.6 |
+| AI/OCR | GPT-4o-mini (OpenAI API) | unversioned (pin in prod) |
+| Dynamic Attrs | PostgreSQL JSONB + Zod validation | Zod 4.3.6 |
+| Lifecycle FSM | Custom FSM + validation (no xstate) | — |
+| Styling | Tailwind CSS v4 + shadcn/ui | 4.2.2 |
+| State | TanStack React Query | 5.95.2 |
+| QR | `qrcode` library | 1.5.4 |
+| Mobile Scan | `html5-qrcode` library | 2.3.8 |
+| Deployment | Local dev → Vercel (future) | — |
 
 ---
 

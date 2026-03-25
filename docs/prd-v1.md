@@ -15,17 +15,17 @@ The business currently manages assets and office supplies through manual, distri
 
 ## 3) Tech Stack (Locked)
 
-| Layer | Technology |
-|---|---|
-| Framework | Next.js 15 (App Router, TypeScript) |
-| ORM | Prisma + PostgreSQL |
-| Auth | Better Auth (TypeScript-first, session-based) |
-| AI/OCR | GPT-4o-mini (OpenAI API) |
-| Dynamic Attrs | PostgreSQL JSONB + Zod validation |
-| Lifecycle FSM | Custom FSM + validation (no xstate) |
-| Deployment | Local dev → Vercel (future) |
-| Styling | Tailwind CSS + shadcn/ui |
-| State | TanStack Query + Zustand (if needed) |
+| Layer | Technology | Version |
+|---|---|---|
+| Framework | Next.js (App Router, TypeScript) | 16.2.1 |
+| ORM | Prisma + PostgreSQL | 7.5.0 |
+| Auth | Better Auth (TypeScript-first, session-based) | 1.5.6 |
+| AI/OCR | GPT-4o-mini (OpenAI API) | unversioned (pin in prod) |
+| Dynamic Attrs | PostgreSQL JSONB + Zod validation | Zod 4.3.6 |
+| Lifecycle FSM | Custom FSM + validation (no xstate) | — |
+| Deployment | Local dev → Vercel (future) | — |
+| Styling | Tailwind CSS v4 + shadcn/ui | 4.2.2 |
+| State | TanStack React Query | 5.95.2 |
 
 ## 4) Scope
 
@@ -198,8 +198,9 @@ The business currently manages assets and office supplies through manual, distri
 - Security: Better Auth is mandatory for Admin (session-based, rate limiting, CSRF).
 - Audit log for all important business actions.
 - **Original invoice retention: 1 year** from upload date.
-- Daily scheduled data backups, minimum 30-day retention.
+- Daily scheduled data backups, minimum 30-day retention. **[TBD]** Backup provider not yet selected.
 - System error and API latency monitoring (future: Vercel Analytics / Sentry).
+- **Invoice storage:** Original images/PDFs — local filesystem or cloud (S3/R2) **[UNRESOLVED]**.
 
 ## 10) Risks & Mitigation
 
@@ -213,7 +214,7 @@ The business currently manages assets and office supplies through manual, distri
 
 - **Phase 1:** Asset CRUD + Lifecycle FSM + Assignment/Recall + Maintenance + Audit + Dashboard + Better Auth.
 - **Phase 2:** Dynamic Attributes + QR/Barcode + Mobile Scan + OCR Semi-auto.
-- **Phase 3:** Periodic Inventory Cycle + Performance optimization + Operational hardening.
+- **Phase 3:** Periodic Inventory Cycle **[TBD — design deferred]** + Performance optimization + Operational hardening.
 
 ## 12) Success Metrics
 

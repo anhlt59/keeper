@@ -5,8 +5,10 @@
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
-    "start": "next start",
+    "start": "bash scripts/start.sh",
+    "start:prod": "next start",
     "lint": "next lint",
+    "migrate": "bash scripts/migrate.sh",
     "db:migrate": "prisma migrate dev",
     "db:push": "prisma db push",
     "db:studio": "prisma studio",

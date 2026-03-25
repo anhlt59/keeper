@@ -151,7 +151,5 @@ Old audit logs (> 2 years): partition by year, archive to cold storage (TBD back
 | 2 | Enhanced Features | ⏳ Pending |
 | 3 | Hardening | ⏳ Pending |
 
----
-
-*Unresolved: Backup provider — not yet selected (Vercel Postgres backup vs. dedicated backup service)*
-*Unresolved: Periodic Inventory logic — needs detailed design when Phase 3 starts*
+**[TBD]** Backup provider — not yet selected (Vercel Postgres vs. dedicated pg_dump service)
+**[TBD]** Periodic Inventory logic — needs detailed design when Phase 3 starts

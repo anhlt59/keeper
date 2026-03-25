@@ -1,6 +1,9 @@
 # Design Guidelines — Zoo Asset Management
 
-> AI-Native UI + Minimalism style. Based on shadcn/ui + Tailwind CSS.
+> AI-Native UI + Minimalism style. Based on shadcn/ui + Tailwind CSS v4.
+> **Note:** Accessibility checklist unchecked, no dark mode spec, component snippets are illustrative (not linked to source files).
+
+---
 
 ---
 
