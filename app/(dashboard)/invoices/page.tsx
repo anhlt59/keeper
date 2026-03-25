@@ -36,7 +36,11 @@ const STATUS_LABEL: Record<InvoiceStatus, string> = {
 
 function formatDate(d: string | null): string {
   if (!d) return "—";
-  return new Date(d).toLocaleDateString("vi-VN");
+  const date = new Date(d);
+  const dd = String(date.getDate()).padStart(2, "0");
+  const mm = String(date.getMonth() + 1).padStart(2, "0");
+  const yyyy = String(date.getFullYear());
+  return `${dd}/${mm}/${yyyy}`;
 }
 
 function formatVND(v: string | null): string {
@@ -112,7 +116,7 @@ export default function InvoicesPage() {
           <div className="divide-y">
             {invoices.map((inv) => (
               <div key={inv.id} className="flex items-center gap-4 px-4 py-3">
-                <div className="flex-1 min-w-0 grid grid-cols-4 gap-4">
+                <div className="flex-1 min-w-0 grid grid-cols-5 gap-4">
                   <div>
                     <p className="text-xs text-muted-foreground font-medium uppercase">Date</p>
                     <p className="text-sm">{formatDate(inv.invoiceDate)}</p>
@@ -134,6 +138,10 @@ export default function InvoicesPage() {
                         {Math.round(inv.ocrExtraction.confidence * 100)}%
                       </span>
                     )}
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground font-medium uppercase">Created</p>
+                    <p className="text-sm">{formatDate(inv.createdAt)}</p>
                   </div>
                 </div>
                 <div className="flex gap-1 shrink-0">

@@ -147,7 +147,7 @@ export default function NewAssetPage() {
                   onValueChange={(v) => setForm((f) => ({ ...f, categoryId: v ?? "" }))}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select category">
+                    <SelectValue>
                       {(value) => categories.find((c) => c.id === value)?.name ?? "Select category"}
                     </SelectValue>
                   </SelectTrigger>

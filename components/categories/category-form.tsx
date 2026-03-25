@@ -82,7 +82,7 @@ export function CategoryForm({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: form.name.trim(),
-          description: form.description.trim() || null,
+          description: form.description?.trim() || null,
           parentId: form.parentId || null,
         }),
       });
@@ -130,7 +130,7 @@ export function CategoryForm({
             <Textarea
               id="cat-desc"
               placeholder="Optional description..."
-              value={form.description}
+              value={form.description ?? ""}
               onChange={(e) =>
                 setForm((f) => ({ ...f, description: e.target.value }))
               }
@@ -144,7 +144,9 @@ export function CategoryForm({
               onValueChange={(v) => setForm((f) => ({ ...f, parentId: v ?? "" }))}
             >
               <SelectTrigger>
-                <SelectValue placeholder="None (top-level)" />
+                <SelectValue>
+                  {(value) => categories.find((c) => c.id === value)?.name ?? "None (top-level)"}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 {categories
