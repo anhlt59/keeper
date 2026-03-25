@@ -41,6 +41,8 @@ if [ "$EXISTING_USER" = "1" ]; then
   echo "✅ Seed data already exists (admin@zoo.local found)."
 else
   echo "📦 Seed data not found. Running db:seed..."
+  npm run db:generate
+  npm run db:migrate
   npm run db:seed
   echo "✅ Seed complete."
 fi
