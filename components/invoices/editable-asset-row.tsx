@@ -60,7 +60,7 @@ export function EditableAssetRow({ asset, index, onChange, onRemove, confidence,
   return (
     <div className="border rounded-lg p-3 space-y-2 bg-muted/30">
       <div className="flex items-center justify-between gap-2">
-        <span className="text-xs font-medium text-muted-foreground">Asset #{index + 1}</span>
+        <span className="text-xs font-medium text-muted-foreground">{t("invoiceUpload.assetNumber").replace("{n}", String(index + 1))}</span>
         <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-destructive" onClick={() => onRemove(index)}>
           <TrashIcon className="h-3.5 w-3.5" />
         </Button>
@@ -76,7 +76,7 @@ export function EditableAssetRow({ asset, index, onChange, onRemove, confidence,
           <Input
             value={asset.name}
             onChange={(e) => onChange(index, "name", e.target.value)}
-            placeholder="Asset name"
+            placeholder={t("invoiceUpload.assetNamePlaceholder")}
             className="h-8 text-sm"
           />
         </div>

@@ -194,7 +194,7 @@ export default function AttributesPage() {
         open={!!deleteTarget}
         onOpenChange={(v) => { if (!v) setDeleteTarget(null); }}
         title={t("attributes.deleteTitle")}
-        description={`Delete "${deleteTarget?.name}"? Existing asset values for this field will be preserved but the schema definition will be removed.`}
+        description={t("attributes.deleteConfirm").replace("{name}", deleteTarget?.name ?? "")}
         onConfirm={() => deleteTarget && deleteMutation.mutate(deleteTarget.id)}
         loading={deleteMutation.isPending}
         confirmLabel={t("common.delete")}

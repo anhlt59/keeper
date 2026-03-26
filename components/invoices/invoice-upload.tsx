@@ -24,12 +24,12 @@ export function InvoiceUpload({
 
   const handleFile = useCallback((f: File) => {
     if (f.size > maxSizeMb * 1024 * 1024) {
-      toast.error(`File too large. Max ${maxSizeMb}MB.`);
+      toast.error(t("invoiceUpload.fileTooLarge").replace("{max}", String(maxSizeMb)));
       return;
     }
     const allowed = accept.split(",").map((type) => type.trim());
     if (!allowed.includes(f.type)) {
-      toast.error("Unsupported file type. Please upload a JPG or PNG image.");
+      toast.error(t("invoiceUpload.unsupportedFileType"));
       return;
     }
     setFile(f);
@@ -55,7 +55,7 @@ export function InvoiceUpload({
     <div className="space-y-3">
       {preview ? (
         <div className="relative rounded-lg border overflow-hidden max-w-sm mx-auto">
-          <img src={preview} alt="Invoice preview" className="max-h-64 mx-auto object-contain" />
+          <img src={preview} alt={t("invoiceUpload.invoicePreview")} className="max-h-64 mx-auto object-contain" />
           <Button
             variant="ghost"
             size="icon-sm"
@@ -80,7 +80,7 @@ export function InvoiceUpload({
             {t("invoiceUpload.dragDrop")}
           </span>
           <span className="text-xs text-muted-foreground">
-            JPG, PNG · Max {maxSizeMb}MB
+            {t("invoiceUpload.fileFormatHint").replace("{max}", String(maxSizeMb))}
           </span>
           <input
             id="invoice-upload"

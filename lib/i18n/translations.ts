@@ -54,6 +54,7 @@ export const translations: Record<string, Record<Lang, string>> = {
   "common.type": { en: "Type", vi: "Loại" },
   "common.date": { en: "Date", vi: "Ngày" },
   "common.cost": { en: "Cost", vi: "Chi phí" },
+  "common.value": { en: "Value", vi: "Giá trị" },
   "common.yes": { en: "Yes", vi: "Có" },
   "common.no": { en: "No", vi: "Không" },
   "common.allStatus": { en: "All Status", vi: "Tất cả trạng thái" },
@@ -69,6 +70,19 @@ export const translations: Record<string, Record<Lang, string>> = {
   "status.MAINTENANCE": { en: "Maintenance", vi: "Bảo trì" },
   "status.RETIRED": { en: "Retired", vi: "Đã thanh lý" },
   "status.DISPOSED": { en: "Disposed", vi: "Đã xử lý" },
+
+  // ── Timeline ──
+  "timeline.statusChanged": { en: "Status changed", vi: "Thay đổi trạng thái" },
+  "timeline.by": { en: "by", vi: "bởi" },
+  "timeline.CREATED": { en: "Asset created", vi: "Tạo tài sản" },
+  "timeline.STATUS_CHANGE": { en: "Status changed", vi: "Thay đổi trạng thái" },
+  "timeline.ASSIGNED": { en: "Assigned", vi: "Đã giao" },
+  "timeline.RECALLED": { en: "Recalled", vi: "Thu hồi" },
+  "timeline.MAINTENANCE_CREATED": { en: "Sent to maintenance", vi: "Gửi bảo trì" },
+  "timeline.MAINTENANCE_COMPLETED": { en: "Maintenance completed", vi: "Hoàn thành bảo trì" },
+  "timeline.ATTRIBUTE_UPDATED": { en: "Attributes updated", vi: "Cập nhật thuộc tính" },
+  "timeline.DISPOSED": { en: "Disposed", vi: "Đã xử lý" },
+  "timeline.RESTORED": { en: "Restored", vi: "Đã khôi phục" },
 
   // ── Maintenance statuses ──
   "maint.status.SCHEDULED": { en: "Scheduled", vi: "Đã lên lịch" },
@@ -107,6 +121,9 @@ export const translations: Record<string, Record<Lang, string>> = {
   // ── Dashboard charts ──
   "chart.statusDistribution": { en: "Status Distribution", vi: "Phân bố trạng thái" },
   "chart.maintenanceCosts": { en: "Maintenance Costs (Last 6 Months)", vi: "Chi phí bảo trì (6 tháng gần nhất)" },
+  "chart.total": { en: "Total", vi: "Tổng" },
+  "chart.assetValue": { en: "Asset Value (Last 6 Months)", vi: "Giá trị tài sản (6 tháng gần nhất)" },
+  "chart.latest": { en: "Latest", vi: "Mới nhất" },
   "chart.noData": { en: "No data available", vi: "Không có dữ liệu" },
   "chart.noMaintenanceData": { en: "No maintenance data available", vi: "Không có dữ liệu bảo trì" },
 
@@ -160,6 +177,9 @@ export const translations: Record<string, Record<Lang, string>> = {
   "assetForm.notFound": { en: "Asset not found.", vi: "Không tìm thấy tài sản." },
 
   // ── Asset detail ──
+  "assetDetail.purchasePrice": { en: "Purchase Price", vi: "Giá mua" },
+  "assetDetail.vendor": { en: "Vendor", vi: "Nhà cung cấp" },
+  "assetDetail.warranty": { en: "Warranty", vi: "Bảo hành" },
   "assetDetail.info": { en: "Info", vi: "Thông tin" },
   "assetDetail.attributes": { en: "Attributes", vi: "Thuộc tính" },
   "assetDetail.maintenanceTab": { en: "Maintenance", vi: "Bảo trì" },
@@ -182,6 +202,7 @@ export const translations: Record<string, Record<Lang, string>> = {
 
   // ── Assign dialog ──
   "assign.title": { en: "Assign Asset", vi: "Giao tài sản" },
+  "assign.description": { en: "Assign {name} to an employee.", vi: "Giao {name} cho nhân viên." },
   "assign.employee": { en: "Employee", vi: "Nhân viên" },
   "assign.selectEmployee": { en: "Select an employee", vi: "Chọn nhân viên" },
   "assign.noEmployees": { en: "No employees found", vi: "Không tìm thấy nhân viên" },

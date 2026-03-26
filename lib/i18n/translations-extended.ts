@@ -161,4 +161,40 @@ export const translationsExtended: Record<string, Record<Lang, string>> = {
   "fsm.disposeAsset": { en: "Dispose asset", vi: "Xử lý tài sản" },
   "fsm.restoreFromDisposal": { en: "Restore from disposal", vi: "Khôi phục tài sản" },
   "fsm.recall": { en: "Recall (unassign)", vi: "Thu hồi" },
+
+  // ── Maintenance form ──
+  "maintForm.description": { en: "Record maintenance for {name}.", vi: "Ghi nhận bảo trì cho {name}." },
+  "maintForm.descPlaceholder": { en: "Describe the maintenance work...", vi: "Mô tả công việc bảo trì..." },
+  "maintForm.performedByPlaceholder": { en: "e.g. IT Support", vi: "VD: Bộ phận IT" },
+
+  // ── QR Scanner ──
+  "scan.assetNotFound": { en: "Asset does not exist", vi: "Tài sản không tồn tại" },
+  "scan.validateFailed": { en: "Failed to validate asset", vi: "Xác thực tài sản thất bại" },
+
+  // ── Invoice upload ──
+  "invoiceUpload.fileTooLarge": { en: "File too large. Max {max}MB.", vi: "File quá lớn. Tối đa {max}MB." },
+  "invoiceUpload.unsupportedFileType": { en: "Unsupported file type. Please upload a JPG or PNG image.", vi: "Định dạng không hỗ trợ. Vui lòng tải ảnh JPG hoặc PNG." },
+  "invoiceUpload.fileFormatHint": { en: "JPG, PNG · Max {max}MB", vi: "JPG, PNG · Tối đa {max}MB" },
+  "invoiceUpload.assetNumber": { en: "Asset #{n}", vi: "Tài sản #{n}" },
+  "invoiceUpload.assetNamePlaceholder": { en: "Asset name", vi: "Tên tài sản" },
+  "invoiceUpload.invoicePreview": { en: "Invoice preview", vi: "Xem trước hóa đơn" },
+
+  // ── Asset detail extra ──
+  "assetDetail.loadError": { en: "Asset not found or could not be loaded.", vi: "Không tìm thấy tài sản hoặc không thể tải." },
+  "assetDetail.warrantyValue": { en: "{n} months", vi: "{n} tháng" },
+  "assetDetail.maintenanceRecords": { en: "Maintenance Records", vi: "Lịch sử bảo trì" },
+  "assetDetail.retireConfirm": { en: "Are you sure you want to retire \"{name}\" ({code})? This cannot be undone.", vi: "Bạn có chắc muốn thanh lý \"{name}\" ({code})? Không thể hoàn tác." },
+  "assetDetail.deleteConfirm": { en: "Are you sure you want to permanently delete \"{name}\" ({code})? This cannot be undone.", vi: "Bạn có chắc muốn xóa vĩnh viễn \"{name}\" ({code})? Không thể hoàn tác." },
+
+  // ── Categories page ──
+  "categories.deleteConfirm": { en: "Delete \"{name}\"? This cannot be undone.", vi: "Xóa \"{name}\"? Không thể hoàn tác." },
+
+  // ── Attributes page ──
+  "attributes.deleteConfirm": { en: "Delete \"{name}\"? Existing asset values will be preserved but the schema definition will be removed.", vi: "Xóa \"{name}\"? Giá trị tài sản hiện tại sẽ được giữ nhưng định nghĩa trường sẽ bị xóa." },
+
+  // ── Invoices page ──
+  "invoices.deleteConfirm": { en: "Delete invoice from {vendor}? This cannot be undone.", vi: "Xóa hóa đơn từ {vendor}? Không thể hoàn tác." },
+  "invoices.unknownVendor": { en: "unknown vendor", vi: "nhà cung cấp không rõ" },
+  "invoiceDetail.deleteWithAssets": { en: "This will delete the invoice and {count} related asset(s). This cannot be undone.", vi: "Sẽ xóa hóa đơn và {count} tài sản liên quan. Không thể hoàn tác." },
+  "invoiceDetail.deleteNoAssets": { en: "Delete this invoice? This cannot be undone.", vi: "Xóa hóa đơn này? Không thể hoàn tác." },
 };

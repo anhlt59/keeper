@@ -72,13 +72,13 @@ function formatRelativeTime(date: Date | string, t: TFn): string {
   return d.toLocaleDateString();
 }
 
-function StatusChangeDescription(event: TimelineEvent): string {
+function StatusChangeDescription(event: TimelineEvent, t: TFn): string {
   if (event.fromStatus && event.toStatus) {
-    const from = STATUS_CONFIG[event.fromStatus]?.label ?? event.fromStatus;
-    const to = STATUS_CONFIG[event.toStatus]?.label ?? event.toStatus;
+    const from = t(`status.${event.fromStatus}`);
+    const to = t(`status.${event.toStatus}`);
     return `${from} → ${to}`;
   }
-  return event.description ?? "Status changed";
+  return event.description ?? t("timeline.statusChanged");
 }
 
 export function AssetTimeline({ events }: AssetTimelineProps) {
@@ -101,8 +101,8 @@ export function AssetTimeline({ events }: AssetTimelineProps) {
 
         const description =
           event.eventType === "STATUS_CHANGE" || event.eventType === "ASSIGNED" || event.eventType === "RECALLED"
-            ? StatusChangeDescription(event)
-            : event.description ?? event.eventType;
+            ? StatusChangeDescription(event, t)
+            : event.description ?? t(`timeline.${event.eventType}`);
 
         return (
           <div key={event.id} className="flex gap-3 relative">
@@ -133,7 +133,7 @@ export function AssetTimeline({ events }: AssetTimelineProps) {
               </div>
               {event.performedByName && event.performedByName !== "system" && (
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  by {event.performedByName}
+                  {t("timeline.by")} {event.performedByName}
                 </p>
               )}
             </div>

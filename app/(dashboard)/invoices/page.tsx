@@ -169,7 +169,7 @@ export default function InvoicesPage() {
         open={!!deleteTarget}
         onOpenChange={(v) => { if (!v) setDeleteTarget(null); }}
         title={t("invoices.deleteTitle")}
-        description={`Delete invoice from ${deleteTarget?.vendor ?? "unknown vendor"}? This cannot be undone.`}
+        description={t("invoices.deleteConfirm").replace("{vendor}", deleteTarget?.vendor ?? t("invoices.unknownVendor"))}
         onConfirm={() => deleteTarget && deleteMutation.mutate(deleteTarget.id)}
         loading={deleteMutation.isPending}
         confirmLabel={t("common.delete")}

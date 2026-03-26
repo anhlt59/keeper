@@ -87,6 +87,25 @@ export async function GET(req: NextRequest) {
     ORDER BY month ASC
   `;
 
+  // Monthly cumulative asset value (last 6 months)
+  // Each month shows total value of all non-deleted assets created up to that month-end
+  const monthlyAssetValues = await prisma.$queryRaw<
+    { month: string; value: number }[]
+  >`
+    SELECT m.month, COALESCE(SUM(a."purchasePrice"), 0)::float AS value
+    FROM generate_series(
+      date_trunc('month', ${sixMonthsAgo}::timestamp),
+      date_trunc('month', now()),
+      '1 month'
+    ) AS m(month)
+    LEFT JOIN "Asset" a
+      ON a."isDeleted" = false
+      AND a."purchasePrice" IS NOT NULL
+      AND a."createdAt" < m.month + interval '1 month'
+    GROUP BY m.month
+    ORDER BY m.month ASC
+  `;
+
   // Resolve category names
   const categoryIds = byCategory.map((c) => c.categoryId);
   const categories = await prisma.category.findMany({
@@ -108,5 +127,9 @@ export async function GET(req: NextRequest) {
     totalMaintenanceCost: totalMaintenanceCost._sum.cost ?? 0,
     recentEvents,
     monthlyCosts,
+    monthlyAssetValues: monthlyAssetValues.map((r) => ({
+      month: (r.month as unknown as Date).toISOString().slice(0, 7),
+      value: r.value,
+    })),
   });
 }

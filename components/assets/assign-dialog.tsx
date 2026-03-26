@@ -87,7 +87,7 @@ export function AssignDialog({ assetId, assetName, trigger, onSuccess }: AssignD
         <DialogHeader>
           <DialogTitle>{t("assign.title")}</DialogTitle>
           <DialogDescription>
-            Assign <strong>{assetName}</strong> to an employee.
+            {t("assign.description").replace("{name}", assetName)}
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-2">

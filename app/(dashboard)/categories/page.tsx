@@ -164,7 +164,7 @@ export default function CategoriesPage() {
         title={t("categories.deleteTitle")}
         description={
           deleteTarget
-            ? `Delete "${deleteTarget.name}"? This cannot be undone.`
+            ? t("categories.deleteConfirm").replace("{name}", deleteTarget.name)
             : ""
         }
         onConfirm={handleDelete}

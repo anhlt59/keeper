@@ -14,21 +14,21 @@ export type FSMTransition = {
 // Allowed transitions with event types
 export const ASSET_TRANSITIONS: FSMTransition[] = [
   // Available → assign
-  { from: AssetStatus.AVAILABLE, to: AssetStatus.ASSIGNED, eventType: AssetEventType.ASSIGNED, label: "Assign to employee/department" },
+  { from: AssetStatus.AVAILABLE, to: AssetStatus.ASSIGNED, eventType: AssetEventType.ASSIGNED, label: "fsm.assignToEmployee" },
   // Assigned → maintenance
-  { from: AssetStatus.ASSIGNED, to: AssetStatus.MAINTENANCE, eventType: AssetEventType.MAINTENANCE_CREATED, label: "Send to maintenance" },
+  { from: AssetStatus.ASSIGNED, to: AssetStatus.MAINTENANCE, eventType: AssetEventType.MAINTENANCE_CREATED, label: "fsm.sendToMaintenance" },
   // Maintenance → assigned (back from maintenance)
-  { from: AssetStatus.MAINTENANCE, to: AssetStatus.ASSIGNED, eventType: AssetEventType.MAINTENANCE_COMPLETED, label: "Maintenance complete" },
+  { from: AssetStatus.MAINTENANCE, to: AssetStatus.ASSIGNED, eventType: AssetEventType.MAINTENANCE_COMPLETED, label: "fsm.maintenanceComplete" },
   // Assigned → retired
-  { from: AssetStatus.ASSIGNED, to: AssetStatus.RETIRED, eventType: AssetEventType.STATUS_CHANGE, label: "Retire asset" },
+  { from: AssetStatus.ASSIGNED, to: AssetStatus.RETIRED, eventType: AssetEventType.STATUS_CHANGE, label: "fsm.retireAsset" },
   // Available → retired
-  { from: AssetStatus.AVAILABLE, to: AssetStatus.RETIRED, eventType: AssetEventType.STATUS_CHANGE, label: "Retire asset" },
+  { from: AssetStatus.AVAILABLE, to: AssetStatus.RETIRED, eventType: AssetEventType.STATUS_CHANGE, label: "fsm.retireAsset" },
   // Retired → disposed
-  { from: AssetStatus.RETIRED, to: AssetStatus.DISPOSED, eventType: AssetEventType.DISPOSED, label: "Dispose asset" },
+  { from: AssetStatus.RETIRED, to: AssetStatus.DISPOSED, eventType: AssetEventType.DISPOSED, label: "fsm.disposeAsset" },
   // Disposed → retired (restore)
-  { from: AssetStatus.DISPOSED, to: AssetStatus.RETIRED, eventType: AssetEventType.RESTORED, label: "Restore from disposal" },
+  { from: AssetStatus.DISPOSED, to: AssetStatus.RETIRED, eventType: AssetEventType.RESTORED, label: "fsm.restoreFromDisposal" },
   // Recall: ASSIGNED → AVAILABLE
-  { from: AssetStatus.ASSIGNED, to: AssetStatus.AVAILABLE, eventType: AssetEventType.RECALLED, label: "Recall (unassign)" },
+  { from: AssetStatus.ASSIGNED, to: AssetStatus.AVAILABLE, eventType: AssetEventType.RECALLED, label: "fsm.recall" },
 ];
 
 export function canTransition(

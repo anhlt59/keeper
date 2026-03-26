@@ -7,6 +7,7 @@ import { KpiCard } from "@/components/dashboard/kpi-card";
 import { AssetStatusChart } from "@/components/dashboard/asset-status-chart";
 import { RecentEvents } from "@/components/dashboard/recent-events";
 import { MaintenanceCostChart } from "@/components/dashboard/maintenance-cost-chart";
+import { AssetValueChart } from "@/components/dashboard/asset-value-chart";
 import { AssetStatus } from "@prisma/client";
 import { useLanguage } from "@/context/language-context";
 
@@ -17,6 +18,7 @@ interface DashboardData {
   maintenanceCostMTD: number | string;
   totalMaintenanceCost: number | string;
   monthlyCosts: { month: string; cost: number }[];
+  monthlyAssetValues: { month: string; value: number }[];
   recentEvents: Array<{
     id: string;
     asset?: { id: string; name: string; code: string };
@@ -107,11 +109,17 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Maintenance Cost Trend */}
-      <MaintenanceCostChart
-        data={data?.monthlyCosts ?? []}
-        loading={isLoading}
-      />
+      {/* Charts: Asset Value & Maintenance Cost */}
+      <div className="grid gap-4 lg:grid-cols-2">
+        <AssetValueChart
+          data={data?.monthlyAssetValues ?? []}
+          loading={isLoading}
+        />
+        <MaintenanceCostChart
+          data={data?.monthlyCosts ?? []}
+          loading={isLoading}
+        />
+      </div>
     </div>
   );
 }

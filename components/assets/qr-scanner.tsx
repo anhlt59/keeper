@@ -114,10 +114,10 @@ export function QRScanner() {
       if (res.ok) {
         router.push(`/assets/${id}/lookup`);
       } else {
-        toast.error("Asset does not exist");
+        toast.error(t("scan.assetNotFound"));
       }
     } catch {
-      toast.error("Failed to validate asset");
+      toast.error(t("scan.validateFailed"));
     }
   }
 

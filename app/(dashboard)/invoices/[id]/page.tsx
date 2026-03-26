@@ -299,8 +299,8 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
         title={t("invoices.deleteTitle")}
         description={
           invoice.assets && invoice.assets.length > 0
-            ? `This will delete the invoice and ${invoice.assets.length} related asset${invoice.assets.length !== 1 ? "s" : ""}. This cannot be undone.`
-            : "Delete this invoice? This cannot be undone."
+            ? t("invoiceDetail.deleteWithAssets").replace("{count}", String(invoice.assets.length))
+            : t("invoiceDetail.deleteNoAssets")
         }
         onConfirm={handleDelete}
         loading={deleting}

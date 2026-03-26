@@ -240,7 +240,7 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
   if (error || !asset) {
     return (
       <Alert variant="destructive">
-        <AlertDescription>Asset not found or could not be loaded.</AlertDescription>
+        <AlertDescription>{t("assetDetail.loadError")}</AlertDescription>
       </Alert>
     );
   }
@@ -284,17 +284,17 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
             {t("assetDetail.qr")}
           </Button>
 
-          {transitions.map((t) => {
-            if (t.to === AssetStatus.MAINTENANCE) {
+          {transitions.map((tr) => {
+            if (tr.to === AssetStatus.MAINTENANCE) {
               return (
                 <MaintenanceForm
-                  key={t.to}
+                  key={tr.to}
                   assetId={id}
                   assetName={asset.name}
                   trigger={
                     <Button variant="outline" size="sm" disabled={transitioning}>
                       <WrenchIcon className="h-4 w-4" />
-                      {t.label}
+                      {t(tr.label)}
                     </Button>
                   }
                   onSuccess={() => {
@@ -305,30 +305,30 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
                 />
               );
             }
-            if (t.to === AssetStatus.AVAILABLE && t.eventType === "RECALLED") {
+            if (tr.to === AssetStatus.AVAILABLE && tr.eventType === "RECALLED") {
               return (
                 <Button
-                  key={`recall-${t.from}`}
+                  key={`recall-${tr.from}`}
                   variant="outline"
                   size="sm"
                   onClick={handleRecall}
                   disabled={transitioning}
                 >
                   <Undo2Icon className="h-4 w-4" />
-                  {t.label}
+                  {t(tr.label)}
                 </Button>
               );
             }
-            if (t.to === AssetStatus.ASSIGNED) {
+            if (tr.to === AssetStatus.ASSIGNED) {
               return (
                 <AssignDialog
-                  key={t.to}
+                  key={tr.to}
                   assetId={id}
                   assetName={asset.name}
                   trigger={
                     <Button variant="outline" size="sm">
                       <ArrowRightIcon className="h-4 w-4" />
-                      {t.label}
+                      {t(tr.label)}
                     </Button>
                   }
                   onSuccess={() => {
@@ -338,34 +338,34 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
                 />
               );
             }
-            if (t.to === AssetStatus.RETIRED) {
+            if (tr.to === AssetStatus.RETIRED) {
               return (
                 <Button
-                  key={t.to}
+                  key={tr.to}
                   variant="outline"
                   size="sm"
                   onClick={() => setRetireDialogOpen(true)}
                   disabled={transitioning}
                 >
                   <RefreshCwIcon className="h-4 w-4" />
-                  {t.label}
+                  {t(tr.label)}
                 </Button>
               );
             }
             return (
               <Button
-                key={t.to}
+                key={tr.to}
                 variant="outline"
                 size="sm"
-                onClick={() => handleStatusChange(t.to, t.label)}
+                onClick={() => handleStatusChange(tr.to, t(tr.label))}
                 disabled={transitioning}
               >
-                {t.to === AssetStatus.DISPOSED ? (
+                {tr.to === AssetStatus.DISPOSED ? (
                   <Trash2Icon className="h-4 w-4" />
                 ) : (
                   <RefreshCwIcon className="h-4 w-4" />
                 )}
-                {t.label}
+                {t(tr.label)}
               </Button>
             );
           })}
@@ -409,7 +409,7 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
                   { label: t("assets.purchaseDate"), value: formatDate(asset.purchaseDate) },
                   { label: t("assetDetail.purchasePrice"), value: formatVND(asset.purchasePrice) },
                   { label: t("assetDetail.vendor"), value: asset.vendor ?? "—" },
-                  { label: t("assetDetail.warranty"), value: asset.warrantyMonths ? `${asset.warrantyMonths} months` : "—" },
+                  { label: t("assetDetail.warranty"), value: asset.warrantyMonths ? t("assetDetail.warrantyValue").replace("{n}", String(asset.warrantyMonths)) : "—" },
                   { label: t("common.description"), value: asset.description ?? "—" },
                 ].map(({ label, value }) => (
                   <div key={label} className="space-y-1">
@@ -468,7 +468,7 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
         <TabsContent value="maintenance" className="mt-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle className="text-base">Maintenance Records</CardTitle>
+              <CardTitle className="text-base">{t("assetDetail.maintenanceRecords")}</CardTitle>
               <MaintenanceForm
                 assetId={id}
                 assetName={asset.name}
@@ -542,24 +542,24 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
       <ConfirmDialog
         open={retireDialogOpen}
         onOpenChange={setRetireDialogOpen}
-        title="Retire Asset"
-        description={<>Are you sure you want to retire &quot;{asset.name}&quot; ({asset.code})?<br />This cannot be undone.</>}
+        title={t("assetDetail.retireTitle")}
+        description={t("assetDetail.retireConfirm").replace("{name}", asset.name).replace("{code}", asset.code)}
         onConfirm={() => {
           setRetireDialogOpen(false);
-          handleStatusChange(AssetStatus.RETIRED, "Retired");
+          handleStatusChange(AssetStatus.RETIRED, t("status.RETIRED"));
         }}
         loading={transitioning}
-        confirmLabel="Retire"
+        confirmLabel={t("assetDetail.retire")}
         variant="destructive"
       />
       <ConfirmDialog
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
-        title="Delete Asset"
-        description={<>Are you sure you want to permanently delete &quot;{asset.name}&quot; ({asset.code})?<br />This cannot be undone.</>}
+        title={t("assetDetail.deleteTitle")}
+        description={t("assetDetail.deleteConfirm").replace("{name}", asset.name).replace("{code}", asset.code)}
         onConfirm={handleDelete}
         loading={deleting}
-        confirmLabel="Delete"
+        confirmLabel={t("common.delete")}
         variant="destructive"
       />
     </div>

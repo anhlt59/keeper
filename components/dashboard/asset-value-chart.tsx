@@ -12,13 +12,13 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useLanguage } from "@/context/language-context";
 
-interface MonthlyCost {
+interface MonthlyValue {
   month: string; // "YYYY-MM"
-  cost: number;
+  value: number;
 }
 
-interface MaintenanceCostChartProps {
-  data: MonthlyCost[];
+interface AssetValueChartProps {
+  data: MonthlyValue[];
   loading?: boolean;
 }
 
@@ -36,14 +36,14 @@ function formatVND(value: number): string {
   return value.toLocaleString("vi-VN");
 }
 
-export function MaintenanceCostChart({ data, loading = false }: MaintenanceCostChartProps) {
+export function AssetValueChart({ data, loading = false }: AssetValueChartProps) {
   const { t } = useLanguage();
 
   if (loading) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">{t("chart.maintenanceCosts")}</CardTitle>
+          <CardTitle className="text-base">{t("chart.assetValue")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="h-[250px] w-full animate-pulse rounded bg-muted" />
@@ -56,10 +56,10 @@ export function MaintenanceCostChart({ data, loading = false }: MaintenanceCostC
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">{t("chart.maintenanceCosts")}</CardTitle>
+          <CardTitle className="text-base">{t("chart.assetValue")}</CardTitle>
         </CardHeader>
         <CardContent className="py-8 text-center text-sm text-muted-foreground">
-          {t("chart.noMaintenanceData")}
+          {t("chart.noData")}
         </CardContent>
       </Card>
     );
@@ -67,27 +67,27 @@ export function MaintenanceCostChart({ data, loading = false }: MaintenanceCostC
 
   const chartData = data.map((d) => ({
     month: formatMonth(d.month),
-    cost: d.cost,
+    value: d.value,
   }));
 
-  const total = data.reduce((sum, d) => sum + d.cost, 0);
-  const formattedTotal = new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND", maximumFractionDigits: 0 }).format(total);
+  const latest = data[data.length - 1];
+  const formattedLatest = new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND", maximumFractionDigits: 0 }).format(latest.value);
 
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle className="text-base">{t("chart.maintenanceCosts")}</CardTitle>
+        <CardTitle className="text-base">{t("chart.assetValue")}</CardTitle>
         <span className="text-sm font-medium text-muted-foreground">
-          {t("chart.total")}: <span className="text-foreground">{formattedTotal}</span>
+          {t("chart.latest")}: <span className="text-foreground">{formattedLatest}</span>
         </span>
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={250}>
           <AreaChart data={chartData} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
             <defs>
-              <linearGradient id="costGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#f59e0b" stopOpacity={0.3} />
-                <stop offset="100%" stopColor="#f59e0b" stopOpacity={0.02} />
+              <linearGradient id="valueGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.3} />
+                <stop offset="100%" stopColor="#3b82f6" stopOpacity={0.02} />
               </linearGradient>
             </defs>
             <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
@@ -96,11 +96,11 @@ export function MaintenanceCostChart({ data, loading = false }: MaintenanceCostC
             <Tooltip
               formatter={(value) => [
                 new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND", maximumFractionDigits: 0 }).format(Number(value)),
-                t("common.cost"),
+                t("common.value"),
               ]}
               contentStyle={{ fontSize: 13 }}
             />
-            <Area type="monotone" dataKey="cost" stroke="#f59e0b" strokeWidth={2} fill="url(#costGradient)" dot={{ r: 4, fill: "#f59e0b" }} activeDot={{ r: 6 }} />
+            <Area type="monotone" dataKey="value" stroke="#3b82f6" strokeWidth={2} fill="url(#valueGradient)" dot={{ r: 4, fill: "#3b82f6" }} activeDot={{ r: 6 }} />
           </AreaChart>
         </ResponsiveContainer>
       </CardContent>

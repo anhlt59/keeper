@@ -88,7 +88,7 @@ export function MaintenanceForm({
         <DialogHeader>
           <DialogTitle>{t("maintForm.title")}</DialogTitle>
           <DialogDescription>
-            Record maintenance for <strong>{assetName}</strong>.
+            {t("maintForm.description").replace("{name}", assetName)}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -113,7 +113,7 @@ export function MaintenanceForm({
             <Label htmlFor="description">{t("common.description")} *</Label>
             <Textarea
               id="description"
-              placeholder="Describe the maintenance work..."
+              placeholder={t("maintForm.descPlaceholder")}
               value={form.description}
               onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
               rows={3}
@@ -146,7 +146,7 @@ export function MaintenanceForm({
             <Label htmlFor="performedBy">{t("assetDetail.performedBy")}</Label>
             <Input
               id="performedBy"
-              placeholder="e.g. IT Support"
+              placeholder={t("maintForm.performedByPlaceholder")}
               value={form.performedBy}
               onChange={(e) => setForm((f) => ({ ...f, performedBy: e.target.value }))}
             />
