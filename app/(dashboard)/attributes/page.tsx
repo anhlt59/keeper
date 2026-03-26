@@ -4,6 +4,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
 import { PlusIcon, PencilIcon, Trash2Icon, Settings2Icon } from "lucide-react";
+import { apiFetch } from "@/lib/api-fetch";
+
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -55,7 +57,7 @@ export default function AttributesPage() {
   const { data: definitions = [], isLoading } = useQuery<Definition[]>({
     queryKey: ["attribute-definitions"],
     queryFn: async () => {
-      const r = await fetch("/api/attributes/definitions", { credentials: "include" });
+      const r = await apiFetch("/api/attributes/definitions");
       if (!r.ok) throw new Error("Failed to load attribute definitions");
       return r.json();
     },
@@ -64,7 +66,7 @@ export default function AttributesPage() {
   const { data: categories = [] } = useQuery<Category[]>({
     queryKey: ["categories"],
     queryFn: async () => {
-      const r = await fetch("/api/categories", { credentials: "include" });
+      const r = await apiFetch("/api/categories");
       if (!r.ok) throw new Error("Failed to load categories");
       return r.json();
     },
@@ -72,7 +74,7 @@ export default function AttributesPage() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const res = await fetch(`/api/attributes/definitions/${id}`, { method: "DELETE" });
+      const res = await apiFetch(`/api/attributes/definitions/${id}`, { method: "DELETE" });
       if (!res.ok) throw new Error("Delete failed");
     },
     onSuccess: () => {

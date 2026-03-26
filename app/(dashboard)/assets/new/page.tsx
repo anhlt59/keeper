@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { apiFetch } from "@/lib/api-fetch";
 import { ChevronLeftIcon } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -52,7 +53,7 @@ export default function NewAssetPage() {
   const { data: categories = [] } = useQuery<Category[]>({
     queryKey: ["categories"],
     queryFn: async () => {
-      const r = await fetch("/api/categories", { credentials: "include" });
+      const r = await apiFetch("/api/categories");
       if (!r.ok) throw new Error("Failed to load categories");
       return r.json();
     },
@@ -63,7 +64,7 @@ export default function NewAssetPage() {
   }>>({
     queryKey: ["attribute-definitions", form.categoryId],
     queryFn: async () => {
-      const r = await fetch(`/api/attributes/definitions${form.categoryId ? `?categoryId=${form.categoryId}` : ""}`, { credentials: "include" });
+      const r = await apiFetch(`/api/attributes/definitions${form.categoryId ? `?categoryId=${form.categoryId}` : ""}`);
       if (!r.ok) throw new Error("Failed to load attribute definitions");
       return r.json();
     },
@@ -81,7 +82,7 @@ export default function NewAssetPage() {
 
     setLoading(true);
     try {
-      const res = await fetch("/api/assets", {
+      const res = await apiFetch("/api/assets", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

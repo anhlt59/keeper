@@ -3,6 +3,7 @@
 import { use, useState, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { CheckCircleIcon, ChevronLeftIcon, FileTextIcon, ImageIcon, Trash2Icon, PackageIcon } from "lucide-react";
+import { apiFetch } from "@/lib/api-fetch";
 import Link from "next/link";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -68,17 +69,18 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
 
   const { data, isLoading, error, refetch } = useQuery<InvoiceDetail>({
     queryKey: ["invoice", id],
-    queryFn: () => fetch(`/api/invoices/${id}`, { credentials: "include" }).then((r) => {
+    queryFn: async () => {
+      const r = await apiFetch(`/api/invoices/${id}`);
       if (!r.ok) throw new Error("Not found");
       return r.json() as Promise<InvoiceDetail>;
-    }),
+    },
   });
 
   async function handleDelete() {
     if (!data) return;
     setDeleting(true);
     try {
-      const res = await fetch(`/api/invoices/${data.id}`, { method: "DELETE", credentials: "include" });
+      const res = await apiFetch(`/api/invoices/${data.id}`, { method: "DELETE" });
       if (!res.ok) throw new Error("Delete failed");
       window.location.href = "/invoices";
     } catch {
@@ -92,11 +94,10 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
     setConfirmOpen(false);
     setConfirming(true);
     try {
-      const res = await fetch(`/api/invoices/${data.id}`, {
+      const res = await apiFetch(`/api/invoices/${data.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: "CONFIRMED" }),
-        credentials: "include",
       });
       if (!res.ok) throw new Error("Confirm failed");
       toast.success("Invoice confirmed");

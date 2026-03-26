@@ -33,6 +33,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { AssetStatus } from "@prisma/client";
+import { apiFetch } from "@/lib/api-fetch";
 
 interface Asset {
   id: string;
@@ -82,7 +83,7 @@ function AssetsContent() {
   const { data, isLoading } = useQuery<ListResponse>({
     queryKey: ["assets", params.toString()],
     queryFn: async () => {
-      const r = await fetch(`/api/assets?${params}`, { credentials: "include" });
+      const r = await apiFetch(`/api/assets?${params}`);
       if (!r.ok) throw new Error((await r.json()).error ?? "Failed to load assets");
       return r.json();
     },
@@ -91,7 +92,7 @@ function AssetsContent() {
   const { data: categories = [] } = useQuery<Category[]>({
     queryKey: ["categories"],
     queryFn: async () => {
-      const r = await fetch("/api/categories", { credentials: "include" });
+      const r = await apiFetch("/api/categories");
       if (!r.ok) throw new Error((await r.json()).error ?? "Failed to load categories");
       return r.json();
     },

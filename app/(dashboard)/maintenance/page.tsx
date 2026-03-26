@@ -3,6 +3,7 @@
 import { Suspense } from "react";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
+import { apiFetch } from "@/lib/api-fetch";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   ChevronLeftIcon,
@@ -94,7 +95,7 @@ function MaintenanceContent() {
   const { data, isLoading } = useQuery<ListResponse>({
     queryKey: ["maintenance", params.toString()],
     queryFn: async () => {
-      const r = await fetch(`/api/maintenance?${params}`, { credentials: "include" });
+      const r = await apiFetch(`/api/maintenance?${params}`);
       if (!r.ok) throw new Error("Failed to load maintenance records");
       return r.json();
     },

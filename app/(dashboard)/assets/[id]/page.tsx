@@ -3,6 +3,7 @@
 import { use, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
+import { apiFetch } from "@/lib/api-fetch";
 import Link from "next/link";
 import {
   ChevronLeftIcon,
@@ -112,16 +113,17 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
 
   const { data: asset, isLoading, error } = useQuery<AssetDetail>({
     queryKey: ["asset", id],
-    queryFn: () => fetch(`/api/assets/${id}`, { credentials: "include" }).then((r) => {
+    queryFn: async () => {
+      const r = await apiFetch(`/api/assets/${id}`);
       if (!r.ok) throw new Error("Asset not found");
       return r.json();
-    }),
+    },
   });
 
   const { data: eventsData, refetch: refetchEvents } = useQuery<AssetDetail["events"]>({
     queryKey: ["asset-events", id],
     queryFn: async () => {
-      const r = await fetch(`/api/assets/${id}/events`, { credentials: "include" });
+      const r = await apiFetch(`/api/assets/${id}/events`);
       if (!r.ok) throw new Error("Failed to load events");
       return r.json();
     },
@@ -131,7 +133,7 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
   const { data: maintenanceData } = useQuery<AssetDetail["maintenanceRecords"]>({
     queryKey: ["asset-maintenance", id],
     queryFn: async () => {
-      const r = await fetch(`/api/assets/${id}/maintenance`, { credentials: "include" });
+      const r = await apiFetch(`/api/assets/${id}/maintenance`);
       if (!r.ok) throw new Error("Failed to load maintenance records");
       return r.json();
     },
@@ -143,7 +145,7 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
   }>>({
     queryKey: ["attribute-definitions", asset?.categoryId],
     queryFn: async () => {
-      const r = await fetch(`/api/attributes/definitions?categoryId=${asset?.categoryId ?? ""}`, { credentials: "include" });
+      const r = await apiFetch(`/api/attributes/definitions?categoryId=${asset?.categoryId ?? ""}`);
       if (!r.ok) throw new Error("Failed to load attribute definitions");
       return r.json();
     },
@@ -161,7 +163,7 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
   const handleRecall = async () => {
     setTransitioning(true);
     try {
-      const res = await fetch(`/api/assets/${id}/recall`, {
+      const res = await apiFetch(`/api/assets/${id}/recall`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({}),
@@ -183,7 +185,7 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
   const handleStatusChange = async (toStatus: AssetStatus, label: string) => {
     setTransitioning(true);
     try {
-      const res = await fetch(`/api/assets/${id}`, {
+      const res = await apiFetch(`/api/assets/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: toStatus }),
@@ -205,7 +207,7 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
   const handleDelete = async () => {
     setDeleting(true);
     try {
-      const res = await fetch(`/api/assets/${id}`, { method: "DELETE" });
+      const res = await apiFetch(`/api/assets/${id}`, { method: "DELETE" });
       if (!res.ok) {
         const data = await res.json();
         throw new Error(data.error ?? "Failed to delete");

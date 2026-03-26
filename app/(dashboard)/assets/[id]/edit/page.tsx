@@ -22,6 +22,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AssetStatus, AttributeFieldType } from "@prisma/client";
 import { DynamicFieldRenderer } from "@/components/attributes/dynamic-field-renderer";
+import { apiFetch } from "@/lib/api-fetch";
 
 interface Category {
   id: string;
@@ -50,16 +51,17 @@ export default function EditAssetPage({ params }: { params: Promise<{ id: string
 
   const { data: asset, isLoading, error } = useQuery<AssetDetail>({
     queryKey: ["asset", id],
-    queryFn: () => fetch(`/api/assets/${id}`).then((r) => {
+    queryFn: async () => {
+      const r = await apiFetch(`/api/assets/${id}`);
       if (!r.ok) throw new Error("Asset not found");
       return r.json();
-    }),
+    },
   });
 
   const { data: categories = [] } = useQuery<Category[]>({
     queryKey: ["categories"],
     queryFn: async () => {
-      const r = await fetch("/api/categories", { credentials: "include" });
+      const r = await apiFetch("/api/categories");
       if (!r.ok) throw new Error("Failed to load categories");
       return r.json();
     },
@@ -70,7 +72,7 @@ export default function EditAssetPage({ params }: { params: Promise<{ id: string
   }>>({
     queryKey: ["attribute-definitions", asset?.categoryId],
     queryFn: async () => {
-      const r = await fetch(`/api/attributes/definitions${asset?.categoryId ? `?categoryId=${asset.categoryId}` : ""}`, { credentials: "include" });
+      const r = await apiFetch(`/api/attributes/definitions${asset?.categoryId ? `?categoryId=${asset.categoryId}` : ""}`);
       if (!r.ok) throw new Error("Failed to load attribute definitions");
       return r.json();
     },
@@ -123,7 +125,7 @@ export default function EditAssetPage({ params }: { params: Promise<{ id: string
 
     setLoading(true);
     try {
-      const res = await fetch(`/api/assets/${id}`, {
+      const res = await apiFetch(`/api/assets/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

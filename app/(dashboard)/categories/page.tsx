@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { apiFetch } from "@/lib/api-fetch";
 import {
   PlusIcon,
   EditIcon,
@@ -38,7 +39,7 @@ export default function CategoriesPage() {
   const { data: categories = [], isLoading } = useQuery<Category[]>({
     queryKey: ["categories"],
     queryFn: async () => {
-      const r = await fetch("/api/categories", { credentials: "include" });
+      const r = await apiFetch("/api/categories");
       if (!r.ok) throw new Error("Failed to load categories");
       return r.json();
     },
@@ -48,7 +49,7 @@ export default function CategoriesPage() {
     if (!deleteTarget) return;
     setDeleteLoading(true);
     try {
-      const res = await fetch(`/api/categories/${deleteTarget.id}`, { method: "DELETE" });
+      const res = await apiFetch(`/api/categories/${deleteTarget.id}`, { method: "DELETE" });
       if (!res.ok) {
         const data = await res.json();
         throw new Error(data.error ?? "Failed to delete");

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { ChevronLeftIcon, CheckCircleIcon } from "lucide-react";
+import { apiFetch } from "@/lib/api-fetch";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -64,7 +65,7 @@ export default function NewInvoicePage() {
     try {
       const fd = new FormData();
       fd.append("file", file);
-      const res = await fetch("/api/invoices/ocr", { method: "POST", body: fd });
+      const res = await apiFetch("/api/invoices/ocr", { method: "POST", body: fd });
       if (!res.ok) {
         const data = await res.json();
         throw new Error(data.error ?? "OCR extraction failed");

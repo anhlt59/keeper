@@ -2,6 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { PackageIcon, DollarSignIcon, WrenchIcon, ClockIcon, CalculatorIcon } from "lucide-react";
+import { apiFetch } from "@/lib/api-fetch";
 import { KpiCard } from "@/components/dashboard/kpi-card";
 import { AssetStatusChart } from "@/components/dashboard/asset-status-chart";
 import { RecentEvents } from "@/components/dashboard/recent-events";
@@ -31,10 +32,11 @@ function formatVND(value: number | string): string {
 export default function DashboardPage() {
   const { data, isLoading } = useQuery<DashboardData>({
     queryKey: ["dashboard"],
-    queryFn: () => fetch("/api/dashboard", { credentials: "include" }).then((r) => {
+    queryFn: async () => {
+      const r = await apiFetch("/api/dashboard");
       if (!r.ok) throw new Error("Failed to load dashboard");
       return r.json();
-    }),
+    },
   });
 
   const totalValue = data?.totalValue ?? 0;

@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { PlusIcon, Trash2Icon, FileTextIcon, EyeIcon } from "lucide-react";
+import { apiFetch } from "@/lib/api-fetch";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -58,7 +59,7 @@ export default function InvoicesPage() {
   const { data, isLoading } = useQuery<{ items: Invoice[]; total: number }>({
     queryKey: ["invoices"],
     queryFn: async () => {
-      const r = await fetch("/api/invoices", { credentials: "include" });
+      const r = await apiFetch("/api/invoices");
       if (!r.ok) throw new Error("Failed to load invoices");
       return r.json();
     },
@@ -66,7 +67,7 @@ export default function InvoicesPage() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const res = await fetch(`/api/invoices/${id}`, { method: "DELETE", credentials: "include" });
+      const res = await apiFetch(`/api/invoices/${id}`, { method: "DELETE" });
       if (!res.ok) throw new Error("Delete failed");
     },
     onSuccess: () => {

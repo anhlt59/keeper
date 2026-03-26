@@ -3,6 +3,7 @@
 import { Suspense } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter, useSearchParams } from "next/navigation";
+import { apiFetch } from "@/lib/api-fetch";
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
@@ -83,7 +84,7 @@ function AuditLogsContent() {
   const { data, isLoading } = useQuery<ListResponse>({
     queryKey: ["audit-logs", params.toString()],
     queryFn: async () => {
-      const r = await fetch(`/api/audit-logs?${params}`, { credentials: "include" });
+      const r = await apiFetch(`/api/audit-logs?${params}`);
       if (!r.ok) throw new Error("Failed to load audit logs");
       return r.json();
     },
