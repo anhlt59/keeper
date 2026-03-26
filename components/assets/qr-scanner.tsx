@@ -17,9 +17,14 @@ export function QRScanner() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const html5QrRef = useRef<any>(null);
   const scannerStartedRef = useRef(false);
+  const initializingRef = useRef(false);
 
   useEffect(() => {
     if (showManual) return;
+
+    // Prevent double-init from React StrictMode double-mount
+    if (initializingRef.current) return;
+    initializingRef.current = true;
 
     let mounted = true;
 
@@ -31,7 +36,7 @@ export function QRScanner() {
         if (mounted) {
           setCameraAllowed(false);
           setShowManual(true);
-          toast.error("No camera found on this device");
+          toast.error("No camera found on this device", { id: "camera-not-found" });
         }
         return;
       }
@@ -81,7 +86,7 @@ export function QRScanner() {
         if (mounted) {
           setCameraAllowed(false);
           setShowManual(true);
-          toast.error("Camera not available");
+          toast.error("Camera not available", { id: "camera-not-available" });
         }
       }
     }
@@ -90,6 +95,7 @@ export function QRScanner() {
 
     return () => {
       mounted = false;
+      initializingRef.current = false;
       if (scannerStartedRef.current && html5QrRef.current) {
         scannerStartedRef.current = false;
         html5QrRef.current.stop().catch(() => {});
