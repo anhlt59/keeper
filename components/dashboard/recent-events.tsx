@@ -88,7 +88,7 @@ export function RecentEvents({ events, loading = false }: RecentEventsProps) {
         <CardTitle className="text-base">Recent Activity</CardTitle>
       </CardHeader>
       <CardContent className="flex-1 overflow-y-auto space-y-3">
-        {events.map((event) => {
+        {events.slice(0, 5).map((event) => {
           const Icon = EVENT_ICON_MAP[event.eventType] ?? ClockIcon;
           return (
             <div key={event.id} className="flex items-start gap-3">
