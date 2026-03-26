@@ -16,6 +16,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/context/language-context";
 import { LanguageToggle } from "@/components/shared/language-toggle";
+import { ThemeToggle } from "@/components/shared/theme-toggle";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -43,7 +44,7 @@ function Sidebar() {
   const { t } = useLanguage();
 
   return (
-    <aside className="hidden lg:flex flex-col w-64 border-r bg-slate-50 dark:bg-slate-900 min-h-screen">
+    <aside className="hidden lg:flex flex-col w-64 border-r bg-sidebar text-sidebar-foreground min-h-screen">
       {/* Logo */}
       <div className="flex items-center gap-2 px-6 h-16 border-b">
         <div className="w-6 h-6 rounded bg-primary flex items-center justify-center">
@@ -180,6 +181,7 @@ function PageHeader() {
             {config.action.label}
           </Link>
         )}
+        <ThemeToggle />
         <LanguageToggle />
       </div>
     </header>

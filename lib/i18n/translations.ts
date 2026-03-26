@@ -29,6 +29,11 @@ export const translations: Record<string, Record<Lang, string>> = {
   "user.myAccount": { en: "My Account", vi: "Tài khoản" },
   "user.signOut": { en: "Sign Out", vi: "Đăng xuất" },
 
+  // ── Theme ──
+  "theme.light": { en: "Light", vi: "Sáng" },
+  "theme.dark": { en: "Dark", vi: "Tối" },
+  "theme.system": { en: "System", vi: "Hệ thống" },
+
   // ── Common actions ──
   "common.cancel": { en: "Cancel", vi: "Hủy" },
   "common.confirm": { en: "Confirm", vi: "Xác nhận" },
@@ -58,7 +63,7 @@ export const translations: Record<string, Record<Lang, string>> = {
   "common.code": { en: "Code", vi: "Mã" },
 
   // ── Asset statuses ──
-  "status.PURCHASED": { en: "Purchased", vi: "Đã mua" },
+  "status.AVAILABLE": { en: "Available", vi: "Sẵn sàng" },
   "status.ASSIGNED": { en: "Assigned", vi: "Đã giao" },
   "status.IN_USE": { en: "In Use", vi: "Đang dùng" },
   "status.MAINTENANCE": { en: "Maintenance", vi: "Bảo trì" },

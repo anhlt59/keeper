@@ -44,15 +44,15 @@ const EVENT_ICON_MAP: Partial<Record<AssetEventType, React.ElementType>> = {
 };
 
 const EVENT_COLOR_MAP: Partial<Record<AssetEventType, string>> = {
-  CREATED: "text-blue-500 bg-blue-50",
-  STATUS_CHANGE: "text-slate-500 bg-slate-50",
-  ASSIGNED: "text-violet-500 bg-violet-50",
-  RECALLED: "text-amber-500 bg-amber-50",
-  MAINTENANCE_CREATED: "text-amber-500 bg-amber-50",
-  MAINTENANCE_COMPLETED: "text-emerald-500 bg-emerald-50",
-  ATTRIBUTE_UPDATED: "text-slate-500 bg-slate-50",
-  DISPOSED: "text-red-500 bg-red-50",
-  RESTORED: "text-blue-500 bg-blue-50",
+  CREATED: "text-blue-500 bg-blue-50 dark:bg-blue-950",
+  STATUS_CHANGE: "text-slate-500 bg-slate-50 dark:bg-slate-900",
+  ASSIGNED: "text-violet-500 bg-violet-50 dark:bg-violet-950",
+  RECALLED: "text-amber-500 bg-amber-50 dark:bg-amber-950",
+  MAINTENANCE_CREATED: "text-amber-500 bg-amber-50 dark:bg-amber-950",
+  MAINTENANCE_COMPLETED: "text-emerald-500 bg-emerald-50 dark:bg-emerald-950",
+  ATTRIBUTE_UPDATED: "text-slate-500 bg-slate-50 dark:bg-slate-900",
+  DISPOSED: "text-red-500 bg-red-50 dark:bg-red-950",
+  RESTORED: "text-blue-500 bg-blue-50 dark:bg-blue-950",
 };
 
 type TFn = (key: string) => string;
