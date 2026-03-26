@@ -1,6 +1,6 @@
 # Zoo — Code Standards
 
-> **Version:** 1.1.0 | **Applies to:** All app code (`app/`, `lib/`, `components/`, `prisma/`)
+> **Version:** 1.2.0 | **Applies to:** All app code (`app/`, `lib/`, `components/`, `prisma/`)
 > **Ref:** [codebase-summary.md](./codebase-summary.md)
 
 ---
@@ -85,7 +85,6 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 // Soft delete mixin — all core tables include these fields
@@ -127,17 +126,24 @@ model AssetEvent {
 ## 4. Better Auth Setup Patterns
 
 ```ts
-// lib/auth.ts
-import { betterAuth } from "better-auth";
-import { prismaAdapter } from "better-auth/adapters/prisma";
+// lib/db.ts — PrismaPg adapter (Prisma 7 + pg driver)
+import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
 
-const pool = new Pool({ connectionString: process.env.DATABASE_URL! });
+const pool = new Pool(buildPoolConfig());
 const adapter = new PrismaPg(pool);
+export const prisma = new PrismaClient({ adapter });
+
+// lib/auth.ts — Better Auth with PrismaAdapter + openAPI plugin
+import { betterAuth } from "better-auth";
+import { openAPI } from "better-auth/plugins";
+import { prismaAdapter } from "better-auth/adapters/prisma";
+import { prisma } from "@/lib/db";
 
 export const auth = betterAuth({
-  database: prismaAdapter(adapter, {
+  plugins: [openAPI()],
+  database: prismaAdapter(prisma, {
     provider: "postgresql",
   }),
   emailAndPassword: {
@@ -160,11 +166,12 @@ export const auth = betterAuth({
 ```
 
 **Rules:**
-- Use `PrismaPg` adapter (not `drizzleAdapter`) — matches current codebase
+- `PrismaPg` adapter in `lib/db.ts`, passed to `prismaAdapter()` in `lib/auth.ts`
 - Cookie: HttpOnly + Secure (production) + SameSite=Lax
 - Session expires: 7 days, update every 24h
 - Rate limit: 5 failed logins / 15 min per IP
-- Protect all API routes and dashboard routes via auth hook
+- `openAPI()` plugin for OpenAPI-compatible auth routes
+- Protect all API routes via `auth.api.getSession({ headers: req.headers })`
 
 ---
 
@@ -177,13 +184,13 @@ import { AssetStatus } from "@prisma/client";
 
 const assetStatusSchema = z.nativeEnum(AssetStatus);
 
-// Zod v4: use .cuid() directly (not .string().cuid())
+// Zod v4: use .cuid() chained directly (not .string().cuid() where min conflicts)
 export const createAssetSchema = z.object({
   code: z.string().min(1, "Asset code is required").max(50),
   name: z.string().min(1, "Asset name is required").max(200),
   description: z.string().max(1000).optional(),
   categoryId: z.string().cuid("Invalid category ID"),        // Zod v4 chained
-  status: assetStatusSchema.optional().default(AssetStatus.PURCHASED),
+  status: assetStatusSchema.optional().default(AssetStatus.AVAILABLE),
   purchaseDate: z.string().datetime().optional(),
   purchasePrice: z.number().positive().optional(),
   serialNumber: z.string().max(100).optional(),
@@ -191,13 +198,14 @@ export const createAssetSchema = z.object({
   attributeValues: z.record(z.string(), z.unknown()).optional(),
 });
 
-export const changeStatusSchema = z.object({
-  toStatus: assetStatusSchema,
-  description: z.string().max(500).optional(),
+// Date range with .refine()
+export const dateRangeSchema = z.object({
+  from: z.string().datetime(),
+  to: z.string().datetime(),
+}).refine(data => new Date(data.from) <= new Date(data.to), {
+  message: "End date must be after start date",
+  path: ["to"],
 });
-
-// Type inference
-export type CreateAssetInput = z.infer<typeof createAssetSchema>;
 ```
 
 **Rules:**
@@ -230,8 +238,8 @@ export const ASSET_TRANSITIONS: FSMTransition[] = [
   { from: AssetStatus.MAINTENANCE, to: AssetStatus.ASSIGNED,   eventType: AssetEventType.MAINTENANCE_COMPLETED, label: "Maintenance complete" },
   { from: AssetStatus.ASSIGNED,   to: AssetStatus.RETIRED,     eventType: AssetEventType.STATUS_CHANGE,        label: "Retire" },
   { from: AssetStatus.AVAILABLE,  to: AssetStatus.RETIRED,     eventType: AssetEventType.STATUS_CHANGE,        label: "Retire (unused)" },
-  { from: AssetStatus.RETIRED,   to: AssetStatus.DISPOSED,    eventType: AssetEventType.DISPOSED,             label: "Dispose" },
-  { from: AssetStatus.DISPOSED,  to: AssetStatus.RETIRED,     eventType: AssetEventType.RESTORED,             label: "Restore" },
+  { from: AssetStatus.RETIRED,    to: AssetStatus.DISPOSED,    eventType: AssetEventType.DISPOSED,             label: "Dispose" },
+  { from: AssetStatus.DISPOSED,  to: AssetStatus.RETIRED,      eventType: AssetEventType.RESTORED,             label: "Restore" },
   { from: AssetStatus.ASSIGNED,   to: AssetStatus.AVAILABLE,  eventType: AssetEventType.RECALLED,            label: "Recall" },
 ];
 
@@ -307,25 +315,15 @@ export async function POST(req: NextRequest) {
 ## 8. Audit Logging Patterns
 
 ```ts
-// lib/audit.ts — set request-scoped context before work
-import { setAuditContext, clearAuditContext } from "@/lib/audit";
-
-// app/api/assets/[id]/route.ts
-export async function PUT(req: NextRequest, { params }: Params) {
-  const session = await auth.api.getSession({ headers: req.headers });
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-  setAuditContext({
-    userId: session.user.id,
-    ipAddress: req.headers.get("x-forwarded-for") ?? undefined,
-    userAgent: req.headers.get("user-agent") ?? undefined,
-  });
-  try {
-    // ... service call
-  } finally {
-    clearAuditContext();
-  }
+// lib/audit.ts — request-scoped context (optional, not currently used in routes)
+interface AuditContext {
+  userId?: string;
+  ipAddress?: string;
+  userAgent?: string;
 }
+export function setAuditContext(c: AuditContext) { /* ... */ }
+export function getAuditContext(): AuditContext { /* ... */ }
+export function clearAuditContext() { /* ... */ }
 
 // lib/audit-logger.ts — atomic AssetEvent + AuditLog write
 import { logAssetEvent } from "@/lib/audit-logger";
@@ -334,14 +332,14 @@ await logAssetEvent({
   eventType: AssetEventType.CREATED,
   toStatus: asset.status,
   description: `Asset '${asset.name}' created`,
-  performedBy,
+  performedBy: session.user.id,
 });
 ```
 
 **Rules:**
-- Call `setAuditContext()` at the start of every mutating API route handler
 - Use `logAssetEvent()` for lifecycle actions — it writes both `AssetEvent` (timeline) and `AuditLog` atomically
-- Wrap in `try/finally` to ensure `clearAuditContext()` is called
+- `performedBy` passed directly to `logAssetEvent()` (currently no route-level context injection)
+- `setAuditContext()` defined but NOT used in routes yet (optional — may be used in future)
 
 ---
 
@@ -381,10 +379,10 @@ chore:    maintenance, deps, config
 ## 11. Error Handling
 
 ```ts
-// Service layer — throw plain Error (typed errors via lib/errors.ts are optional)
+// Service layer — throw plain Error
 export async function updateAsset(id: string, data: UpdateAssetInput) {
   const asset = await prisma.asset.findFirst({ where: { id, isDeleted: false } });
-  if (!asset) throw new Error("Asset not found"); // NotFoundError unused in current code
+  if (!asset) throw new Error("Asset not found");
   // ...
 }
 ```
@@ -393,7 +391,6 @@ export async function updateAsset(id: string, data: UpdateAssetInput) {
 - Service layer throws plain `Error` for not-found and bad-request cases
 - API routes catch and return structured JSON responses
 - Never expose internal stack traces to client
-- `BadRequestError`/`NotFoundError` defined in code-standards as reference but not yet introduced in codebase
 
 ---
 
@@ -409,4 +406,5 @@ export async function updateAsset(id: string, data: UpdateAssetInput) {
 
 ---
 
-*Unresolved: Invoice storage strategy — local `public/` vs. cloud (S3/R2)*
+*Resolved: Invoice storage — local `public/uploads/invoices/YYYY/MM/`*
+*Unresolved: Invoice cloud storage (S3/R2) — TBD*

@@ -12,7 +12,16 @@ interface LanguageContextValue {
   t: (key: string) => string;
 }
 
-const LanguageContext = createContext<LanguageContextValue | null>(null);
+/** Default value used during SSR / before LanguageProvider is mounted */
+const defaultT = (key: string) => translations[key]?.["en"] ?? key;
+
+const defaultContext: LanguageContextValue = {
+  lang: "en",
+  setLang: () => {},
+  t: defaultT,
+};
+
+const LanguageContext = createContext<LanguageContextValue>(defaultContext);
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [lang, setLangState] = useState<Lang>("en");
@@ -43,7 +52,5 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
 }
 
 export function useLanguage() {
-  const ctx = useContext(LanguageContext);
-  if (!ctx) throw new Error("useLanguage must be used within LanguageProvider");
-  return ctx;
+  return useContext(LanguageContext);
 }

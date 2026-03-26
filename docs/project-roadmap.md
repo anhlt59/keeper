@@ -1,34 +1,31 @@
 # Zoo — Project Roadmap
 
-> **Version:** 1.0.0 | **Status:** Phase 0 in progress
+> **Version:** 1.2.0 | **Status:** Phase 2 complete | Phase 3 pending
 > **PRD:** [prd-v1.md](./prd-v1.md)
 
 ---
 
-## 1. Current Phase: Phase 0 — Init Project
+## 1. Current Phase: Phase 2 — Enhanced Features ✅ Complete
 
 | Item | Status |
 |---|---|
-| Phase | 0 — Init Project |
-| Next.js 15 scaffold | ⏳ Pending |
-| Prisma schema + migration | ⏳ Pending |
-| Better Auth setup | ⏳ Pending |
-| Directory structure | ⏳ Pending |
-| Environment config | ⏳ Pending |
-
-**Goal:** Foundation ready for Phase 1 implementation.
+| Phase | 2 — Enhanced Features |
+| Dynamic attributes | ✅ Done |
+| QR/barcode generation | ✅ Done |
+| Mobile scan | ✅ Done |
+| OCR invoice | ✅ Done |
 
 ---
 
 ## 2. Phase Breakdown
 
-### Phase 0: Init Project (Foundation) ⏳ In Progress
+### Phase 0: Init Project ✅ Done
 **Timeline:** ~1 week
 
 | Deliverable | Description |
 |---|---|
-| Next.js 15 scaffold | App Router, TypeScript, Tailwind, ESLint, Prettier |
-| Prisma schema | Full schema design (10 tables), migrate dev |
+| Next.js scaffold | App Router, TypeScript, Tailwind, ESLint, Prettier |
+| Prisma schema | Full schema design (12 tables), migrate dev |
 | Better Auth | Session-based, CSRF, rate limiting, single Admin role |
 | Directory structure | app/, lib/, prisma/, components/ skeleton |
 | Environment config | docker-compose.yml (PostgreSQL), .env.local |
@@ -38,16 +35,16 @@
 
 ---
 
-### Phase 1: Core Features (3–4 weeks) ⏳ Pending
+### Phase 1: Core Features ✅ Done
 **PRD:** [prd-v1.md FR-01 to FR-04, FR-07]
 
 | Deliverable | Description |
 |---|---|
 | Asset CRUD | Create/read/update/soft-delete assets with categories |
-| Lifecycle FSM | purchased → assigned → in_use → maintenance → retired → disposed |
+| Lifecycle FSM | AVAILABLE → ASSIGNED ↔ MAINTENANCE → RETIRED → DISPOSED |
 | Assignment/Recall | Assign to employee/department, recall with reason logged |
-| Maintenance tracking | Record description, vendor, cost, duration, result |
-| Audit log | Prisma Middleware auto-logs all business actions |
+| Maintenance tracking | Record type, description, vendor, cost, duration, result |
+| Audit log | Explicit `logAssetEvent()` service-layer pattern (no Prisma middleware) |
 | Dashboard KPI | Total value, status distribution, maintenance cost/month, recent events |
 
 **Dependencies:** Phase 0 complete
@@ -60,7 +57,7 @@
 
 ---
 
-### Phase 2: Enhanced Features (2–3 weeks) ⏳ Pending
+### Phase 2: Enhanced Features ✅ Done
 **PRD:** [prd-v1.md FR-05 to FR-08]
 
 | Deliverable | Description |
@@ -79,7 +76,7 @@
 
 ---
 
-### Phase 3: Hardening (1–2 weeks) ⏳ Pending
+### Phase 3: Hardening ⏳ Pending
 
 | Deliverable | Description |
 |---|---|
@@ -117,7 +114,7 @@
 ## 5. Deprecation Policy
 
 ### Soft Delete
-All core entities use `is_deleted BOOLEAN DEFAULT false` + `deleted_at TIMESTAMP`. Never hard delete in MVP. Queries always filter `WHERE is_deleted = false`.
+All core entities use `isDeleted Boolean @default(false)` + `deletedAt`. Never hard delete in MVP. Queries always filter `WHERE isDeleted = false`.
 
 ### Invoice Retention
 Upload files retained for **1 year** from upload date. After 1 year, archived or deleted per policy (TBD).
@@ -131,7 +128,7 @@ Old audit logs (> 2 years): partition by year, archive to cold storage (TBD back
 
 1. Follow [code-standards.md](./code-standards.md) strictly
 2. Every feature needs Zod validation + Prisma service layer (no direct DB in routes)
-3. All writes must go through Prisma Middleware audit log
+3. All writes must call `logAssetEvent()` from service layer (explicit audit, no middleware)
 4. FSM transitions validated in service layer before DB write
 5. No new dependencies without team discussion
 6. PR requires: lint pass, build pass, relevant test coverage
@@ -146,9 +143,9 @@ Old audit logs (> 2 years): partition by year, archive to cold storage (TBD back
 
 | Phase | Name | Status |
 |---|---|---|
-| 0 | Init Project | ⏳ In Progress |
-| 1 | Core Features | ⏳ Pending |
-| 2 | Enhanced Features | ⏳ Pending |
+| 0 | Init Project | ✅ Done |
+| 1 | Core Features | ✅ Done |
+| 2 | Enhanced Features | ✅ Done |
 | 3 | Hardening | ⏳ Pending |
 
 **[TBD]** Backup provider — not yet selected (Vercel Postgres vs. dedicated pg_dump service)

@@ -1,4 +1,4 @@
-import { PrismaClient, AssetStatus, MaintenanceType, MaintenanceStatus, AssetEventType } from "@prisma/client";
+import { PrismaClient, AssetStatus, MaintenanceType, MaintenanceStatus, AssetEventType, Prisma } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
 import { hashPassword } from "better-auth/crypto";
@@ -151,6 +151,10 @@ async function seedAssets(categoryMap: Record<string, string>): Promise<string[]
       continue;
     }
 
+    const purchasePrice = row.price ? new Prisma.Decimal(Number(row.price)) : null;
+    const purchaseDate = row.created_at ? new Date(row.created_at) : null;
+    const warrantyMonths = row.warranty_months ? Number(row.warranty_months) : null;
+
     const asset = await prisma.asset.upsert({
       where: { code: row.code },
       update: {
@@ -161,6 +165,10 @@ async function seedAssets(categoryMap: Record<string, string>): Promise<string[]
         employeeId: null,
         assignedTo: null,
         assignedDate: null,
+        purchasePrice,
+        purchaseDate,
+        vendor: row.vendor || null,
+        warrantyMonths,
       },
       create: {
         code: row.code,
@@ -168,6 +176,10 @@ async function seedAssets(categoryMap: Record<string, string>): Promise<string[]
         description: row.description,
         categoryId,
         status: AssetStatus.AVAILABLE,
+        purchasePrice,
+        purchaseDate,
+        vendor: row.vendor || null,
+        warrantyMonths,
       },
     });
     createdCodes.push(asset.code);
@@ -222,6 +234,45 @@ async function seedAssets(categoryMap: Record<string, string>): Promise<string[]
     console.log(`  🔗 ${asset.code} → ${employee.name} (${employee.department ?? "N/A"})`);
   }
   console.log(`✅ Randomly assigned ${assignCount} assets to employees`);
+
+  // Put 3 assets into active maintenance
+  const availableForMaintenance = await prisma.asset.findMany({
+    where: { isDeleted: false, status: AssetStatus.AVAILABLE },
+    take: 3,
+    orderBy: { createdAt: "asc" },
+  });
+
+  const maintenanceCount = Math.min(3, availableForMaintenance.length);
+  for (let i = 0; i < maintenanceCount; i++) {
+    const asset = availableForMaintenance[i];
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - Math.floor(Math.random() * 5)); // started 0–4 days ago
+
+    await prisma.maintenance.create({
+      data: {
+        assetId: asset.id,
+        type: MaintenanceType.PREVENTIVE,
+        description: "Scheduled preventive maintenance check",
+        cost: null,
+        startDate,
+        endDate: null,
+        status: MaintenanceStatus.IN_PROGRESS,
+        performedBy: "IT Support",
+      },
+    });
+
+    await prisma.assetEvent.create({
+      data: {
+        assetId: asset.id,
+        eventType: AssetEventType.MAINTENANCE_CREATED,
+        description: `Maintenance started: Scheduled preventive maintenance check`,
+        performedBy: "seed",
+      },
+    });
+
+    console.log(`  🔧 ${asset.code} → Maintenance IN_PROGRESS`);
+  }
+  if (maintenanceCount > 0) console.log(`✅ Created ${maintenanceCount} active maintenance records`);
 
   return createdCodes;
 }

@@ -1,9 +1,7 @@
 # Design Guidelines — Zoo Asset Management
 
 > AI-Native UI + Minimalism style. Based on shadcn/ui + Tailwind CSS v4.
-> **Note:** Accessibility checklist unchecked, no dark mode spec, component snippets are illustrative (not linked to source files).
-
----
+> **Note:** Accessibility checklist unchecked. Component snippets are illustrative.
 
 ---
 
@@ -42,15 +40,14 @@
 | Warning | #F59E0B | amber-500 |
 | Danger | #EF4444 | red-500 |
 
-### Status Colors (FSM)
+### Status Colors (FSM — from STATUS_CONFIG in lib/fsm.ts)
 | Status | Color | Tailwind |
 |--------|-------|----------|
-| purchased | blue | blue-500 |
-| assigned | violet | violet-500 |
-| in_use | green | emerald-500 |
-| maintenance | amber | amber-500 |
-| retired | gray | slate-400 |
-| disposed | red | red-500 |
+| AVAILABLE | blue | blue-50 / blue-700 |
+| ASSIGNED | violet | violet-50 / violet-700 |
+| MAINTENANCE | amber | amber-50 / amber-700 |
+| RETIRED | slate | slate-100 / slate-600 |
+| DISPOSED | red | red-50 / red-700 |
 
 ---
 
@@ -81,7 +78,7 @@
 ### Sidebar Navigation
 - Width: `w-64` (expanded), `w-16` (collapsed)
 - Fixed, `top-0 left-0 h-full`
-- Mobile: drawer overlay with `SidebarTrigger`
+- Mobile: drawer overlay with toggle button (shadcn/ui Dialog or @base-ui/react Drawer)
 
 ### Card
 - `rounded-xl border border-slate-200 bg-white shadow-sm`
@@ -121,18 +118,18 @@
 
 ### Status Badge
 ```tsx
-// Per FSM status
+// Per FSM status — uses STATUS_CONFIG colors from lib/fsm.ts
 <Badge variant="outline" className={cn(
-  status === 'purchased' && 'border-blue-500 text-blue-600 bg-blue-50',
-  status === 'in_use' && 'border-emerald-500 text-emerald-600 bg-emerald-50',
+  status === 'AVAILABLE' && 'border-blue-500 text-blue-600 bg-blue-50',
+  status === 'ASSIGNED' && 'border-violet-500 text-violet-600 bg-violet-50',
   // ...
 )}>
   {status}
 </Badge>
 ```
 
-### Input / Form
-- Always use shadcn `Form` with `react-hook-form`
+### Form
+- Use `react-hook-form` with Zod validation
 - Labels above inputs (`text-sm font-medium text-slate-700`)
 - Error messages: `text-xs text-red-500 mt-1`
 - Focus ring: `focus-visible:ring-2 focus-visible:ring-blue-500`
@@ -149,9 +146,9 @@
 - Close on escape + click outside
 
 ### Toast
-- Position: `top-right`
+- Position: `bottom-right` (from `app/providers.tsx`: `position="bottom-right"`)
 - Use Sonner (`<Toaster />` in root layout, NOT in individual pages)
-- Duration: 3s default
+- Duration: 1800ms (from providers.tsx)
 
 ---
 
@@ -205,7 +202,7 @@
 | Desktop | ≥ 1024px | Full sidebar + multi-col |
 
 - Mobile-first approach
-- Sidebar collapses to drawer on mobile (`SidebarTrigger`)
+- Sidebar collapses to drawer on mobile (shadcn/ui Dialog or @base-ui/react)
 - Tables: horizontal scroll on mobile (min-width preserved)
 - Touch targets: minimum 44×44px
 

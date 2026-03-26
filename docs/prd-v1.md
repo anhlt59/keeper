@@ -31,16 +31,16 @@ The business currently manages assets and office supplies through manual, distri
 
 ### 4.1 In-scope MVP
 
-**Phase 1 (3–4 weeks):**
+**Phase 1 (3–4 weeks):** ✅ Done
 1. Per-item Asset CRUD.
 2. Assignment/Recall (assign, recall).
-3. Lifecycle event log (purchase → handover → in use → maintenance → recall/disposal).
+3. Lifecycle event log (AVAILABLE → ASSIGNED → MAINTENANCE → RETIRED / DISPOSED).
 4. Maintenance tracking (description, cost, duration, result).
 5. Audit log for all business actions.
 6. Basic realtime KPI dashboard.
 7. Better Auth (Admin only, single role).
 
-**Phase 2 (2–3 weeks):**
+**Phase 2 (2–3 weeks):** ✅ Done
 8. Dynamic attributes per category.
 9. Unique QR/barcode per asset + mobile web scan.
 10. Semi-auto OCR invoice (extract → admin confirm → save).
@@ -58,7 +58,7 @@ The business currently manages assets and office supplies through manual, distri
 ## 5) Users & Permissions
 
 - **Admin (single role):** full access to all modules.
-- Auth: Better Auth with session-based sessions, rate limiting, and CSRF protection.
+- Auth: Better Auth with session-based sessions, rate limiting, CSRF protection, `openAPI()` plugin.
 
 ## 6) Capacity & SLA (Year-1)
 
@@ -86,7 +86,8 @@ The business currently manages assets and office supplies through manual, distri
 
 ### FR-02 Lifecycle Management (FSM)
 
-- Custom FSM with states: `purchased` → `assigned` → `in_use` → `maintenance` → `retired` / `disposed`.
+- Custom FSM with states: `AVAILABLE` → `ASSIGNED` ↔ `MAINTENANCE` → `RETIRED` / `DISPOSED`.
+- Transitions: assign, recall, send-to-maintenance, complete-maintenance, retire, dispose, restore.
 - Transitions are automatically validated (invalid state transitions are rejected).
 - Events are immutable and append-only (old events cannot be modified or deleted).
 
@@ -173,17 +174,21 @@ The business currently manages assets and office supplies through manual, distri
 ## 8) Data Boundary (MVP)
 
 ### Core Tables
-- `admins` — Admin accounts (Better Auth)
+- `User` — Admin accounts (Better Auth: email, name, emailVerified, image)
+- `Session` — Better Auth session records
+- `Account` — OAuth/social accounts (Better Auth plugin)
+- `Verification` — Better Auth token storage
+- `Employee` — Assignable people (name, email, department, position)
 - `asset_categories` — Asset categories
 - `asset_attribute_definitions` — Schema definitions for dynamic attrs (key, label, type, required, category_id)
-- `assets` — Core asset table (category_id, name, qr_code, status, purchase_info, custom_attrs JSONB, ...)
+- `assets` — Core asset table (category_id, name, qr_code, status, purchase_info, employeeId FK, invoiceId FK, custom_attrs JSONB, ...)
 - `asset_attribute_values` — JSONB values per asset (asset_id + attrs JSONB)
 - `asset_events` — Append-only lifecycle event log
 - `asset_assignments` — Assignment history (assigned_to, assigned_by, reason, timestamps)
 - `maintenance_records` — Maintenance history
 
 ### Invoice Tables
-- `invoices` — Confirmed invoice records
+- `invoices` — Confirmed invoice records + pending OCR records
 - `invoice_ocr_extractions` — Raw OCR + confirmed extraction data (audit)
 
 ### Audit
@@ -195,12 +200,12 @@ The business currently manages assets and office supplies through manual, distri
 
 ## 9) Non-functional Requirements
 
-- Security: Better Auth is mandatory for Admin (session-based, rate limiting, CSRF).
+- Security: Better Auth is mandatory for Admin (session-based, rate limiting, CSRF, openAPI plugin).
 - Audit log for all important business actions.
 - **Original invoice retention: 1 year** from upload date.
 - Daily scheduled data backups, minimum 30-day retention. **[TBD]** Backup provider not yet selected.
 - System error and API latency monitoring (future: Vercel Analytics / Sentry).
-- **Invoice storage:** Original images/PDFs — local filesystem or cloud (S3/R2) **[UNRESOLVED]**.
+- **Invoice storage:** Original images stored locally at `public/uploads/invoices/{YYYY}/{MM}/` — resolved.
 
 ## 10) Risks & Mitigation
 
@@ -212,9 +217,9 @@ The business currently manages assets and office supplies through manual, distri
 
 ## 11) Milestones
 
-- **Phase 1:** Asset CRUD + Lifecycle FSM + Assignment/Recall + Maintenance + Audit + Dashboard + Better Auth.
-- **Phase 2:** Dynamic Attributes + QR/Barcode + Mobile Scan + OCR Semi-auto.
-- **Phase 3:** Periodic Inventory Cycle **[TBD — design deferred]** + Performance optimization + Operational hardening.
+- **Phase 1:** Asset CRUD + Lifecycle FSM + Assignment/Recall + Maintenance + Audit + Dashboard + Better Auth. ✅ Done
+- **Phase 2:** Dynamic Attributes + QR/Barcode + Mobile Scan + OCR Semi-auto. ✅ Done
+- **Phase 3:** Periodic Inventory Cycle **[TBD — design deferred]** + Performance optimization + Operational hardening. ⏳ Pending
 
 ## 12) Success Metrics
 
@@ -229,11 +234,13 @@ The business currently manages assets and office supplies through manual, distri
 
 1. **Tech stack:** Next.js + Prisma + PostgreSQL + Better Auth + GPT-4o-mini.
 2. **Dynamic attrs:** JSONB + Zod validation (no EAV).
-3. **Lifecycle FSM:** Custom FSM (no xstate).
+3. **Lifecycle FSM:** Custom FSM (no xstate) — 5 states: AVAILABLE, ASSIGNED, MAINTENANCE, RETIRED, DISPOSED.
 4. **OCR:** GPT-4o-mini (no Ollama/self-hosted).
 5. **QR:** 25mm × 25mm, QR + asset name + short code.
 6. **Bilingual OCR, Vietnamese priority** (fallback to English when confidence is low).
 7. **Store original invoice images for 1 year** for audit/compliance.
 8. **Office Supply + Periodic Inventory:** Removed from MVP, moved to Phase 3+.
-9. **Asset Delete:** Soft delete (`is_deleted` flag + `deleted_at` timestamp). Query always filters `WHERE is_deleted = false`. Recoverable, preserves audit trail.
-10. **Deployment:** Local dev first, Vercel later (Phase 2+).
+9. **Asset Delete:** Soft delete (`isDeleted` flag + `deletedAt` timestamp). Query always filters `WHERE isDeleted = false`. Recoverable, preserves audit trail.
+10. **Deployment:** Local dev first, Vercel later (Phase 3+).
+11. **Invoice storage:** Local filesystem at `public/uploads/invoices/{YYYY}/{MM}/` (resolved).
+12. **Auth:** Better Auth `openAPI()` plugin, `PrismaPg` adapter in `lib/db.ts`, `prismaAdapter(prisma)` in `lib/auth.ts`.

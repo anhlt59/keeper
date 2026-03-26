@@ -1,6 +1,6 @@
 # Zoo — System Architecture
 
-> **Version:** 1.1.0 | **PRD:** [prd-v1.md](./prd-v1.md)
+> **Version:** 1.2.0 | **PRD:** [prd-v1.md](./prd-v1.md)
 > **Plan:** `plans/260325-0106-asset-mgmt-init/`
 
 ---
@@ -20,7 +20,7 @@
     [Service Layer — lib/services/*.ts]
             │
             ▼
-    [Prisma 7.5.0 ORM]
+    [Prisma 7.5.0 ORM via PrismaPg adapter]
             │
             ▼
     [PostgreSQL]
@@ -31,8 +31,7 @@
 ## 2. Database Schema Overview
 
 ```
-admins
-  └── (Better Auth session table)
+admins                           (Better Auth: User, Session, Account, Verification)
 
 asset_categories
   └── 1:N assets
@@ -47,6 +46,9 @@ assets
   ├── 1:N asset_assignments
   └── FK: category_id → asset_categories
 
+employees                        (assignable people, soft delete)
+  └── 1:N assets (via employeeId FK)
+
 asset_events          ← append-only log
 asset_attribute_values ← JSONB per asset
 asset_assignments     ← assignment history
@@ -55,6 +57,8 @@ invoices              ← confirmed OCR results
 invoice_ocr_extractions ← raw + confirmed (audit)
 audit_logs            ← via logAssetEvent() in lib/audit-logger.ts
 ```
+
+**Tables count: 12** (User, Session, Account, Verification, Employee, Category, Asset, AssetEvent, Maintenance, AuditLog, Invoice, OcrExtraction, AssetAttributeValue, AttributeDefinition — 14 total via Prisma schema)
 
 **Soft delete:** All core tables include `isDeleted Boolean @default(false)` + `deletedAt`. Prisma queries always filter `WHERE isDeleted = false`.
 
@@ -101,6 +105,9 @@ AVAILABLE ──assign──▶ ASSIGNED
 
 **Implementation:** `lib/fsm.ts` — custom state machine. Uses `AssetStatus` and `AssetEventType` enums from Prisma. `validateTransition()` throws plain `Error` if invalid. Service layer calls FSM validate then Prisma write.
 
+**Status colors** (from `lib/fsm.ts` STATUS_CONFIG):
+`AVAILABLE`=blue, `ASSIGNED`=violet, `MAINTENANCE`=amber, `RETIRED`=slate, `DISPOSED`=red
+
 ---
 
 ## 4. Auth Architecture (Better Auth 1.5.6)
@@ -122,6 +129,11 @@ AVAILABLE ──assign──▶ ASSIGNED
 [Protected routes] — check via auth.api.getSession() in route handlers
 ```
 
+**Auth Models:** User, Session, Account, Verification (Better Auth OAuth)
+**User fields:** id, email, name, emailVerified, image, isDeleted, deletedAt, createdAt, updatedAt (no password field — Better Auth uses Account table)
+**Adapter:** `PrismaPg` in `lib/db.ts`, passed to `prismaAdapter(prisma)` in `lib/auth.ts`
+**Plugin:** `openAPI()` for OpenAPI-compatible auth routes
+
 - **Single role:** Admin only (MVP)
 - **Session:** Cookie-based, HttpOnly, Secure in production, 7-day expiry
 - **CSRF:** Built-in via Better Auth double-submit cookie pattern
@@ -131,14 +143,27 @@ AVAILABLE ──assign──▶ ASSIGNED
 
 > [TBD] — Multi-role RBAC not yet implemented. When needed:
 
-- Add roles column to `admins` table (`role TEXT DEFAULT 'admin'`)
+- Add roles column to `User` table
 - Create `hasPermission(session, resource, action)` helper in `lib/auth.ts`
 - Add middleware to check role on protected routes
 - Reference: Better Auth supports custom `session` object extension via `additionalSessionFields`
 
 ---
 
-## 5. OCR Pipeline
+## 5. i18n Subsystem
+
+```
+context/language-context.tsx     ← LanguageProvider + useLanguage() hook
+lib/i18n/translations.ts         ← Core translations
+lib/i18n/translations-extended.ts ← Extended/additional translations
+components/shared/language-toggle.tsx ← UI toggle component
+```
+
+Supported languages via context. Components use translation keys rather than hardcoded strings.
+
+---
+
+## 6. OCR Pipeline
 
 ```
 [Admin uploads invoice image/PDF]
@@ -177,7 +202,7 @@ AVAILABLE ──assign──▶ ASSIGNED
 
 ---
 
-## 6. QR System
+## 7. QR System
 
 ```
 [Asset created]
@@ -206,7 +231,7 @@ AVAILABLE ──assign──▶ ASSIGNED
 
 ---
 
-## 7. API Layer Structure
+## 8. API Layer Structure
 
 ```
 app/api/
@@ -222,13 +247,14 @@ app/api/
 ├── categories/route.ts                    # CRUD categories
 ├── categories/[id]/
 │   └── attributes/route.ts              # GET/POST attribute definitions
+├── employees/route.ts                    # GET/POST employees
 ├── maintenance/
 │   ├── route.ts                          # GET/POST all maintenance records
 │   └── [id]/route.ts                    # GET/PUT/DELETE single record
 ├── invoices/
 │   ├── route.ts                          # GET all, POST upload (creates OCR job)
 │   └── [id]/
-│       ├── ocr/route.ts                  # POST: GPT-4o-mini extract (upload step)
+│       ├── ocr/route.ts                  # POST: GPT-4o-mini extract
 │       └── confirm/route.ts              # POST: admin confirm (create invoice)
 ├── dashboard/route.ts                    # GET KPI aggregates
 └── audit-logs/route.ts                   # GET audit logs
@@ -236,13 +262,15 @@ app/api/
 
 **Patterns:**
 - All mutating endpoints validate via Zod schemas from `lib/validators/`
-- All endpoints check auth session before processing
+- All endpoints check auth session before processing (`auth.api.getSession({ headers: req.headers })`)
 - All writes go through service layer (not direct Prisma client in routes)
 - Append-only event tables never exposed via PUT/PATCH
 
+**Client utility:** `lib/api-fetch.ts` — wraps `fetch()` with `credentials: "include"` and redirects to `/login` on 401.
+
 ---
 
-## 8. Component Architecture
+## 9. Component Architecture
 
 ```
 components/
@@ -264,8 +292,9 @@ components/
 ├── categories/
 ├── attributes/
 ├── shared/
+│   └── language-toggle.tsx  # i18n toggle
 └── scan/
-    └── mobile-scanner.tsx  # [TBD] dedicated scan page component
+    └── mobile-scanner.tsx  # html5-qrcode scan page
 ```
 
 **RSC vs Client Components:**
@@ -274,14 +303,14 @@ components/
 
 ---
 
-## 9. Audit Logging
+## 10. Audit Logging
 
 ### Architecture
 
 ```
 [API Route Handler]
     │
-    ├── setAuditContext({ userId, ipAddress, userAgent })  ← lib/audit.ts
+    ├── setAuditContext({ userId, ipAddress, userAgent })  ← lib/audit.ts (optional)
     │
     ▼
 [Service Layer — lib/services/asset-service.ts]
@@ -293,6 +322,8 @@ components/
     ├── INSERT asset_events (timeline, append-only)
     └── INSERT audit_logs (who/what/when, metadata)
 ```
+
+**Note:** `setAuditContext()` is defined in `lib/audit.ts` but not currently used in route handlers. `logAssetEvent()` in `lib/audit-logger.ts` accepts `performedBy` directly as a parameter. Future: replace with Prisma middleware for automatic inference.
 
 ### Schema (from Prisma)
 
@@ -313,24 +344,9 @@ model AuditLog {
 }
 ```
 
-### Registration
-
-> [TBD] — Prisma middleware for automatic audit logging not yet set up. Currently using explicit `logAssetEvent()` calls in service layer.
-
-When implementing middleware (Phase 2+):
-
-```ts
-// lib/db.ts
-prisma.$use(async (params, next) => {
-  // Log writes to core tables: assets, categories, invoices, maintenance_records
-  // Extract userId from audit context set by route handler
-  // Write to audit_logs after successful commit
-});
-```
-
 ---
 
-## 10. Observability
+## 11. Observability
 
 > [TBD] — Not yet implemented.
 
@@ -344,12 +360,12 @@ prisma.$use(async (params, next) => {
 
 ---
 
-## 11. Data Flow Diagrams
+## 12. Data Flow Diagrams
 
 ### Asset Creation Flow
 ```
 [Create Form] → [Zod validate] → [Service: createAsset]
-    → [FSM: validate initial state = PURCHASED]
+    → [FSM: validate initial state = AVAILABLE]
     → [Prisma: INSERT asset + generate QR]
     → [logAssetEvent: INSERT asset_events + audit_logs]
     → [Return asset + QR URL]
@@ -377,16 +393,14 @@ prisma.$use(async (params, next) => {
 ```
 [Dashboard Page RSC]
     → [Direct Prisma aggregations in route]
-    → [TanStack Query: staleTime = 60s]
-    → [Cache: 60s (staleTime), NOT gcTime]
+    → [TanStack Query: staleTime = 0, refetchOnWindowFocus: false]
     → [Return KPI object]
 ```
 
-> **Note on cache semantics:** `providers.tsx` sets `staleTime: 60_000` (60s). Data is fresh for 60s then refetches. `gcTime` defaults to 30 minutes (when entry is evicted from cache). For dashboard, use `staleTime` as the primary control.
+> **Note:** `providers.tsx` sets `staleTime: 0` and `refetchOnWindowFocus: false` (no cache reuse). Data refetches on every mount.
 
 ---
 
 *Resolved: Invoice images stored locally at `public/uploads/invoices/{YYYY}/{MM}/` with web-relative path in `Invoice.filePath`. Display implemented in invoice detail page.*
 *Unresolved: Backup provider for invoice images — not yet selected*
 *Unresolved: Periodic Inventory logic — needs detailed design when Phase 3 starts*
-*Unresolved: Prisma middleware for auto audit log — currently using explicit logAssetEvent()*

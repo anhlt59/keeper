@@ -1,11 +1,11 @@
 # Zoo — Codebase Summary
 
-> **Version:** 1.1.0 | **Root:** `/Users/anhlt/Projects/vibe/zoo/`
-> **Tech Stack:** Next.js 16.2.1 · TypeScript 5.9.3 · Prisma 7.5.0 · Better Auth 1.5.6 · Tailwind CSS v4 · Zod 4.3.6 · TanStack React Query 5.95.2
+> **Version:** 1.2.0 | **Root:** `/Users/anhlt/Projects/vibe/zoo/`
+> **Tech Stack:** Next.js 16.2.1 · Prisma 7.5.0 · Better Auth 1.5.6 · Tailwind CSS v4 · Zod 4.3.6 · TanStack React Query 5.95.2
 
 ---
 
-## 1. Target Directory Structure
+## 1. Directory Structure
 
 ```
 zoo/                               # Git root
@@ -14,7 +14,7 @@ zoo/                               # Git root
 │   │   ├── login/page.tsx
 │   │   └── layout.tsx
 │   ├── (dashboard)/               # Protected route group
-│   │   ├── layout.tsx            # Sidebar + header shell
+│   │   ├── layout.tsx             # Sidebar + header shell
 │   │   ├── page.tsx              # Dashboard KPI
 │   │   ├── assets/
 │   │   │   ├── page.tsx          # Asset list
@@ -25,6 +25,8 @@ zoo/                               # Git root
 │   │   ├── categories/
 │   │   │   └── page.tsx
 │   │   ├── attributes/
+│   │   │   └── page.tsx
+│   │   ├── employees/
 │   │   │   └── page.tsx
 │   │   ├── maintenance/
 │   │   │   └── page.tsx
@@ -50,6 +52,8 @@ zoo/                               # Git root
 │   │   │   ├── route.ts
 │   │   │   └── [id]/
 │   │   │       └── attributes/route.ts
+│   │   ├── employees/
+│   │   │   └── route.ts          # GET/POST employees
 │   │   ├── maintenance/
 │   │   │   ├── route.ts
 │   │   │   └── [id]/route.ts
@@ -64,20 +68,21 @@ zoo/                               # Git root
 │   │       └── route.ts
 │   ├── globals.css
 │   ├── layout.tsx                 # Root layout
-│   └── providers.tsx              # TanStack Query + Sonner (NO Zustand)
+│   └── providers.tsx              # TanStack Query + Sonner Toaster + LanguageProvider
 │
 ├── prisma/
 │   ├── schema.prisma
 │   └── seed.ts
 │
 ├── lib/
-│   ├── db.ts                      # Prisma client singleton
-│   ├── auth.ts                    # Better Auth config (PrismaPg adapter)
-│   ├── fsm.ts                     # Asset lifecycle FSM
-│   ├── qr-generator.ts            # QR generation (NOT qr.ts)
+│   ├── db.ts                      # Prisma client singleton (PrismaPg adapter)
+│   ├── auth.ts                    # Better Auth config (prismaAdapter + openAPI plugin)
+│   ├── fsm.ts                     # Asset lifecycle FSM + STATUS_CONFIG
+│   ├── qr-generator.ts             # QR generation (NOT qr.ts)
 │   ├── ocr.ts                     # GPT-4o-mini invoice extraction
 │   ├── utils.ts                   # cn() utility
-│   ├── audit.ts                   # Request-scoped audit context
+│   ├── api-fetch.ts               # Client fetch wrapper (redirects to /login on 401)
+│   ├── audit.ts                   # Request-scoped audit context (defined, not used in routes)
 │   ├── audit-logger.ts            # logAssetEvent() — creates AssetEvent + AuditLog
 │   ├── validators/                # Zod v4 schemas
 │   │   ├── asset.ts
@@ -87,7 +92,10 @@ zoo/                               # Git root
 │   │   └── maintenance.ts
 │   └── services/                  # Business logic layer
 │       ├── asset-service.ts
-│       └── asset-qr-service.ts    # (NO category/maintenance/invoice/dashboard services)
+│       └── asset-qr-service.ts
+│
+├── context/
+│   └── language-context.tsx       # LanguageProvider + useLanguage hook
 │
 ├── components/
 │   ├── ui/                        # shadcn/ui primitives
@@ -98,7 +106,7 @@ zoo/                               # Git root
 │   │   ├── qr-preview-modal.tsx
 │   │   └── qr-scanner.tsx
 │   ├── dashboard/
-│   │   ├── kpi-card.tsx           # (NOT kpi-cards.tsx)
+│   │   ├── kpi-card.tsx
 │   │   ├── asset-status-chart.tsx
 │   │   └── recent-events.tsx
 │   ├── invoices/
@@ -108,14 +116,21 @@ zoo/                               # Git root
 │   ├── categories/
 │   ├── attributes/
 │   ├── shared/
+│   │   └── language-toggle.tsx   # i18n toggle
 │   └── scan/
+│       └── mobile-scanner.tsx
 │
 ├── public/
-│   └── qrs/                       # Generated QR PNGs (local storage)
+│   └── uploads/
+│       └── invoices/              # Invoice image storage (YYYY/MM/)
+│
+├── scripts/
+│   ├── start.sh                   # Full local stack: Docker + migrate + seed + dev
+│   └── migrate.sh                 # Docker + migrations only
 │
 ├── docker-compose.yml             # PostgreSQL local dev
-├── .env.local                     # Local env vars (not committed)
-├── .env.local.example             # Env template (committed)
+├── .env.local                    # Local env vars (not committed)
+├── .env.local.example            # Env template (committed)
 ├── .gitignore
 ├── package.json
 ├── next.config.ts
@@ -131,17 +146,19 @@ zoo/                               # Git root
 | File | Responsibility |
 |---|---|
 | `prisma/schema.prisma` | All tables, relations, indexes, soft delete fields |
-| `lib/db.ts` | Prisma client singleton (avoids connection exhaustion in dev) |
-| `lib/auth.ts` | Better Auth config: PrismaPg adapter, session, CSRF, rate limiting |
-| `lib/fsm.ts` | Asset lifecycle FSM — `validateTransition()`, `canTransition()`, `getAvailableTransitions()` |
+| `lib/db.ts` | Prisma client singleton with PrismaPg adapter (avoids connection exhaustion in dev) |
+| `lib/auth.ts` | Better Auth: prismaAdapter, openAPI plugin, session, CSRF, rate limiting |
+| `lib/fsm.ts` | Asset lifecycle FSM — `validateTransition()`, `canTransition()`, `getAvailableTransitions()`, `STATUS_CONFIG` |
 | `lib/qr-generator.ts` | Generate QR as DataURL and PNG Buffer (NOT `qr.ts`) |
 | `lib/ocr.ts` | Call `gpt-4o-mini` for invoice extraction, 30s timeout |
-| `lib/audit.ts` | Request-scoped audit context (`setAuditContext`, `getAuditContext`) |
+| `lib/api-fetch.ts` | Client-side fetch wrapper with 401 → `/login` redirect |
+| `lib/audit.ts` | Request-scoped audit context (defined, not currently used in routes) |
 | `lib/audit-logger.ts` | `logAssetEvent()` — atomic `AssetEvent` + `AuditLog` write |
 | `lib/validators/*.ts` | Zod v4 schemas for all API inputs |
 | `lib/services/asset-service.ts` | All asset DB write logic — routes call services, not Prisma directly |
 | `lib/services/asset-qr-service.ts` | QR-specific business logic |
-| `app/providers.tsx` | TanStack Query `QueryClientProvider` + Sonner `Toaster` (NO Zustand) |
+| `app/providers.tsx` | QueryClientProvider + Sonner Toaster (position: bottom-right) + LanguageProvider |
+| `context/language-context.tsx` | LanguageProvider + useLanguage() hook + i18n translations |
 | `prisma/seed.ts` | Sample categories + assets for local dev |
 
 ---
@@ -159,7 +176,7 @@ zoo/                               # Git root
 | `prisma/schema.prisma` | ~500–800 |
 | **Total app code** | **~7,200–10,700** |
 
-*Phase 0 starts from 0 — these are end-state targets after Phase 2.*
+*Phase 0/1/2 complete — LOC targets are end-state estimates.*
 
 ---
 
@@ -185,17 +202,30 @@ zoo/                               # Git root
 | Layer | Technology | Version | Notes |
 |---|---|---|---|
 | Framework | Next.js | 16.2.1 | App Router, RSC default |
-| Language | TypeScript | 5.9.3 | Strict mode |
+| Language | TypeScript | — | Strict mode |
 | ORM | Prisma | 7.5.0 | PostgreSQL via `pg` + PrismaPg adapter |
-| Auth | Better Auth | 1.5.6 | Session-based, single Admin role |
+| Auth | Better Auth | 1.5.6 | Session-based, single Admin role, openAPI plugin |
 | Validation | Zod | 4.3.6 | All API inputs |
-| Client State | TanStack React Query | 5.95.2 | Query caching |
-| Server State/UI | Sonner | 2.0.7 | Toasts |
+| Client State | TanStack React Query | 5.95.2 | `staleTime: 0`, `refetchOnWindowFocus: false` |
+| Server State/UI | Sonner | 2.0.7 | Toasts, `position="bottom-right"` |
 | Styling | Tailwind CSS v4 | 4.2.2 | Uses `postcss.config.mjs`, NOT `tailwind.config.ts` |
 | QR | `qrcode` npm package | 1.5.4 | DataURL + Buffer PNG |
 | Mobile scan | `html5-qrcode` | 2.3.8 | Browser camera API |
+| Charts | Recharts | 3.8.0 | Dashboard charts |
+| Mobile UI | @base-ui/react | 1.3.0 | Mobile sidebar/drawer components |
 | OCR | GPT-4o-mini (OpenAI) | — | Bilingual VN/EN, Vietnamese priority |
-| Deployment | Local dev → Vercel | Phase 2+ | |
+| Deployment | Local dev → Vercel | Phase 3 | |
+
+---
+
+## 6. i18n Subsystem
+
+| File | Responsibility |
+|---|---|
+| `context/language-context.tsx` | `LanguageProvider`, `useLanguage()` hook |
+| `lib/i18n/translations.ts` | Core translation strings |
+| `lib/i18n/translations-extended.ts` | Extended translation strings |
+| `components/shared/language-toggle.tsx` | Language switcher UI |
 
 ---
 

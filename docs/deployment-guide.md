@@ -1,7 +1,7 @@
 # Zoo — Deployment Guide
 
-> **Version:** 1.1.0 | **Current phase:** Local development
-> **Future:** Vercel deployment (Phase 2+)
+> **Version:** 1.2.0 | **Current phase:** Local development
+> **Future:** Vercel deployment (Phase 3)
 > **Ref:** [code-standards.md](./code-standards.md)
 
 ---
@@ -18,8 +18,8 @@
 
 ```bash
 # 1. Clone / navigate to project
-git clone https://github.com/RebootW/Zoo
-cd Zoo
+git clone <repo-url>
+cd zoo
 
 # 2. Install dependencies
 npm install
@@ -31,16 +31,23 @@ docker compose up -d
 cp .env.local.example .env.local
 
 # 5. Run Prisma migrations
-npx prisma migrate dev --name init
+npm run db:migrate
 
 # 6. Seed sample data
-npx prisma db seed
+npm run db:seed
 
 # 7. Start dev server
 npm run dev
 ```
 
 App runs at `http://localhost:3000`.
+
+### Scripts
+
+| Command | Description |
+|---|---|
+| `npm run start` | `scripts/start.sh` — start Docker, run migrations, seed if needed, start dev server |
+| `npm run migrate` | `scripts/migrate.sh` — start Docker, run migrations only |
 
 ---
 
@@ -58,13 +65,6 @@ BETTER_AUTH_URL="http://localhost:3000"
 
 # OpenAI (OCR)
 OPENAI_API_KEY="sk-..."
-
-# Optional: File storage (Phase 2+)
-# STORAGE_TYPE="local" # or "r2" / "s3"
-# R2_ACCOUNT_ID="..."
-# R2_ACCESS_KEY_ID="..."
-# R2_SECRET_ACCESS_KEY="..."
-# R2_BUCKET_NAME="zoo-invoices"
 ```
 
 ### `.env.local.example` (committed — template only)
@@ -87,17 +87,17 @@ OPENAI_API_KEY="replace-with-your-key"
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: zoo_postgres
+    container_name: zoo-postgres
     environment:
       POSTGRES_USER: zoo
       POSTGRES_PASSWORD: zoo_secret
-      POSTGRES_DB: zoo_db
+      POSTGRES_DB: zoo_dev
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U zoo"]
+      test: ["CMD-SHELL", "pg_isready -U zoo -d zoo_dev"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -124,7 +124,7 @@ docker compose down -v
 ```bash
 # 1. Edit prisma/schema.prisma
 # 2. Create migration
-npx prisma migrate dev --name describe_change
+npm run db:migrate
 
 # 3. Review generated SQL in prisma/migrations/
 # 4. Test migration applies cleanly
@@ -137,53 +137,49 @@ git commit -m "feat: add migration for ..."
 
 **Rules:**
 
-- `prisma migrate dev` for local development only
+- `npm run db:migrate` (`prisma migrate dev`) for local development only
 - `prisma migrate deploy` for production (CI/CD)
 - Always commit migration files + schema in same PR
 - Never edit committed migrations — create new migration instead
 
 ---
 
-> [SKETCH] Section 5 (Vercel Deployment Plan) is a sketch — CI/CD pipeline, build hooks, and environment variable propagation need full spec before Phase 2.
+## 5. Vercel Deployment Plan (Phase 3)
 
-## 5. Vercel Deployment Plan (Future)
-
-### Phase 2+ Deployment
+### Pre-requisites
 
 ```bash
-# 1. Push to GitHub
+# Push to GitHub
 git push origin main
-
-# 2. Connect repo to Vercel
-# vercel.com → New Project → Import Zoo repo
-
-# 3. Configure environment variables in Vercel dashboard
-# DATABASE_URL → Vercel Postgres (or Neon/Railway)
-# BETTER_AUTH_SECRET
-# BETTER_AUTH_URL → https://your-app.vercel.app
-# OPENAI_API_KEY
-
-# 4. Add Prisma migration to Vercel build
-# package.json scripts:
-# "vercel-build": "prisma generate && next build"
 ```
 
-### Vercel Postgres (Recommended)
+### Deployment Steps
 
-```env
-# Vercel dashboard → Storage → Create Postgres
-# Copy connection string to Vercel env vars
-DATABASE_URL="postgresql://..."
+1. Connect repo to Vercel
+2. Configure environment variables in Vercel dashboard:
+   - `DATABASE_URL` → Vercel Postgres (or Neon/Railway)
+   - `BETTER_AUTH_SECRET`
+   - `BETTER_AUTH_URL` → `https://your-app.vercel.app`
+   - `OPENAI_API_KEY`
+3. Add build script to `package.json`:
+
+```json
+{
+  "scripts": {
+    "vercel-build": "prisma generate && next build"
+  }
+}
 ```
+
+### Auth Models for Production
+
+Better Auth uses 4 tables: `User`, `Session`, `Account`, `Verification`. Ensure migration runs on first deploy to create these tables.
 
 ### Post-Deploy
 
 ```bash
-# Run migrations on deploy (via vercel-build script)
+# Run migrations on deploy (via vercel-build)
 npx prisma migrate deploy
-
-# Seed on first deploy (manual or CI script)
-npx prisma db seed
 ```
 
 ---
@@ -194,7 +190,7 @@ npx prisma db seed
 
 ```bash
 # Manual pg_dump for local dev
-pg_dump -h localhost -U zoo -d zoo_db > backup_$(date +%Y%m%d).sql
+pg_dump -h localhost -U zoo -d zoo_dev > backup_$(date +%Y%m%d).sql
 ```
 
 ### Production Target (TBD — unresolved)
@@ -216,14 +212,17 @@ pg_dump -h localhost -U zoo -d zoo_db > backup_$(date +%Y%m%d).sql
 
 | Command | Description |
 |---|---|
-| `npm run dev` | Start dev server (localhost:3000) |
+| `npm run dev` | Start dev server (localhost:3000, turbopack) |
 | `npm run build` | Production build |
 | `npm run lint` | ESLint check |
 | `npm run type-check` | `tsc --noEmit` |
-| `npx prisma studio` | Open Prisma Studio (DB browser) |
-| `npx prisma migrate dev` | Create + apply migration (dev) |
-| `npx prisma migrate deploy` | Apply migrations (production) |
-| `npx prisma db seed` | Seed sample data |
+| `npm run db:generate` | `prisma generate` |
+| `npm run db:migrate` | `prisma migrate dev` (local only) |
+| `npm run db:push` | `prisma db push` (fast schema sync) |
+| `npm run db:seed` | `tsx prisma/seed.ts` |
+| `npm run db:studio` | `prisma studio` |
+| `npm run start` | `scripts/start.sh` — full local stack |
+| `npm run migrate` | `scripts/migrate.sh` — migrations only |
 | `docker compose up -d` | Start PostgreSQL |
 | `docker compose down` | Stop PostgreSQL |
 
