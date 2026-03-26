@@ -39,6 +39,30 @@ export async function PUT(req: NextRequest, { params }: Params) {
   // Default to ASSIGNED if no previous event found (safe fallback for existing FSM)
   const previousStatus = lastMaintenanceEvent?.fromStatus ?? AssetStatus.ASSIGNED;
 
+  // Build list of events to create in the transaction
+  const eventsToCreate: Parameters<typeof prisma.assetEvent.create>[0]["data"][] = [
+    {
+      assetId: record.assetId,
+      eventType: AssetEventType.MAINTENANCE_COMPLETED,
+      fromStatus: AssetStatus.MAINTENANCE,
+      toStatus: previousStatus,
+      description: `Maintenance completed${parsed.data.notes ? `: ${parsed.data.notes}` : ""}`,
+      performedBy: session.user.id,
+    },
+  ];
+
+  // If reverting to ASSIGNED, also log the Available → Assigned reassignment event
+  if (previousStatus === AssetStatus.ASSIGNED) {
+    eventsToCreate.push({
+      assetId: record.assetId,
+      eventType: AssetEventType.ASSIGNED,
+      fromStatus: AssetStatus.AVAILABLE,
+      toStatus: AssetStatus.ASSIGNED,
+      description: "Restored after maintenance",
+      performedBy: session.user.id,
+    });
+  }
+
   const [updated] = await prisma.$transaction([
     prisma.maintenance.update({
       where: { id },
@@ -53,16 +77,7 @@ export async function PUT(req: NextRequest, { params }: Params) {
       where: { id: record.assetId },
       data: { status: previousStatus },
     }),
-    prisma.assetEvent.create({
-      data: {
-        assetId: record.assetId,
-        eventType: AssetEventType.MAINTENANCE_COMPLETED,
-        fromStatus: AssetStatus.MAINTENANCE,
-        toStatus: previousStatus,
-        description: `Maintenance completed${parsed.data.notes ? `: ${parsed.data.notes}` : ""}`,
-        performedBy: session.user.id,
-      },
-    }),
+    ...eventsToCreate.map((data) => prisma.assetEvent.create({ data })),
   ]);
 
   return NextResponse.json(updated);

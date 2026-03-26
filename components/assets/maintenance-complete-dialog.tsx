@@ -5,7 +5,6 @@ import { toast } from "sonner";
 import { useLanguage } from "@/context/language-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import {
   Dialog,
@@ -34,8 +33,6 @@ export function MaintenanceCompleteDialog({
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
     endDate: new Date().toISOString().split("T")[0],
-    cost: "",
-    notes: "",
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -47,8 +44,6 @@ export function MaintenanceCompleteDialog({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           endDate: form.endDate,
-          cost: form.cost ? parseFloat(form.cost) : undefined,
-          notes: form.notes.trim() || undefined,
         }),
       });
       if (!res.ok) {
@@ -57,7 +52,7 @@ export function MaintenanceCompleteDialog({
       }
       toast.success(t("maintForm.completeSuccess"));
       setOpen(false);
-      setForm({ endDate: new Date().toISOString().split("T")[0], cost: "", notes: "" });
+      setForm({ endDate: new Date().toISOString().split("T")[0] });
       onSuccess?.();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : t("maintForm.completeFailed"));
@@ -77,37 +72,14 @@ export function MaintenanceCompleteDialog({
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-2">
-              <Label htmlFor="endDate">{t("assetDetail.endDate")}</Label>
-              <Input
-                id="endDate"
-                type="date"
-                value={form.endDate}
-                onChange={(e) => setForm((f) => ({ ...f, endDate: e.target.value }))}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="cost">{t("maintForm.costLabel")}</Label>
-              <Input
-                id="cost"
-                type="number"
-                placeholder="0"
-                value={form.cost}
-                onChange={(e) => setForm((f) => ({ ...f, cost: e.target.value }))}
-              />
-            </div>
-          </div>
-
           <div className="space-y-2">
-            <Label htmlFor="notes">{t("common.notes")}</Label>
-            <Textarea
-              id="notes"
-              placeholder={t("maintForm.notesPlaceholder")}
-              value={form.notes}
-              onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
-              rows={3}
+            <Label htmlFor="endDate">{t("assetDetail.endDate")}</Label>
+            <Input
+              id="endDate"
+              type="date"
+              value={form.endDate}
+              onChange={(e) => setForm((f) => ({ ...f, endDate: e.target.value }))}
+              required
             />
           </div>
 
