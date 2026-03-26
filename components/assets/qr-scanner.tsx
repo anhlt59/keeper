@@ -104,10 +104,19 @@ export function QRScanner() {
     };
   }, [showManual, router]);
 
-  function handleManualLookup() {
+  async function handleManualLookup() {
     const id = manualId.trim();
     if (!id) { toast.error("Enter an asset ID"); return; }
-    router.push(`/assets/${id}/lookup`);
+    try {
+      const res = await fetch(`/api/assets/${id}/lookup`, { credentials: "include" });
+      if (res.ok) {
+        router.push(`/assets/${id}/lookup`);
+      } else {
+        toast.error("Asset does not exist");
+      }
+    } catch {
+      toast.error("Failed to validate asset");
+    }
   }
 
   return (
@@ -146,7 +155,7 @@ export function QRScanner() {
                 value={manualId}
                 onChange={(e) => setManualId(e.target.value)}
                 placeholder="Enter asset ID"
-                onKeyDown={(e) => e.key === "Enter" && handleManualLookup()}
+                onKeyDown={async (e) => e.key === "Enter" && await handleManualLookup()}
               />
               <Button onClick={handleManualLookup} size="sm">
                 Lookup
