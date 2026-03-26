@@ -235,44 +235,33 @@ async function seedAssets(categoryMap: Record<string, string>): Promise<string[]
   }
   console.log(`✅ Randomly assigned ${assignCount} assets to employees`);
 
-  // Put 3 assets into active maintenance
+  // Set 3 assets to MAINTENANCE status
   const availableForMaintenance = await prisma.asset.findMany({
     where: { isDeleted: false, status: AssetStatus.AVAILABLE },
     take: 3,
     orderBy: { createdAt: "asc" },
   });
 
-  const maintenanceCount = Math.min(3, availableForMaintenance.length);
-  for (let i = 0; i < maintenanceCount; i++) {
-    const asset = availableForMaintenance[i];
-    const startDate = new Date();
-    startDate.setDate(startDate.getDate() - Math.floor(Math.random() * 5)); // started 0–4 days ago
-
-    await prisma.maintenance.create({
-      data: {
-        assetId: asset.id,
-        type: MaintenanceType.PREVENTIVE,
-        description: "Scheduled preventive maintenance check",
-        cost: null,
-        startDate,
-        endDate: null,
-        status: MaintenanceStatus.IN_PROGRESS,
-        performedBy: "IT Support",
-      },
+  for (const asset of availableForMaintenance) {
+    await prisma.asset.update({
+      where: { id: asset.id },
+      data: { status: AssetStatus.MAINTENANCE },
     });
-
     await prisma.assetEvent.create({
       data: {
         assetId: asset.id,
-        eventType: AssetEventType.MAINTENANCE_CREATED,
-        description: `Maintenance started: Scheduled preventive maintenance check`,
+        eventType: AssetEventType.STATUS_CHANGE,
+        fromStatus: AssetStatus.AVAILABLE,
+        toStatus: AssetStatus.MAINTENANCE,
+        description: "Asset sent to maintenance via seed",
         performedBy: "seed",
       },
     });
-
-    console.log(`  🔧 ${asset.code} → Maintenance IN_PROGRESS`);
+    console.log(`  🔧 ${asset.code} → ${AssetStatus.MAINTENANCE}`);
   }
-  if (maintenanceCount > 0) console.log(`✅ Created ${maintenanceCount} active maintenance records`);
+  if (availableForMaintenance.length > 0) {
+    console.log(`✅ Set ${availableForMaintenance.length} assets to ${AssetStatus.MAINTENANCE} status`);
+  }
 
   return createdCodes;
 }

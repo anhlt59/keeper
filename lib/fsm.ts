@@ -72,9 +72,9 @@ export const STATUS_CONFIG: Record<
 > = {
   AVAILABLE: {
     label: "Available",
-    color: "#3b82f6",
-    bgClass: "bg-blue-50 dark:bg-blue-950",
-    textClass: "text-blue-700 dark:text-blue-300",
+    color: "#16a34a",
+    bgClass: "bg-green-50 dark:bg-green-950",
+    textClass: "text-green-700 dark:text-green-300",
   },
   ASSIGNED: {
     label: "Assigned",
