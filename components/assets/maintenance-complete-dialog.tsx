@@ -6,6 +6,7 @@ import { useLanguage } from "@/context/language-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
   DialogContent,
@@ -32,7 +33,7 @@ export function MaintenanceCompleteDialog({
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
-    endDate: new Date().toISOString().split("T")[0],
+    notes: "",
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -43,7 +44,7 @@ export function MaintenanceCompleteDialog({
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          endDate: form.endDate,
+          notes: form.notes.trim() || undefined,
         }),
       });
       if (!res.ok) {
@@ -52,7 +53,6 @@ export function MaintenanceCompleteDialog({
       }
       toast.success(t("maintForm.completeSuccess"));
       setOpen(false);
-      setForm({ endDate: new Date().toISOString().split("T")[0] });
       onSuccess?.();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : t("maintForm.completeFailed"));
@@ -73,15 +73,16 @@ export function MaintenanceCompleteDialog({
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="endDate">{t("assetDetail.endDate")}</Label>
-            <Input
-              id="endDate"
-              type="date"
-              value={form.endDate}
-              onChange={(e) => setForm((f) => ({ ...f, endDate: e.target.value }))}
-              required
+            <Label htmlFor="notes">{t("common.notes")}</Label>
+            <Textarea
+                id="notes"
+                placeholder={t("maintForm.notesPlaceholder")}
+                value={form.notes}
+                onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
+                rows={3}
             />
           </div>
+
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => setOpen(false)} disabled={loading}>

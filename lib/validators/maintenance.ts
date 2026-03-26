@@ -17,7 +17,7 @@ export const updateMaintenanceSchema = createMaintenanceSchema.partial().extend(
 });
 
 export const completeMaintenanceSchema = z.object({
-  endDate: z.string().refine((val) => !isNaN(Date.parse(val)), { message: "Invalid date format" }),
+  endDate: z.string().refine((val) => !val || !isNaN(Date.parse(val)), { message: "Invalid date format" }).optional(),
   cost: z.number().positive().optional(),
   notes: z.string().max(1000).optional(),
 });

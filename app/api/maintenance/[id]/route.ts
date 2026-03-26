@@ -68,7 +68,7 @@ export async function PUT(req: NextRequest, { params }: Params) {
       where: { id },
       data: {
         status: MaintenanceStatus.COMPLETED,
-        endDate: new Date(parsed.data.endDate),
+        endDate: parsed.data.endDate ? new Date(parsed.data.endDate) : new Date(),
         cost: parsed.data.cost !== undefined ? new Prisma.Decimal(parsed.data.cost) : undefined,
         notes: parsed.data.notes ?? record.notes,
       },
