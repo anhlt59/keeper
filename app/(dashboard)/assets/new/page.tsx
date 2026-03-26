@@ -155,7 +155,7 @@ export default function NewAssetPage() {
                 >
                   <SelectTrigger>
                     <SelectValue>
-                      {(value) => categories.find((c) => c.id === value)?.name ?? t("assetForm.selectCategory")}
+                      {form.categoryId ? categories.find((c) => c.id === form.categoryId)?.name : t("assetForm.selectCategory")}
                     </SelectValue>
                   </SelectTrigger>
                   <SelectContent>

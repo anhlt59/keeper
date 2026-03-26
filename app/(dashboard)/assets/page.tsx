@@ -141,7 +141,7 @@ function AssetsContent() {
             </SelectValue>
           </SelectTrigger>
           <SelectContent>
-            <SelectItem>{t("assets.allCategories")}</SelectItem>
+            <SelectItem value="">{t("assets.allCategories")}</SelectItem>
             {categories.map((c) => (
               <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
             ))}
@@ -150,10 +150,12 @@ function AssetsContent() {
 
         <Select value={status} onValueChange={(v) => updateParam("status", v ?? "")}>
           <SelectTrigger className="w-36">
-            <SelectValue placeholder={t("common.allStatus")} />
+            <SelectValue>
+              {status ? t(`status.${status}`) : t("common.allStatus")}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
-            <SelectItem>{t("common.allStatus")}</SelectItem>
+            <SelectItem value="">{t("common.allStatus")}</SelectItem>
             <SelectItem value="AVAILABLE">{t("status.AVAILABLE")}</SelectItem>
             <SelectItem value="ASSIGNED">{t("status.ASSIGNED")}</SelectItem>
             <SelectItem value="MAINTENANCE">{t("status.MAINTENANCE")}</SelectItem>

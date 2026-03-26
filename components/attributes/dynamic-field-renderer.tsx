@@ -111,7 +111,9 @@ export function DynamicField({
           onValueChange={(v) => handleChange(v)}
         >
           <SelectTrigger id={name} aria-invalid={!!error}>
-            <SelectValue placeholder={t("attrForm.selectOption")} />
+            <SelectValue>
+              {(value as string) || t("attrForm.selectOption")}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
             {opts.map((opt) => (

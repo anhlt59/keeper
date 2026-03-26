@@ -112,10 +112,12 @@ function AuditLogsContent() {
       <div className="flex flex-wrap gap-2">
         <Select value={entityType} onValueChange={(v) => updateParam("entityType", v ?? null)}>
           <SelectTrigger className="w-36">
-            <SelectValue placeholder={t("auditLogs.entityType")} />
+            <SelectValue>
+              {entityType || t("auditLogs.allEntities")}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
-            <SelectItem>{t("auditLogs.allEntities")}</SelectItem>
+            <SelectItem value="">{t("auditLogs.allEntities")}</SelectItem>
             {ENTITY_OPTIONS.map((e) => (
               <SelectItem key={e} value={e}>{e}</SelectItem>
             ))}
@@ -124,10 +126,12 @@ function AuditLogsContent() {
 
         <Select value={action} onValueChange={(v) => updateParam("action", v ?? null)}>
           <SelectTrigger className="w-44">
-            <SelectValue placeholder={t("auditLogs.actionType")} />
+            <SelectValue>
+              {action ? action.replace(/_/g, " ") : t("auditLogs.allActions")}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
-            <SelectItem>{t("auditLogs.allActions")}</SelectItem>
+            <SelectItem value="">{t("auditLogs.allActions")}</SelectItem>
             {ACTION_OPTIONS.map((a) => (
               <SelectItem key={a} value={a}>{a.replace(/_/g, " ")}</SelectItem>
             ))}

@@ -214,7 +214,7 @@ export default function EditAssetPage({ params }: { params: Promise<{ id: string
                 >
                   <SelectTrigger>
                     <SelectValue>
-                      {(value) => categories.find((c) => c.id === value)?.name ?? t("assetForm.selectCategory")}
+                      {form.categoryId ? categories.find((c) => c.id === form.categoryId)?.name : t("assetForm.selectCategory")}
                     </SelectValue>
                   </SelectTrigger>
                   <SelectContent>

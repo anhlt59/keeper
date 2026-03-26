@@ -95,7 +95,7 @@ export function AssignDialog({ assetId, assetName, trigger, onSuccess }: AssignD
           <Select value={employeeId} onValueChange={setEmployeeId}>
             <SelectTrigger className="w-full">
               <SelectValue>
-                {employees.find((e) => e.id === employeeId)?.name ?? t("assign.selectEmployee")}
+                {employeeId ? employees.find((e) => e.id === employeeId)?.name : t("assign.selectEmployee")}
               </SelectValue>
             </SelectTrigger>
             <SelectContent>

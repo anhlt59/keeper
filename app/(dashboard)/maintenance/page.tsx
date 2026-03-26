@@ -110,10 +110,12 @@ function MaintenanceContent() {
       <div className="flex gap-2 items-center">
         <Select value={status} onValueChange={updateStatus}>
           <SelectTrigger className="w-44">
-            <SelectValue placeholder={t("common.allStatus")} />
+            <SelectValue>
+              {status ? t(`maint.status.${status}`) : t("common.allStatus")}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
-            <SelectItem>{t("common.allStatus")}</SelectItem>
+            <SelectItem value="">{t("common.allStatus")}</SelectItem>
             <SelectItem value="SCHEDULED">{t("maint.status.SCHEDULED")}</SelectItem>
             <SelectItem value="IN_PROGRESS">{t("maint.status.IN_PROGRESS")}</SelectItem>
             <SelectItem value="COMPLETED">{t("maint.status.COMPLETED")}</SelectItem>

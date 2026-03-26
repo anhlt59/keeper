@@ -84,7 +84,9 @@ export function EditableAssetRow({ asset, index, onChange, onRemove, confidence,
           <Label className="text-xs text-muted-foreground">{t("common.category")}</Label>
           <Select value={asset.category} onValueChange={(v) => onChange(index, "category", v ?? "")}>
             <SelectTrigger className="h-8 text-sm w-full">
-              <SelectValue placeholder={t("assetForm.selectCategory")} />
+              <SelectValue>
+                {asset.category || t("assetForm.selectCategory")}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
               {(categories.length > 0 ? categories : FALLBACK_CATEGORIES).map((cat) => (
