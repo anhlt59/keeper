@@ -38,7 +38,7 @@ export function KpiCard({
   return (
     <Card
       className={cn(
-        "transition-shadow hover:shadow-md duration-200",
+        "hover:-translate-y-0.5",
         className
       )}
     >
@@ -47,11 +47,11 @@ export function KpiCard({
           {label}
         </CardTitle>
         {icon && (
-          <div className="text-muted-foreground [&_svg]:size-4">{icon}</div>
+          <div className="text-muted-foreground [&_svg]:size-4 transition-transform duration-200 group-hover/card:scale-110">{icon}</div>
         )}
       </CardHeader>
       <CardContent>
-        <div className="text-2xl font-bold font-mono">{value}</div>
+        <div className="text-2xl font-bold font-mono transition-colors duration-200 group-hover/card:text-foreground">{value}</div>
         {subtext && (
           <p className="text-xs text-muted-foreground mt-1">{subtext}</p>
         )}

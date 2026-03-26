@@ -1,4 +1,4 @@
-import { PrismaClient, AssetStatus, MaintenanceType, MaintenanceStatus, AssetEventType, Prisma } from "@prisma/client";
+import { PrismaClient, AssetStatus, MaintenanceType, MaintenanceStatus, AssetEventType, AttributeFieldType, Prisma } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
 import { hashPassword } from "better-auth/crypto";
@@ -266,6 +266,73 @@ async function seedAssets(categoryMap: Record<string, string>): Promise<string[]
   return createdCodes;
 }
 
+async function seedAttributeDefinitions(categoryMap: Record<string, string>): Promise<void> {
+  const seeds = [
+    // Laptop attributes
+    {
+      name: "RAM (GB)",
+      description: "Dung lượng RAM",
+      fieldType: AttributeFieldType.NUMBER,
+      categoryName: "Laptop",
+      required: true,
+      order: 1,
+    },
+    {
+      name: "Memory (GB)",
+      description: "Dung lượng Memory",
+      fieldType: AttributeFieldType.NUMBER,
+      categoryName: "Laptop",
+      required: true,
+      order: 2,
+    },
+    // Monitor attributes
+    {
+      name: "Size (inch)",
+      description: "Kích thước màn hình",
+      fieldType: AttributeFieldType.NUMBER,
+      categoryName: "Monitor",
+      required: true,
+      order: 1,
+    },
+    {
+      name: "Resolution",
+      description: "HD, FullHD, 2K, 4K,...",
+      fieldType: AttributeFieldType.TEXT,
+      categoryName: "Monitor",
+      required: true,
+      order: 2,
+    },
+  ];
+
+  let count = 0;
+  for (const s of seeds) {
+    const categoryId = categoryMap[s.categoryName];
+    if (!categoryId) {
+      console.warn(`⚠️  Category "${s.categoryName}" not found for attribute "${s.name}" — skipping`);
+      continue;
+    }
+    await prisma.attributeDefinition.upsert({
+      where: { categoryId_name: { categoryId, name: s.name } },
+      update: {
+        description: s.description,
+        fieldType: s.fieldType,
+        required: s.required,
+        order: s.order,
+      },
+      create: {
+        name: s.name,
+        description: s.description,
+        fieldType: s.fieldType,
+        categoryId,
+        required: s.required,
+        order: s.order,
+      },
+    });
+    count++;
+  }
+  console.log(`✅ Upserted ${count} attribute definitions from seed`);
+}
+
 async function seedMaintenanceHistory(): Promise<void> {
   const allAssets = await prisma.asset.findMany({
     where: { isDeleted: false },
@@ -319,6 +386,7 @@ async function main() {
 
   await seedAdmin();
   const categoryMap = await seedCategories();
+  await seedAttributeDefinitions(categoryMap);
   await seedEmployees();
   await seedAssets(categoryMap);
   await seedMaintenanceHistory();

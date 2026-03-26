@@ -117,6 +117,51 @@
   --sidebar-ring: oklch(0.556 0 0);
 }
 
+/* ─── Global hover & interaction utilities ─── */
+@utility hover-lift {
+  transition: box-shadow 200ms ease, transform 200ms ease;
+  &:hover {
+    box-shadow: 0 4px 16px oklch(0 0 0 / 0.08);
+    transform: translateY(-1px);
+  }
+}
+@utility hover-scale {
+  transition: transform 200ms ease, opacity 200ms ease;
+  &:hover {
+    transform: scale(1.02);
+  }
+}
+@utility hover-glow {
+  transition: box-shadow 200ms ease;
+  &:hover {
+    box-shadow: 0 0 0 2px var(--ring);
+  }
+}
+
+/* ─── Table row hover ─── */
+.table-row-hover {
+  tr {
+    td { @apply transition-colors duration-150; }
+    &:hover td { @apply bg-muted/60; }
+  }
+}
+
+/* ─── Sidebar nav item hover ─── */
+.nav-item-hover {
+  a, button {
+    @apply transition-colors duration-150;
+    &:hover { @apply bg-accent text-accent-foreground; }
+  }
+}
+
+/* ─── Dropdown item hover ─── */
+.dropdown-item-hover {
+  [role="menuitem"], [role="menuitemcheckbox"], [role="menuitemradio"] {
+    @apply transition-colors duration-150;
+    &:hover, &[data-highlighted] { @apply bg-accent text-accent-foreground; }
+  }
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -126,5 +171,15 @@
   }
   html {
     @apply font-sans;
+  }
+
+  /* Global interactive cursor */
+  [role="button"], [role="link"], [tabindex="0"] {
+    cursor: pointer;
+  }
+
+  /* Smooth scroll */
+  html {
+    scroll-behavior: smooth;
   }
 }
