@@ -6,6 +6,7 @@ import { apiFetch } from "@/lib/api-fetch";
 import { KpiCard } from "@/components/dashboard/kpi-card";
 import { AssetStatusChart } from "@/components/dashboard/asset-status-chart";
 import { RecentEvents } from "@/components/dashboard/recent-events";
+import { MaintenanceCostChart } from "@/components/dashboard/maintenance-cost-chart";
 import { AssetStatus } from "@prisma/client";
 
 interface DashboardData {
@@ -14,6 +15,7 @@ interface DashboardData {
   byStatus: { status: AssetStatus; count: number }[];
   maintenanceCostMTD: number | string;
   totalMaintenanceCost: number | string;
+  monthlyCosts: { month: string; cost: number }[];
   recentEvents: Array<{
     id: string;
     asset?: { id: string; name: string; code: string };
@@ -88,16 +90,26 @@ export default function DashboardPage() {
       </div>
 
       {/* Charts Row */}
-      <div className="grid gap-4 md:grid-cols-2">
-        <AssetStatusChart
-          data={data?.byStatus ?? []}
-          loading={isLoading}
-        />
-        <RecentEvents
-          events={(data?.recentEvents ?? []) as DashboardData["recentEvents"]}
-          loading={isLoading}
-        />
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5 items-stretch">
+        <div className="lg:col-span-2 [&>*]:h-full">
+          <AssetStatusChart
+            data={data?.byStatus ?? []}
+            loading={isLoading}
+          />
+        </div>
+        <div className="lg:col-span-3 [&>*]:h-full">
+          <RecentEvents
+            events={(data?.recentEvents ?? []) as DashboardData["recentEvents"]}
+            loading={isLoading}
+          />
+        </div>
       </div>
+
+      {/* Maintenance Cost Trend */}
+      <MaintenanceCostChart
+        data={data?.monthlyCosts ?? []}
+        loading={isLoading}
+      />
     </div>
   );
 }

@@ -70,6 +70,23 @@ export async function GET(req: NextRequest) {
     }),
   ]);
 
+  // Monthly maintenance costs (last 6 months)
+  const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 5, 1);
+  const monthlyCosts = await prisma.$queryRaw<
+    { month: string; cost: number }[]
+  >`
+    SELECT
+      to_char("endDate", 'YYYY-MM') AS month,
+      COALESCE(SUM(cost), 0)::float AS cost
+    FROM "Maintenance"
+    WHERE "isDeleted" = false
+      AND cost IS NOT NULL
+      AND status = 'COMPLETED'
+      AND "endDate" >= ${sixMonthsAgo}
+    GROUP BY to_char("endDate", 'YYYY-MM')
+    ORDER BY month ASC
+  `;
+
   // Resolve category names
   const categoryIds = byCategory.map((c) => c.categoryId);
   const categories = await prisma.category.findMany({
@@ -90,5 +107,6 @@ export async function GET(req: NextRequest) {
     maintenanceCostMTD: maintenanceCostMTD._sum.cost ?? 0,
     totalMaintenanceCost: totalMaintenanceCost._sum.cost ?? 0,
     recentEvents,
+    monthlyCosts,
   });
 }

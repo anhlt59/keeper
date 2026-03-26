@@ -83,11 +83,11 @@ export function RecentEvents({ events, loading = false }: RecentEventsProps) {
   }
 
   return (
-    <Card>
+    <Card className="flex flex-col">
       <CardHeader>
         <CardTitle className="text-base">Recent Activity</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-3">
+      <CardContent className="flex-1 overflow-y-auto space-y-3">
         {events.map((event) => {
           const Icon = EVENT_ICON_MAP[event.eventType] ?? ClockIcon;
           return (
