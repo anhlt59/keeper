@@ -1,6 +1,6 @@
-# Zoo — Project Roadmap
+# Keeper — Project Roadmap
 
-> **Version:** 1.2.0 | **Status:** Phase 2 complete | Phase 3 pending
+> **Version:** 0.1.0 | **Status:** Phase 2 complete | Phase 3 pending
 > **PRD:** [prd-v1.md](./prd-v1.md)
 
 ---
@@ -24,7 +24,7 @@
 
 | Deliverable | Description |
 |---|---|
-| Next.js scaffold | App Router, TypeScript, Tailwind, ESLint, Prettier |
+| Next.js scaffold | App Router, TypeScript, Tailwind, ESLint |
 | Prisma schema | Full schema design (12 tables), migrate dev |
 | Better Auth | Session-based, CSRF, rate limiting, single Admin role |
 | Directory structure | app/, lib/, prisma/, components/ skeleton |
@@ -127,7 +127,7 @@ Old audit logs (> 2 years): partition by year, archive to cold storage (TBD back
 ## 6. Contributing Guidelines
 
 1. Follow [code-standards.md](./code-standards.md) strictly
-2. Every feature needs Zod validation + Prisma service layer (no direct DB in routes)
+2. Every feature needs Zod validation on all API inputs. Prisma service layer preferred for complex writes; routes may call Prisma directly for simple reads/writes.
 3. All writes must call `logAssetEvent()` from service layer (explicit audit, no middleware)
 4. FSM transitions validated in service layer before DB write
 5. No new dependencies without team discussion

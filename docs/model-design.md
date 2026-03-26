@@ -1,6 +1,6 @@
-# Zoo — Model Design
+# Keeper — Model Design
 
-> **Version:** 1.2.0 | **Schema:** `prisma/schema.prisma` (Prisma 7.5.0 + PostgreSQL)
+> **Version:** 0.1.0 | **Schema:** `prisma/schema.prisma` (Prisma 7.5.0 + PostgreSQL)
 > **Ref:** [system-architecture.md](./system-architecture.md) · [code-standards.md](./code-standards.md)
 
 ---
@@ -329,7 +329,7 @@ Append-only lifecycle log. Immutable — no update/delete endpoints exposed.
 | metadata    | Json?           | —                   | Extra context             |
 | createdAt   | DateTime        | default now         | —                         |
 
-**Indexes:** `@@index([assetId, createdAt])`
+**Indexes:** `@@index([assetId])`, `@@index([isDeleted])`
 
 ---
 
@@ -482,14 +482,16 @@ Defines custom fields scoped to a category.
 
 ### 5.1 Soft Delete
 
-All core tables (User, Session, Account, Verification, Employee, Category, Asset, AssetEvent, Maintenance, AuditLog, Invoice, OcrExtraction, AttributeDefinition) include:
+All core tables (User, Employee, Category, Asset, AssetEvent, Maintenance, AuditLog, Invoice, OcrExtraction, AttributeDefinition) include:
 
 ```prisma
 isDeleted  Boolean   @default(false)
 deletedAt DateTime?
 ```
 
-Every Prisma query filter includes `where: { isDeleted: false }`. `OcrExtraction` and `AssetAttributeValue` intentionally omit soft-delete fields (short-lived, low-risk).
+> **Note:** `Session`, `Account`, and `Verification` are managed by Better Auth and do **not** have soft-delete fields.
+
+Every Prisma query filter includes `where: { isDeleted: false }`.
 
 ### 5.2 Dual Audit Logging
 
@@ -566,7 +568,7 @@ Monetary fields use PostgreSQL `DECIMAL(12, 2)` enforced at DB level:
 | Category             | `@@index([isDeleted])`            | Filter active categories  |
 | Asset                | `@@index([isDeleted])`            | Default list filter       |
 | Asset                | `@@index([status])`               | Status dashboard queries  |
-| AssetEvent           | `@@index([assetId, createdAt])`   | Timeline retrieval         |
+| AssetEvent           | `@@index([assetId])`, `@@index([isDeleted])` | Per-asset event lookup    |
 | Maintenance          | `@@index([isDeleted])`            | —                         |
 | Maintenance          | `@@index([assetId])`              | Asset maintenance history |
 | AuditLog             | `@@index([userId])`               | User activity lookup      |
@@ -594,6 +596,11 @@ Monetary fields use PostgreSQL `DECIMAL(12, 2)` enforced at DB level:
 | `init`                                        | 2026-03-24           | Full schema: User, Session, Account, Verification, Employee, Category, Asset, AssetEvent, Maintenance, AuditLog, Invoice, OcrExtraction + all enums |
 | `add_asset_attribute_values`                  | 2026-03-24           | Adds `AssetAttributeValue` + `AttributeDefinition` tables (Phase 2 dynamic attrs)                                                        |
 | `add_invoice_assets_relation`                 | 2026-03-26           | Adds `Asset.invoiceId` FK + `Invoice.assets[]` relation for procurement traceability                                                        |
+| `user` (20260325052319)                       | 2026-03-25           | Better Auth schema: User → Account/Verification/Session migration                                                                       |
+| `add_employee_table` (20260325094903)         | 2026-03-25           | Adds first-class `Employee` entity + `Asset.employeeId` FK                                                                               |
+| `rename_purchased` (20260326085656)           | 2026-03-26           | Renames initial `PURCHASED` status → `AVAILABLE` (FSM status refactor)                                                                    |
+
+> **Verified against schema:** 2026-03-26
 
 ---
 

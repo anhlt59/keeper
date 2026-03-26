@@ -1,6 +1,6 @@
-# Zoo — Code Standards
+# Keeper — Code Standards
 
-> **Version:** 1.2.0 | **Applies to:** All app code (`app/`, `lib/`, `components/`, `prisma/`)
+> **Version:** 0.1.0 | **Applies to:** All app code (`app/`, `lib/`, `components/`, `prisma/`)
 > **Ref:** [codebase-summary.md](./codebase-summary.md)
 
 ---

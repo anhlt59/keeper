@@ -1,6 +1,6 @@
-# Zoo — Deployment Guide
+# Keeper — Deployment Guide
 
-> **Version:** 1.2.0 | **Current phase:** Local development
+> **Version:** 0.1.0 | **Current phase:** Local development
 > **Future:** Vercel deployment (Phase 3)
 > **Ref:** [code-standards.md](./code-standards.md)
 

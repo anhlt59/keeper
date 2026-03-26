@@ -1,6 +1,6 @@
-# Zoo — System Architecture
+# Keeper — System Architecture
 
-> **Version:** 1.2.0 | **PRD:** [prd-v1.md](./prd-v1.md)
+> **Version:** 0.1.0 | **PRD:** [prd-v1.md](./prd-v1.md)
 > **Plan:** `plans/260325-0106-asset-mgmt-init/`
 
 ---

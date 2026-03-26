@@ -1,4 +1,4 @@
-# Design Guidelines — Zoo Asset Management
+# Design Guidelines — Keeper Asset Management
 
 > AI-Native UI + Minimalism style. Based on shadcn/ui + Tailwind CSS v4.
 > **Note:** Accessibility checklist unchecked. Component snippets are illustrative.

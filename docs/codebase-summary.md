@@ -1,6 +1,6 @@
-# Zoo — Codebase Summary
+# Keeper — Codebase Summary
 
-> **Version:** 1.2.0 | **Root:** `/Users/anhlt/Projects/vibe/zoo/`
+> **Version:** 0.1.0 | **Root:** `/Users/anhlt/Projects/vibe/zoo/`
 > **Tech Stack:** Next.js 16.2.1 · Prisma 7.5.0 · Better Auth 1.5.6 · Tailwind CSS v4 · Zod 4.3.6 · TanStack React Query 5.95.2
 
 ---
@@ -18,6 +18,7 @@ zoo/                               # Git root
 │   │   ├── page.tsx              # Dashboard KPI
 │   │   ├── assets/
 │   │   │   ├── page.tsx          # Asset list
+│   │   │   ├── new/page.tsx     # Create new asset
 │   │   │   └── [id]/
 │   │   │       ├── page.tsx      # Asset detail
 │   │   │       ├── edit/page.tsx # Edit asset
@@ -27,15 +28,17 @@ zoo/                               # Git root
 │   │   ├── attributes/
 │   │   │   └── page.tsx
 │   │   ├── employees/
-│   │   │   └── page.tsx
+│   │   │   └── page.tsx         # Employee list
 │   │   ├── maintenance/
 │   │   │   └── page.tsx
 │   │   ├── invoices/
-│   │   │   └── page.tsx
+│   │   │   ├── page.tsx         # Invoice list
+│   │   │   ├── new/page.tsx    # Create invoice
+│   │   │   └── [id]/page.tsx   # Invoice detail + OCR confirm
 │   │   ├── audit-logs/
 │   │   │   └── page.tsx
 │   │   └── scan/
-│   │       └── page.tsx
+│   │       └── page.tsx         # Mobile QR scanner
 │   ├── api/                       # REST API routes
 │   │   ├── auth/[...better-auth]/
 │   │   │   └── route.ts
@@ -47,11 +50,15 @@ zoo/                               # Git root
 │   │   │       ├── recall/route.ts
 │   │   │       ├── events/route.ts
 │   │   │       ├── maintenance/route.ts
-│   │   │       └── qr/route.ts   # Download QR PNG
+│   │   │       ├── qr/route.ts   # Download QR PNG
+│   │   │       └── lookup/route.ts # Public QR → asset ID (no auth)
 │   │   ├── categories/
 │   │   │   ├── route.ts
-│   │   │   └── [id]/
-│   │   │       └── attributes/route.ts
+│   │   │   └── [id]/route.ts     # GET/PUT/DELETE category
+│   │   ├── attributes/
+│   │   │   └── definitions/
+│   │   │       ├── route.ts       # GET/POST attribute definitions
+│   │   │       └── [id]/route.ts  # GET/PUT/DELETE single definition
 │   │   ├── employees/
 │   │   │   └── route.ts          # GET/POST employees
 │   │   ├── maintenance/
@@ -59,9 +66,10 @@ zoo/                               # Git root
 │   │   │   └── [id]/route.ts
 │   │   ├── invoices/
 │   │   │   ├── route.ts
+│   │   │   ├── ocr/route.ts      # POST upload → GPT-4o-mini OCR
 │   │   │   └── [id]/
-│   │   │       ├── ocr/route.ts  # Upload → GPT-4o-mini OCR
-│   │   │       └── confirm/route.ts # Admin confirm OCR result
+│   │   │       ├── route.ts       # GET/PUT/DELETE invoice
+│   │   │       └── confirm/route.ts # Admin confirm OCR → create assets
 │   │   ├── dashboard/
 │   │   │   └── route.ts
 │   │   └── audit-logs/
@@ -87,6 +95,7 @@ zoo/                               # Git root
 │   ├── validators/                # Zod v4 schemas
 │   │   ├── asset.ts
 │   │   ├── category.ts
+│   │   ├── employee.ts
 │   │   ├── dynamic-attrs.ts
 │   │   ├── invoice.ts
 │   │   └── maintenance.ts
@@ -100,7 +109,7 @@ zoo/                               # Git root
 ├── components/
 │   ├── ui/                        # shadcn/ui primitives
 │   ├── assets/
-│   │   ├── asset-timeline.tsx
+│   │   ├── asset-timeline.tsx     # Enriched w/ user names
 │   │   ├── assign-dialog.tsx
 │   │   ├── maintenance-form.tsx
 │   │   ├── qr-preview-modal.tsx
@@ -108,15 +117,25 @@ zoo/                               # Git root
 │   ├── dashboard/
 │   │   ├── kpi-card.tsx
 │   │   ├── asset-status-chart.tsx
+│   │   ├── asset-value-chart.tsx   # 6m value trend
+│   │   ├── maintenance-cost-chart.tsx # 6m cost chart
 │   │   └── recent-events.tsx
 │   ├── invoices/
 │   │   ├── invoice-form.tsx
 │   │   ├── invoice-preview.tsx
-│   │   └── invoice-upload.tsx
+│   │   ├── invoice-upload.tsx
+│   │   ├── editable-invoice-row.tsx
+│   │   └── editable-asset-row.tsx  # OCR confirm edit rows
 │   ├── categories/
+│   │   └── category-form.tsx
 │   ├── attributes/
+│   │   ├── definition-form.tsx
+│   │   └── dynamic-field-renderer.tsx
 │   ├── shared/
-│   │   └── language-toggle.tsx   # i18n toggle
+│   │   ├── language-toggle.tsx    # VI/EN toggle
+│   │   ├── theme-toggle.tsx      # Light/dark/system
+│   │   ├── status-badge.tsx
+│   │   └── confirm-dialog.tsx
 │   └── scan/
 │       └── mobile-scanner.tsx
 │
@@ -130,7 +149,7 @@ zoo/                               # Git root
 │
 ├── docker-compose.yml             # PostgreSQL local dev
 ├── .env.local                    # Local env vars (not committed)
-├── .env.local.example            # Env template (committed)
+├── .env.example                  # Env template (committed)
 ├── .gitignore
 ├── package.json
 ├── next.config.ts
@@ -155,7 +174,7 @@ zoo/                               # Git root
 | `lib/audit.ts` | Request-scoped audit context (defined, not currently used in routes) |
 | `lib/audit-logger.ts` | `logAssetEvent()` — atomic `AssetEvent` + `AuditLog` write |
 | `lib/validators/*.ts` | Zod v4 schemas for all API inputs |
-| `lib/services/asset-service.ts` | All asset DB write logic — routes call services, not Prisma directly |
+| `lib/services/asset-service.ts` | Core asset DB write logic (FSM transitions, events). Complex writes prefer service layer; simple reads/writes use direct Prisma calls in routes. |
 | `lib/services/asset-qr-service.ts` | QR-specific business logic |
 | `app/providers.tsx` | QueryClientProvider + Sonner Toaster (position: bottom-right) + LanguageProvider |
 | `context/language-context.tsx` | LanguageProvider + useLanguage() hook + i18n translations |
@@ -167,16 +186,16 @@ zoo/                               # Git root
 
 | Component | Target LOC |
 |---|---|
-| `app/` (pages, layouts, API routes) | ~2,000–3,000 |
+| `app/` (pages, layouts, API routes) | ~2,500–3,500 |
 | `lib/services/` | ~1,500–2,000 |
-| `lib/validators/` | ~500–800 |
+| `lib/validators/` | ~600–900 |
 | `lib/fsm.ts` + `lib/qr-generator.ts` + `lib/ocr.ts` | ~500–800 |
 | `lib/db.ts` + `lib/auth.ts` + `lib/audit*.ts` | ~200–300 |
-| `components/` (custom) | ~2,000–3,000 |
+| `components/` (custom) | ~2,500–3,500 |
 | `prisma/schema.prisma` | ~500–800 |
-| **Total app code** | **~7,200–10,700** |
+| **Total app code** | **~8,300–12,000** |
 
-*Phase 0/1/2 complete — LOC targets are end-state estimates.*
+*Phase 2 complete — LOC targets are end-state estimates.*
 
 ---
 
@@ -225,7 +244,15 @@ zoo/                               # Git root
 | `context/language-context.tsx` | `LanguageProvider`, `useLanguage()` hook |
 | `lib/i18n/translations.ts` | Core translation strings |
 | `lib/i18n/translations-extended.ts` | Extended translation strings |
-| `components/shared/language-toggle.tsx` | Language switcher UI |
+| `components/shared/language-toggle.tsx` | VI/EN language switcher UI |
+| `components/shared/theme-toggle.tsx` | Light/dark/system theme switcher |
+
+## 7. Theme Subsystem
+
+| File | Responsibility |
+|---|---|
+| `components/shared/theme-toggle.tsx` | Light/dark/system mode toggle |
+| `app/globals.css` | Tailwind v4 dark mode via CSS vars |
 
 ---
 

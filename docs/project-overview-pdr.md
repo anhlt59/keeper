@@ -1,13 +1,13 @@
-# Zoo — Asset Management System: Overview & PDR
+# Keeper — Asset Management System: Overview & PDR
 
-> **Version:** 1.2.0 | **Root:** `/Users/anhlt/Projects/vibe/zoo/` | **Status:** Phase 1/2 done, Phase 3 pending
+> **Version:** 0.1.0 | **Root:** `/Users/anhlt/Projects/vibe/zoo/` | **Status:** Phase 1/2 done, Phase 3 pending
 > **PRD:** [prd-v1.md](./prd-v1.md) | **Plan:** `plans/260325-0106-asset-mgmt-init/`
 
 ---
 
 ## 1. Purpose & Goals
 
-Zoo Asset Management System is a centralized enterprise asset management system that tracks the full asset lifecycle from procurement to disposal.
+Keeper Asset Management System is a centralized enterprise asset management system that tracks the full asset lifecycle from procurement to disposal.
 
 **Primary Goals:**
 - Create/update/delete assets with full status and lifecycle events.

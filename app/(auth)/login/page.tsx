@@ -49,7 +49,7 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950 px-4">
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold">Zoo</CardTitle>
+          <CardTitle className="text-2xl font-bold">Keeper</CardTitle>
           <CardDescription>{t("login.appSubtitle")}</CardDescription>
         </CardHeader>
         <CardContent>
@@ -66,7 +66,7 @@ export default function LoginPage() {
               <Input
                 id="email"
                 type="email"
-                placeholder="admin@zoo.local"
+                placeholder="admin@keeper.local"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required

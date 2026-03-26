@@ -173,6 +173,8 @@ The business currently manages assets and office supplies through manual, distri
 
 ## 8) Data Boundary (MVP)
 
+> **Note:** PRD table names below are conceptual. Actual Prisma model names may differ (e.g. `asset_categories` → `Category`, `assets` → `Asset`). See `docs/model-design.md` for canonical schema.
+
 ### Core Tables
 - `User` — Admin accounts (Better Auth: email, name, emailVerified, image)
 - `Session` — Better Auth session records
@@ -184,8 +186,8 @@ The business currently manages assets and office supplies through manual, distri
 - `assets` — Core asset table (category_id, name, qr_code, status, purchase_info, employeeId FK, invoiceId FK, custom_attrs JSONB, ...)
 - `asset_attribute_values` — JSONB values per asset (asset_id + attrs JSONB)
 - `asset_events` — Append-only lifecycle event log
-- `asset_assignments` — Assignment history (assigned_to, assigned_by, reason, timestamps)
 - `maintenance_records` — Maintenance history
+> **Note:** Asset assignments tracked via `Asset.employeeId` FK + `AssetEvent` entries (no separate `asset_assignments` table)
 
 ### Invoice Tables
 - `invoices` — Confirmed invoice records + pending OCR records

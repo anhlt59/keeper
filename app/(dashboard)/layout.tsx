@@ -47,10 +47,10 @@ function Sidebar() {
     <aside className="hidden lg:flex flex-col w-64 border-r bg-sidebar text-sidebar-foreground min-h-screen">
       {/* Logo */}
       <div className="flex items-center gap-2 px-6 h-16 border-b">
-        <div className="w-6 h-6 rounded bg-primary flex items-center justify-center">
-          <span className="text-white text-xs font-bold font-mono">Z</span>
+        <div className="w-6 h-6 rounded bg-foreground flex items-center justify-center">
+          <span className="text-background text-xs font-bold font-mono">Z</span>
         </div>
-        <span className="font-semibold text-foreground">Zoo</span>
+        <span className="font-semibold text-foreground">Keeper</span>
       </div>
 
       {/* Nav */}
@@ -90,7 +90,7 @@ function Sidebar() {
             <div className="flex flex-col items-start flex-1">
               <span className="text-sm font-medium">Admin</span>
               <span className="text-xs text-muted-foreground">
-                admin@zoo.local
+                admin@keeper.local
               </span>
             </div>
             <ChevronRight className="h-4 w-4 text-muted-foreground" />
@@ -165,7 +165,7 @@ function PageHeader() {
   const config =
     Object.entries(pageConfig)
       .filter(([key]) => (key === "/" ? pathname === "/" : pathname.startsWith(key)))
-      .sort((a, b) => b[0].length - a[0].length)[0]?.[1] ?? { titleKey: "Zoo" };
+      .sort((a, b) => b[0].length - a[0].length)[0]?.[1] ?? { titleKey: "Keeper" };
 
   return (
     <header className="sticky top-0 z-10 flex items-center justify-between px-6 h-16 border-b bg-background">

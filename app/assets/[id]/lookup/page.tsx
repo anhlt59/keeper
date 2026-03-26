@@ -41,7 +41,7 @@ export default async function AssetLookupPage({ params }: Params) {
             <div className="w-8 h-8 rounded bg-primary flex items-center justify-center">
               <span className="text-white text-sm font-bold font-mono">Z</span>
             </div>
-            <span className="font-semibold text-foreground text-lg">Zoo</span>
+            <span className="font-semibold text-foreground text-lg">Keeper</span>
           </div>
           <div className="w-14" /> {/* giữ cân đối layout */}
         </div>
@@ -94,7 +94,7 @@ export default async function AssetLookupPage({ params }: Params) {
         </div>
 
         <p className="text-center text-xs text-muted-foreground mt-4">
-          Asset managed with Zoo
+          Asset managed with Keeper
         </p>
       </div>
     </div>

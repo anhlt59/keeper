@@ -16,7 +16,7 @@ const firaCode = Fira_Code({
 });
 
 export const metadata: Metadata = {
-  title: "Zoo — Asset Management",
+  title: "Keeper — Asset Management",
   description: "AI-Native Asset Management System",
 };
 

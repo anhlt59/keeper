@@ -46,7 +46,7 @@ Significant changes, features, and fixes are documented here. Most recent first.
 - Repository initialized with Next.js 16.2.1 + TypeScript
 - Prisma schema v1: User, Session, Account, Verification, Employee, Category, Asset, AssetEvent, Maintenance, AuditLog, Invoice, OcrExtraction, AttributeDefinition + all enums
 - Docker Compose PostgreSQL setup
-- `.env.local.example` committed
+- `.env.example` committed
 - README scaffold
 
 ---
