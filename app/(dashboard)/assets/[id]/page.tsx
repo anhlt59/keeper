@@ -305,7 +305,7 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
                 />
               );
             }
-            if (t.to === AssetStatus.PURCHASED && t.eventType === "RECALLED") {
+            if (t.to === AssetStatus.AVAILABLE && t.eventType === "RECALLED") {
               return (
                 <Button
                   key={`recall-${t.from}`}
@@ -362,8 +362,6 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
               >
                 {t.to === AssetStatus.DISPOSED ? (
                   <Trash2Icon className="h-4 w-4" />
-                ) : t.to === AssetStatus.IN_USE ? (
-                  <ArrowRightIcon className="h-4 w-4" />
                 ) : (
                   <RefreshCwIcon className="h-4 w-4" />
                 )}

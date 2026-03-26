@@ -214,8 +214,8 @@ export type CreateAssetInput = z.infer<typeof createAssetSchema>;
 // lib/fsm.ts
 import { AssetStatus, AssetEventType } from "@prisma/client";
 
-// States: PURCHASED → ASSIGNED → IN_USE ↔ MAINTENANCE → RETIRED → DISPOSED
-// RESTORED: DISPOSED → RETIRED   RECALLED: ASSIGNED → PURCHASED
+// States: AVAILABLE → ASSIGNED ↔ MAINTENANCE → RETIRED → DISPOSED
+// RECALLED: ASSIGNED → AVAILABLE  RESTORED: DISPOSED → RETIRED
 
 export type FSMTransition = {
   from: AssetStatus;
@@ -225,16 +225,14 @@ export type FSMTransition = {
 };
 
 export const ASSET_TRANSITIONS: FSMTransition[] = [
-  { from: AssetStatus.PURCHASED,   to: AssetStatus.ASSIGNED,    eventType: AssetEventType.ASSIGNED,             label: "Assign" },
-  { from: AssetStatus.ASSIGNED,   to: AssetStatus.IN_USE,      eventType: AssetEventType.STATUS_CHANGE,        label: "Mark in use" },
-  { from: AssetStatus.IN_USE,     to: AssetStatus.MAINTENANCE, eventType: AssetEventType.MAINTENANCE_CREATED, label: "Send to maintenance" },
-  { from: AssetStatus.MAINTENANCE, to: AssetStatus.IN_USE,     eventType: AssetEventType.MAINTENANCE_COMPLETED, label: "Maintenance complete" },
-  { from: AssetStatus.IN_USE,     to: AssetStatus.RETIRED,     eventType: AssetEventType.STATUS_CHANGE,        label: "Retire" },
-  { from: AssetStatus.ASSIGNED,   to: AssetStatus.RETIRED,     eventType: AssetEventType.STATUS_CHANGE,        label: "Retire (unassigned)" },
-  { from: AssetStatus.PURCHASED,  to: AssetStatus.RETIRED,     eventType: AssetEventType.STATUS_CHANGE,        label: "Retire (unused)" },
+  { from: AssetStatus.AVAILABLE,  to: AssetStatus.ASSIGNED,    eventType: AssetEventType.ASSIGNED,             label: "Assign" },
+  { from: AssetStatus.ASSIGNED,   to: AssetStatus.MAINTENANCE, eventType: AssetEventType.MAINTENANCE_CREATED, label: "Send to maintenance" },
+  { from: AssetStatus.MAINTENANCE, to: AssetStatus.ASSIGNED,   eventType: AssetEventType.MAINTENANCE_COMPLETED, label: "Maintenance complete" },
+  { from: AssetStatus.ASSIGNED,   to: AssetStatus.RETIRED,     eventType: AssetEventType.STATUS_CHANGE,        label: "Retire" },
+  { from: AssetStatus.AVAILABLE,  to: AssetStatus.RETIRED,     eventType: AssetEventType.STATUS_CHANGE,        label: "Retire (unused)" },
   { from: AssetStatus.RETIRED,   to: AssetStatus.DISPOSED,    eventType: AssetEventType.DISPOSED,             label: "Dispose" },
   { from: AssetStatus.DISPOSED,  to: AssetStatus.RETIRED,     eventType: AssetEventType.RESTORED,             label: "Restore" },
-  { from: AssetStatus.ASSIGNED,   to: AssetStatus.PURCHASED,  eventType: AssetEventType.RECALLED,            label: "Recall" },
+  { from: AssetStatus.ASSIGNED,   to: AssetStatus.AVAILABLE,  eventType: AssetEventType.RECALLED,            label: "Recall" },
 ];
 
 export function validateTransition(from: AssetStatus, to: AssetStatus): FSMTransition {

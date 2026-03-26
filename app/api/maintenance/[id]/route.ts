@@ -40,14 +40,14 @@ export async function PUT(req: NextRequest, { params }: Params) {
     }),
     prisma.asset.update({
       where: { id: record.assetId },
-      data: { status: AssetStatus.IN_USE },
+      data: { status: AssetStatus.ASSIGNED },
     }),
     prisma.assetEvent.create({
       data: {
         assetId: record.assetId,
         eventType: AssetEventType.MAINTENANCE_COMPLETED,
         fromStatus: AssetStatus.MAINTENANCE,
-        toStatus: AssetStatus.IN_USE,
+        toStatus: AssetStatus.ASSIGNED,
         description: `Maintenance completed${parsed.data.notes ? `: ${parsed.data.notes}` : ""}`,
         performedBy: session.user.id,
       },

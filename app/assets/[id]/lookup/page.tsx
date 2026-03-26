@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { PackageIcon, ArrowRightIcon } from "lucide-react";
+import { PackageIcon, ArrowRightIcon, ArrowLeftIcon } from "lucide-react";
 import { prisma } from "@/lib/db";
 import { notFound } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -21,9 +21,8 @@ export default async function AssetLookupPage({ params }: Params) {
   if (!asset) notFound();
 
   const STATUS_LABELS: Record<string, string> = {
-    PURCHASED: "Purchased",
+    AVAILABLE: "Available",
     ASSIGNED: "Assigned",
-    IN_USE: "In Use",
     MAINTENANCE: "In Maintenance",
     RETIRED: "Retired",
     DISPOSED: "Disposed",
@@ -32,12 +31,19 @@ export default async function AssetLookupPage({ params }: Params) {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900 flex items-center justify-center p-4">
       <div className="w-full max-w-sm">
-        {/* Logo */}
-        <div className="flex items-center justify-center gap-2 mb-8">
-          <div className="w-8 h-8 rounded bg-primary flex items-center justify-center">
-            <span className="text-white text-sm font-bold font-mono">Z</span>
+        {/* Back + Logo row */}
+        <div className="flex items-center justify-between mb-8">
+          <Link href="/scan" className="flex items-center gap-1 text-muted-foreground hover:text-primary transition text-sm">
+            <ArrowLeftIcon className="h-4 w-4" />
+            Back
+          </Link>
+          <div className="flex items-center gap-2 mx-auto">
+            <div className="w-8 h-8 rounded bg-primary flex items-center justify-center">
+              <span className="text-white text-sm font-bold font-mono">Z</span>
+            </div>
+            <span className="font-semibold text-foreground text-lg">Zoo</span>
           </div>
-          <span className="font-semibold text-foreground text-lg">Zoo</span>
+          <div className="w-14" /> {/* giữ cân đối layout */}
         </div>
 
         {/* Asset Card */}

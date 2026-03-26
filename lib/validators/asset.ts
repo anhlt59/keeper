@@ -10,7 +10,7 @@ export const createAssetSchema = z.object({
   name: z.string().min(1, "Asset name is required").max(200),
   description: z.string().max(1000).nullish(),
   categoryId: z.string().cuid("Invalid category ID"),
-  status: assetStatusSchema.optional().default(AssetStatus.PURCHASED),
+  status: assetStatusSchema.optional().default(AssetStatus.AVAILABLE),
   assignedTo: z.string().max(200).nullish(),
   assignedDate: z.string().refine((val) => !val || !isNaN(Date.parse(val)), { message: "Invalid date format" }).nullish(),
   purchaseDate: z.string().refine((val) => !val || !isNaN(Date.parse(val)), { message: "Invalid date format" }).nullish(),

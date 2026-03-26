@@ -27,7 +27,7 @@ export async function createAsset(
       name: data.name,
       description: data.description,
       categoryId: data.categoryId,
-      status: data.status ?? AssetStatus.PURCHASED,
+      status: data.status ?? AssetStatus.AVAILABLE,
       assignedTo: data.assignedTo,
       assignedDate: data.assignedDate ? new Date(data.assignedDate) : undefined,
       purchaseDate: data.purchaseDate ? new Date(data.purchaseDate) : undefined,

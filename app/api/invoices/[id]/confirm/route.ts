@@ -109,7 +109,7 @@ export async function POST(req: NextRequest, { params }: Params) {
               code: generateAssetCode(),
               name: assetName,
               categoryId,
-              status: AssetStatus.PURCHASED,
+              status: AssetStatus.AVAILABLE,
               purchaseDate: data.invoiceDate ? new Date(data.invoiceDate) : undefined,
               purchasePrice: assetData.unitPrice != null
                 ? new Prisma.Decimal(assetData.unitPrice)
@@ -125,7 +125,7 @@ export async function POST(req: NextRequest, { params }: Params) {
             data: {
               assetId: asset.id,
               eventType: AssetEventType.CREATED,
-              toStatus: AssetStatus.PURCHASED,
+              toStatus: AssetStatus.AVAILABLE,
               description: `Asset '${asset.name}' (${asset.code}) created from invoice '${updatedInvoice.invoiceNumber ?? id}'`,
               performedBy,
             },

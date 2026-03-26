@@ -1,9 +1,10 @@
-import { PrismaClient, AssetStatus, MaintenanceType, MaintenanceStatus } from "@prisma/client";
+import { PrismaClient, AssetStatus, MaintenanceType, MaintenanceStatus, AssetEventType } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
 import { hashPassword } from "better-auth/crypto";
 import { config } from "dotenv";
 import path from "path";
+import fs from "fs";
 
 // Load .env first, then .env.local as override (must be before any process.env access)
 config();
@@ -25,10 +26,42 @@ const pool = new Pool(buildPoolConfig());
 const adapter = new PrismaPg(pool as any);
 const prisma = new PrismaClient({ adapter });
 
-async function main() {
-  console.log("🌱 Seeding database...");
+// ─── CSV Helper ──────────────────────────────────────────────────────────────
 
-  // Create admin user with Better Auth account
+/**
+ * Parse a UTF-8 CSV file into an array of record objects.
+ * Strips BOM if present on the first header field.
+ * Values containing commas are not supported (no quoted-string handling).
+ */
+function readCSV(filename: string): Record<string, string>[] {
+  const filePath = path.resolve(__dirname, "data", filename);
+  if (!fs.existsSync(filePath)) {
+    throw new Error(`CSV file not found: ${filePath}`);
+  }
+  const content = fs.readFileSync(filePath, "utf-8");
+  const lines = content.split("\n").filter((l) => l.trim() !== "");
+  if (lines.length < 2) return [];
+
+  // Parse headers — strip BOM if present
+  const rawHeaders = lines[0].split(",");
+  const headers = rawHeaders.map((h) => {
+    const trimmed = h.trim();
+    return trimmed.charCodeAt(0) === 0xfeff ? trimmed.slice(1) : trimmed;
+  });
+
+  return lines.slice(1).map((line) => {
+    const values = line.split(",");
+    const record: Record<string, string> = {};
+    headers.forEach((h, i) => {
+      record[h] = (values[i] || "").trim();
+    });
+    return record;
+  });
+}
+
+// ─── Seed Loaders ────────────────────────────────────────────────────────────
+
+async function seedAdmin() {
   const hashedPassword = await hashPassword("admin123");
   const admin = await prisma.user.upsert({
     where: { email: "admin@zoo.local" },
@@ -39,7 +72,6 @@ async function main() {
       emailVerified: true,
     },
   });
-  // Create credential account for the admin user
   await prisma.account.upsert({
     where: { id: `credential-${admin.id}` },
     update: { password: hashedPassword },
@@ -51,149 +83,157 @@ async function main() {
       password: hashedPassword,
     },
   });
-  console.log(`✅ Created admin user: ${admin.email}`);
+  console.log(`✅ Admin user: ${admin.email} / admin123`);
+}
 
-  // Create categories
-  const categories = await Promise.all([
-    prisma.category.upsert({
-      where: { name: "Laptop" },
-      update: {},
-      create: { name: "Laptop", description: "Laptop computers" },
-    }),
-    prisma.category.upsert({
-      where: { name: "Monitor" },
-      update: {},
-      create: { name: "Monitor", description: "External monitors" },
-    }),
-    prisma.category.upsert({
-      where: { name: "Keyboard & Mouse" },
-      update: {},
-      create: { name: "Keyboard & Mouse", description: "Input devices" },
-    }),
-    prisma.category.upsert({
-      where: { name: "Office Furniture" },
-      update: {},
-      create: { name: "Office Furniture", description: "Desks, chairs, etc." },
-    }),
-  ]);
-  console.log(`✅ Created ${categories.length} categories`);
+async function seedCategories(): Promise<Record<string, string>> {
+  // name → id map for linking children
+  const categoryMap: Record<string, string> = {};
+  const rows = readCSV("categories.csv");
 
-  // Create employees
-  const employeeData = [
-    { name: "Nguyen Van A", email: "a.nguyen@zoo.local", department: "Engineering", position: "Developer" },
-    { name: "Tran Thi B", email: "b.tran@zoo.local", department: "Design", position: "UI Designer" },
-    { name: "Le Van C", email: "c.le@zoo.local", department: "Engineering", position: "Developer" },
-    { name: "Pham Van D", email: "d.pham@zoo.local", department: "Operations", position: "IT Support" },
-  ];
-  // Delete existing employees first (seed is idempotent via reset)
-  await prisma.employee.deleteMany();
-  const employees = [];
-  for (const emp of employeeData) {
-    const employee = await prisma.employee.create({ data: emp });
-    employees.push(employee);
-  }
-  console.log(`✅ Created ${employees.length} employees`);
-
-  // Create sample assets
-  const assets = [
-    {
-      code: "ASSET-001",
-      name: "MacBook Pro 14\" M3",
-      categoryId: categories[0].id,
-      status: AssetStatus.IN_USE,
-      employeeId: employees[0].id,
-      assignedTo: "Nguyen Van A",
-      purchaseDate: new Date("2024-01-15"),
-      purchasePrice: 34990000,
-      vendor: "Apple Store VN",
-      warrantyMonths: 24,
-    },
-    {
-      code: "ASSET-002",
-      name: "Dell UltraSharp 27\"",
-      categoryId: categories[1].id,
-      status: AssetStatus.ASSIGNED,
-      employeeId: employees[1].id,
-      assignedTo: "Tran Thi B",
-      purchaseDate: new Date("2024-03-01"),
-      purchasePrice: 12500000,
-      vendor: "Dell VN",
-      warrantyMonths: 36,
-    },
-    {
-      code: "ASSET-003",
-      name: "Logitech MX Keys + MX Master 3",
-      categoryId: categories[2].id,
-      status: AssetStatus.IN_USE,
-      employeeId: employees[2].id,
-      assignedTo: "Le Van C",
-      purchaseDate: new Date("2024-02-20"),
-      purchasePrice: 4500000,
-      vendor: "Logitech VN",
-      warrantyMonths: 12,
-    },
-    {
-      code: "ASSET-004",
-      name: "Herman Miller Aeron",
-      categoryId: categories[3].id,
-      status: AssetStatus.PURCHASED,
-      purchaseDate: new Date("2024-06-01"),
-      purchasePrice: 45000000,
-      vendor: "Herman Miller APAC",
-      warrantyMonths: 120,
-    },
-    {
-      code: "ASSET-005",
-      name: "ThinkPad X1 Carbon Gen 11",
-      categoryId: categories[0].id,
-      status: AssetStatus.MAINTENANCE,
-      employeeId: employees[3].id,
-      assignedTo: "Pham Van D",
-      purchaseDate: new Date("2023-11-10"),
-      purchasePrice: 28900000,
-      vendor: "Lenovo VN",
-      warrantyMonths: 36,
-    },
-  ];
-
-  for (const assetData of assets) {
-    const asset = await prisma.asset.upsert({
-      where: { code: assetData.code },
-      update: {},
-      create: assetData,
+  // Pass 1: root categories (no parent)
+  const rootRows = rows.filter((r) => !r.parent);
+  for (const row of rootRows) {
+    const cat = await prisma.category.upsert({
+      where: { name: row.name },
+      update: { description: row.description },
+      create: { name: row.name, description: row.description },
     });
-    console.log(`✅ Created asset: ${asset.code} — ${asset.name}`);
+    categoryMap[cat.name] = cat.id;
+  }
 
-    // Create lifecycle event
+  // Pass 2: child categories (has parent)
+  const childRows = rows.filter((r) => r.parent);
+  for (const row of childRows) {
+    const parentId = categoryMap[row.parent];
+    if (!parentId) {
+      console.warn(`⚠️  Parent category "${row.parent}" not found for "${row.name}" — skipping`);
+      continue;
+    }
+    const cat = await prisma.category.upsert({
+      where: { name: row.name },
+      update: { description: row.description, parentId },
+      create: { name: row.name, description: row.description, parentId },
+    });
+    categoryMap[cat.name] = cat.id;
+  }
+
+  console.log(`✅ Upserted ${rows.length} categories from CSV`);
+  return categoryMap;
+}
+
+async function seedEmployees(): Promise<void> {
+  const rows = readCSV("employees.csv");
+  // Reset for clean re-seed
+  await prisma.employee.deleteMany();
+  await prisma.employee.createMany({
+    data: rows
+      .filter((r) => r.name)
+      .map((r) => ({
+        name: r.name,
+        email: r.email,
+        department: r.department,
+        position: r.position,
+      })),
+  });
+  console.log(`✅ Seeded ${rows.length} employees from CSV`);
+}
+
+async function seedAssets(categoryMap: Record<string, string>): Promise<string[]> {
+  const rows = readCSV("products.csv");
+  const createdCodes: string[] = [];
+
+  for (const row of rows) {
+    if (!row.code || !row.name) continue;
+    const categoryId = categoryMap[row.category];
+    if (!categoryId) {
+      console.warn(`⚠️  Category "${row.category}" not found for asset "${row.code}" — skipping`);
+      continue;
+    }
+
+    const asset = await prisma.asset.upsert({
+      where: { code: row.code },
+      update: {
+        name: row.name,
+        description: row.description,
+        categoryId,
+        status: AssetStatus.AVAILABLE,
+        employeeId: null,
+        assignedTo: null,
+        assignedDate: null,
+      },
+      create: {
+        code: row.code,
+        name: row.name,
+        description: row.description,
+        categoryId,
+        status: AssetStatus.AVAILABLE,
+      },
+    });
+    createdCodes.push(asset.code);
+
     await prisma.assetEvent.create({
       data: {
         assetId: asset.id,
-        eventType: "CREATED",
-        description: "Initial asset creation",
+        eventType: AssetEventType.CREATED,
+        description: "Initial asset from product catalog seed",
         performedBy: "seed",
       },
     });
   }
 
-  // Create a maintenance record
-  const laptopAsset = await prisma.asset.findUnique({ where: { code: "ASSET-005" } });
-  if (laptopAsset) {
-    await prisma.maintenance.create({
+  console.log(`✅ Upserted ${createdCodes.length} assets from CSV`);
+
+  // Randomly assign 10 assets to 10 distinct employees
+  const allEmployees = await prisma.employee.findMany({ where: { isDeleted: false } });
+  const allAssets = await prisma.asset.findMany({ where: { isDeleted: false, status: AssetStatus.AVAILABLE } });
+
+  const assignCount = Math.min(10, allEmployees.length, allAssets.length);
+  const shuffledAssets = allAssets.sort(() => Math.random() - 0.5).slice(0, assignCount);
+  const shuffledEmployees = allEmployees.sort(() => Math.random() - 0.5).slice(0, assignCount);
+
+  for (let i = 0; i < assignCount; i++) {
+    const asset = shuffledAssets[i];
+    const employee = shuffledEmployees[i];
+    const assignedDate = new Date();
+    assignedDate.setMonth(assignedDate.getMonth() - Math.floor(Math.random() * 6)); // up to 6 months ago
+
+    await prisma.asset.update({
+      where: { id: asset.id },
       data: {
-        assetId: laptopAsset.id,
-        type: MaintenanceType.CORRECTIVE,
-        description: "Keyboard replacement — some keys not working",
-        startDate: new Date("2024-12-01"),
-        status: MaintenanceStatus.IN_PROGRESS,
-        performedBy: "IT Support",
+        employeeId: employee.id,
+        assignedTo: employee.name,
+        assignedDate,
+        status: AssetStatus.ASSIGNED,
       },
     });
-    console.log("✅ Created maintenance record for ASSET-005");
-  }
 
-  // Seed completed maintenance records for last 6 months (for cost chart)
-  const allAssets = await prisma.asset.findMany({ where: { isDeleted: false }, select: { id: true } });
-  const maintenanceSeeds = [
+    await prisma.assetEvent.create({
+      data: {
+        assetId: asset.id,
+        eventType: AssetEventType.ASSIGNED,
+        fromStatus: AssetStatus.AVAILABLE,
+        toStatus: AssetStatus.ASSIGNED,
+        description: `Assigned to ${employee.name} (${employee.department ?? "N/A"}) via seed`,
+        performedBy: "seed",
+      },
+    });
+
+    console.log(`  🔗 ${asset.code} → ${employee.name} (${employee.department ?? "N/A"})`);
+  }
+  console.log(`✅ Randomly assigned ${assignCount} assets to employees`);
+
+  return createdCodes;
+}
+
+async function seedMaintenanceHistory(): Promise<void> {
+  const allAssets = await prisma.asset.findMany({
+    where: { isDeleted: false },
+    select: { id: true },
+  });
+  if (allAssets.length === 0) return;
+
+  const seeds = [
     { monthsAgo: 5, cost: 2500000, desc: "Battery replacement", type: MaintenanceType.CORRECTIVE },
     { monthsAgo: 5, cost: 800000, desc: "Screen cleaning & calibration", type: MaintenanceType.PREVENTIVE },
     { monthsAgo: 4, cost: 1200000, desc: "SSD upgrade", type: MaintenanceType.UPGRADE },
@@ -210,7 +250,7 @@ async function main() {
   ];
 
   const now = new Date();
-  for (const m of maintenanceSeeds) {
+  for (const m of seeds) {
     const endDate = new Date(now.getFullYear(), now.getMonth() - m.monthsAgo, 10 + Math.floor(Math.random() * 15));
     const startDate = new Date(endDate);
     startDate.setDate(startDate.getDate() - (3 + Math.floor(Math.random() * 7)));
@@ -229,10 +269,21 @@ async function main() {
       },
     });
   }
-  console.log(`✅ Created ${maintenanceSeeds.length} maintenance cost records (last 6 months)`);
+  console.log(`✅ Seeded ${seeds.length} historical maintenance records`);
+}
+
+// ─── Main ────────────────────────────────────────────────────────────────────
+
+async function main() {
+  console.log("🌱 Seeding database from CSV...\n");
+
+  await seedAdmin();
+  const categoryMap = await seedCategories();
+  await seedEmployees();
+  await seedAssets(categoryMap);
+  await seedMaintenanceHistory();
 
   console.log("\n🎉 Seeding complete!");
-  console.log("   Login: admin@zoo.local / admin123");
 }
 
 main()

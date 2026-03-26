@@ -1,0 +1,11 @@
+name,description,parent,child
+IT Equipment,Thiết bị công nghệ thông tin,,"Monitor,Laptop,PC,PC Components,Storage"
+Office Furniture,Nội thất văn phòng,,"Office Desk,Office Chair"
+Monitor,Màn hình máy tính văn phòng và đồ họa,IT Equipment,
+Laptop,Máy tính xách tay mỏng nhẹ đến hiệu năng cao,IT Equipment,
+PC,Máy tính để bàn gaming và văn phòng,IT Equipment,
+PC Components,Linh kiện máy tính - CPU GPU RAM Mainboard,IT Equipment,
+Storage,Thiết bị lưu trữ SSD HDD USB NAS,IT Equipment,
+Office Desk,Bàn làm việc bàn họp và bàn lễ tân,Office Furniture,
+Office Chair,Ghế công thái học ghế họp và ghế chờ,Office Furniture,
+Keyboard & Mouse,Bàn phím và chuột cơ không dây gaming,,

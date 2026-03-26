@@ -154,9 +154,8 @@ function AssetsContent() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem>{t("common.allStatus")}</SelectItem>
-            <SelectItem value="PURCHASED">{t("status.PURCHASED")}</SelectItem>
+            <SelectItem value="AVAILABLE">{t("status.AVAILABLE")}</SelectItem>
             <SelectItem value="ASSIGNED">{t("status.ASSIGNED")}</SelectItem>
-            <SelectItem value="IN_USE">{t("status.IN_USE")}</SelectItem>
             <SelectItem value="MAINTENANCE">{t("status.MAINTENANCE")}</SelectItem>
             <SelectItem value="RETIRED">{t("status.RETIRED")}</SelectItem>
             <SelectItem value="DISPOSED">{t("status.DISPOSED")}</SelectItem>
