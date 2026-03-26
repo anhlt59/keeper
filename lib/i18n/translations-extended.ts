@@ -166,6 +166,12 @@ export const translationsExtended: Record<string, Record<Lang, string>> = {
   "maintForm.description": { en: "Record maintenance for {name}.", vi: "Ghi nhận bảo trì cho {name}." },
   "maintForm.descPlaceholder": { en: "Describe the maintenance work...", vi: "Mô tả công việc bảo trì..." },
   "maintForm.performedByPlaceholder": { en: "e.g. IT Support", vi: "VD: Bộ phận IT" },
+  "maintForm.completeTitle": { en: "Complete Maintenance", vi: "Hoàn thành bảo trì" },
+  "maintForm.completeDescription": { en: "Mark maintenance as completed for {name}. The asset will return to its previous status.", vi: "Đánh dấu bảo trì hoàn thành cho {name}. Tài sản sẽ quay lại trạng thái trước đó." },
+  "maintForm.complete": { en: "Complete", vi: "Hoàn thành" },
+  "maintForm.completeSuccess": { en: "Maintenance completed successfully", vi: "Bảo trì đã hoàn thành" },
+  "maintForm.completeFailed": { en: "Failed to complete maintenance", vi: "Hoàn thành bảo trì thất bại" },
+  "maintForm.notesPlaceholder": { en: "Optional notes about the maintenance work...", vi: "Ghi chú tùy chọn về công việc bảo trì..." },
 
   // ── QR Scanner ──
   "scan.assetNotFound": { en: "Asset does not exist", vi: "Tài sản không tồn tại" },

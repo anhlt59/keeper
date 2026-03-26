@@ -36,8 +36,9 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AssetStatus } from "@prisma/client";
+import { AssetEventType, AssetStatus } from "@prisma/client";
 import { getAvailableTransitions } from "@/lib/fsm";
+import { MaintenanceCompleteDialog } from "@/components/assets/maintenance-complete-dialog";
 
 interface AssetDetail {
   id: string;
@@ -320,6 +321,31 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
               );
             }
             if (tr.to === AssetStatus.ASSIGNED) {
+              // Maintenance complete → revert to previous status (no employee selection needed)
+              if (tr.eventType === AssetEventType.MAINTENANCE_COMPLETED) {
+                const activeMaintenance = maintenance.find((r) => r.status !== "COMPLETED" && r.status !== "CANCELLED");
+                if (activeMaintenance) {
+                  return (
+                    <MaintenanceCompleteDialog
+                      key={tr.to}
+                      maintenanceId={activeMaintenance.id}
+                      assetName={asset.name}
+                      trigger={
+                        <Button variant="outline" size="sm" disabled={transitioning}>
+                          <ArrowRightIcon className="h-4 w-4" />
+                          {t(tr.label)}
+                        </Button>
+                      }
+                      onSuccess={() => {
+                        queryClient.invalidateQueries({ queryKey: ["asset", id] });
+                        queryClient.invalidateQueries({ queryKey: ["asset-maintenance", id] });
+                        refetchEvents();
+                      }}
+                    />
+                  );
+                }
+              }
+              // Normal assign to employee
               return (
                 <AssignDialog
                   key={tr.to}

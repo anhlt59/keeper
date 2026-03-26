@@ -50,6 +50,7 @@ export const translations: Record<string, Record<Lang, string>> = {
   "common.actions": { en: "Actions", vi: "Thao tác" },
   "common.name": { en: "Name", vi: "Tên" },
   "common.description": { en: "Description", vi: "Mô tả" },
+  "common.notes": { en: "Notes", vi: "Ghi chú" },
   "common.status": { en: "Status", vi: "Trạng thái" },
   "common.type": { en: "Type", vi: "Loại" },
   "common.date": { en: "Date", vi: "Ngày" },

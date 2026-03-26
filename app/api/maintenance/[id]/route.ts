@@ -28,6 +28,17 @@ export async function PUT(req: NextRequest, { params }: Params) {
     return NextResponse.json({ error: "Maintenance already completed" }, { status: 409 });
   }
 
+  // Find the most recent MAINTENANCE_CREATED event to restore the previous status
+  const lastMaintenanceEvent = await prisma.assetEvent.findFirst({
+    where: {
+      assetId: record.assetId,
+      eventType: AssetEventType.MAINTENANCE_CREATED,
+    },
+    orderBy: { createdAt: "desc" },
+  });
+  // Default to ASSIGNED if no previous event found (safe fallback for existing FSM)
+  const previousStatus = lastMaintenanceEvent?.fromStatus ?? AssetStatus.ASSIGNED;
+
   const [updated] = await prisma.$transaction([
     prisma.maintenance.update({
       where: { id },
@@ -40,14 +51,14 @@ export async function PUT(req: NextRequest, { params }: Params) {
     }),
     prisma.asset.update({
       where: { id: record.assetId },
-      data: { status: AssetStatus.ASSIGNED },
+      data: { status: previousStatus },
     }),
     prisma.assetEvent.create({
       data: {
         assetId: record.assetId,
         eventType: AssetEventType.MAINTENANCE_COMPLETED,
         fromStatus: AssetStatus.MAINTENANCE,
-        toStatus: AssetStatus.ASSIGNED,
+        toStatus: previousStatus,
         description: `Maintenance completed${parsed.data.notes ? `: ${parsed.data.notes}` : ""}`,
         performedBy: session.user.id,
       },
