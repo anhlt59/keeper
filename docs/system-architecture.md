@@ -66,9 +66,8 @@ audit_logs            ← via logAssetEvent() in lib/audit-logger.ts
 
 | State | Description |
 |---|---|
-| `PURCHASED` | Newly purchased, not yet assigned |
+| `AVAILABLE` | In stock, ready to assign |
 | `ASSIGNED` | Assigned to an employee or department |
-| `IN_USE` | Actively in use (after assignment) |
 | `MAINTENANCE` | Under maintenance/repair |
 | `RETIRED` | No longer in use, pending disposal |
 | `DISPOSED` | Fully disposed (terminal) |
@@ -76,33 +75,29 @@ audit_logs            ← via logAssetEvent() in lib/audit-logger.ts
 ### Transitions
 
 ```
-PURCHASED ──assign──▶ ASSIGNED ──[mark in use]──▶ IN_USE
-                                               │
-        ◀──recall──┐                    ▼
-                   │              IN_USE ──[send to maintenance]──▶ MAINTENANCE
-  MAINTENANCE ◀───┘                    │
-        │                              │
-        └───────────[maintenance complete]──────────────┘
-
-IN_USE ──[retire]──▶ RETIRED ──[dispose]──▶ DISPOSED
-                                            │
-  DISPOSED ◀──[restore]─────────────────────┘
+AVAILABLE ──assign──▶ ASSIGNED
+                           │
+        ◀──recall──┐       ├──[maintenance]──▶ MAINTENANCE
+                   │       │                        │
+                   │       ◀──[maintenance complete]┘
+                   │
+                   └──[retire]──▶ RETIRED ──[dispose]──▶ DISPOSED
+                                                          ▲
+                                        DISPOSED ◀──[restore]──┘
 ```
 
 ### Transition Rules
 
 | From | To | Event Type | Label |
 |---|---|---|---|
-| PURCHASED | ASSIGNED | `ASSIGNED` | Assign |
-| ASSIGNED | IN_USE | `STATUS_CHANGE` | Mark in use |
-| ASSIGNED | RETIRED | `STATUS_CHANGE` | Retire (unassigned) |
-| PURCHASED | RETIRED | `STATUS_CHANGE` | Retire (unused) |
-| IN_USE | MAINTENANCE | `MAINTENANCE_CREATED` | Send to maintenance |
-| MAINTENANCE | IN_USE | `MAINTENANCE_COMPLETED` | Maintenance complete |
-| IN_USE | RETIRED | `STATUS_CHANGE` | Retire |
+| AVAILABLE | ASSIGNED | `ASSIGNED` | Assign |
+| ASSIGNED | MAINTENANCE | `MAINTENANCE_CREATED` | Send to maintenance |
+| MAINTENANCE | ASSIGNED | `MAINTENANCE_COMPLETED` | Maintenance complete |
+| ASSIGNED | RETIRED | `STATUS_CHANGE` | Retire |
+| AVAILABLE | RETIRED | `STATUS_CHANGE` | Retire (unused) |
 | RETIRED | DISPOSED | `DISPOSED` | Dispose |
 | DISPOSED | RETIRED | `RESTORED` | Restore |
-| ASSIGNED | PURCHASED | `RECALLED` | Recall |
+| ASSIGNED | AVAILABLE | `RECALLED` | Recall |
 
 **Implementation:** `lib/fsm.ts` — custom state machine. Uses `AssetStatus` and `AssetEventType` enums from Prisma. `validateTransition()` throws plain `Error` if invalid. Service layer calls FSM validate then Prisma write.
 

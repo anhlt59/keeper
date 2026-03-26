@@ -21,9 +21,8 @@ export default async function AssetLookupPage({ params }: Params) {
   if (!asset) notFound();
 
   const STATUS_LABELS: Record<string, string> = {
-    PURCHASED: "Purchased",
+    AVAILABLE: "Available",
     ASSIGNED: "Assigned",
-    IN_USE: "In Use",
     MAINTENANCE: "In Maintenance",
     RETIRED: "Retired",
     DISPOSED: "Disposed",

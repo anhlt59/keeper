@@ -21,16 +21,19 @@ export async function POST(req: NextRequest, { params }: Params) {
   const asset = await prisma.asset.findFirst({ where: { id, isDeleted: false } });
   if (!asset) return NextResponse.json({ error: "Asset not found" }, { status: 404 });
 
-  // Only allow assignment from PURCHASED or IN_USE (reassign)
-  const validFromStatuses: AssetStatus[] = [AssetStatus.PURCHASED, AssetStatus.IN_USE];
+  // Only allow assignment from AVAILABLE or ASSIGNED (reassign)
+  const validFromStatuses: AssetStatus[] = [AssetStatus.AVAILABLE, AssetStatus.ASSIGNED];
   if (!validFromStatuses.includes(asset.status)) {
     return NextResponse.json(
-      { error: `Cannot assign asset in '${asset.status}' status. Must be PURCHASED or IN_USE.` },
+      { error: `Cannot assign asset in '${asset.status}' status. Must be AVAILABLE or ASSIGNED.` },
       { status: 400 }
     );
   }
 
-  validateTransition(asset.status, AssetStatus.ASSIGNED);
+  // Skip FSM validation for same-status reassign
+  if (asset.status !== AssetStatus.ASSIGNED) {
+    validateTransition(asset.status, AssetStatus.ASSIGNED);
+  }
 
   // Look up employee to get name
   const employee = await prisma.employee.findFirst({

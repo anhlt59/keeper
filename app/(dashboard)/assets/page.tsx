@@ -152,9 +152,8 @@ function AssetsContent() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem>All Status</SelectItem>
-            <SelectItem value="PURCHASED">Purchased</SelectItem>
+            <SelectItem value="AVAILABLE">Available</SelectItem>
             <SelectItem value="ASSIGNED">Assigned</SelectItem>
-            <SelectItem value="IN_USE">In Use</SelectItem>
             <SelectItem value="MAINTENANCE">Maintenance</SelectItem>
             <SelectItem value="RETIRED">Retired</SelectItem>
             <SelectItem value="DISPOSED">Disposed</SelectItem>

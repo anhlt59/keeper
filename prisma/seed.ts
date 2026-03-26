@@ -157,14 +157,17 @@ async function seedAssets(categoryMap: Record<string, string>): Promise<string[]
         name: row.name,
         description: row.description,
         categoryId,
-        status: AssetStatus.PURCHASED,
+        status: AssetStatus.AVAILABLE,
+        employeeId: null,
+        assignedTo: null,
+        assignedDate: null,
       },
       create: {
         code: row.code,
         name: row.name,
         description: row.description,
         categoryId,
-        status: AssetStatus.PURCHASED,
+        status: AssetStatus.AVAILABLE,
       },
     });
     createdCodes.push(asset.code);
@@ -180,6 +183,46 @@ async function seedAssets(categoryMap: Record<string, string>): Promise<string[]
   }
 
   console.log(`✅ Upserted ${createdCodes.length} assets from CSV`);
+
+  // Randomly assign 10 assets to 10 distinct employees
+  const allEmployees = await prisma.employee.findMany({ where: { isDeleted: false } });
+  const allAssets = await prisma.asset.findMany({ where: { isDeleted: false, status: AssetStatus.AVAILABLE } });
+
+  const assignCount = Math.min(10, allEmployees.length, allAssets.length);
+  const shuffledAssets = allAssets.sort(() => Math.random() - 0.5).slice(0, assignCount);
+  const shuffledEmployees = allEmployees.sort(() => Math.random() - 0.5).slice(0, assignCount);
+
+  for (let i = 0; i < assignCount; i++) {
+    const asset = shuffledAssets[i];
+    const employee = shuffledEmployees[i];
+    const assignedDate = new Date();
+    assignedDate.setMonth(assignedDate.getMonth() - Math.floor(Math.random() * 6)); // up to 6 months ago
+
+    await prisma.asset.update({
+      where: { id: asset.id },
+      data: {
+        employeeId: employee.id,
+        assignedTo: employee.name,
+        assignedDate,
+        status: AssetStatus.ASSIGNED,
+      },
+    });
+
+    await prisma.assetEvent.create({
+      data: {
+        assetId: asset.id,
+        eventType: AssetEventType.ASSIGNED,
+        fromStatus: AssetStatus.AVAILABLE,
+        toStatus: AssetStatus.ASSIGNED,
+        description: `Assigned to ${employee.name} (${employee.department ?? "N/A"}) via seed`,
+        performedBy: "seed",
+      },
+    });
+
+    console.log(`  🔗 ${asset.code} → ${employee.name} (${employee.department ?? "N/A"})`);
+  }
+  console.log(`✅ Randomly assigned ${assignCount} assets to employees`);
+
   return createdCodes;
 }
 

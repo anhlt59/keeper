@@ -21,21 +21,21 @@ export async function POST(req: NextRequest, { params }: Params) {
   const asset = await prisma.asset.findFirst({ where: { id, isDeleted: false } });
   if (!asset) return NextResponse.json({ error: "Asset not found" }, { status: 404 });
 
-  const recallableStatuses: AssetStatus[] = [AssetStatus.ASSIGNED, AssetStatus.IN_USE];
+  const recallableStatuses: AssetStatus[] = [AssetStatus.ASSIGNED];
   if (!recallableStatuses.includes(asset.status)) {
     return NextResponse.json(
-      { error: `Cannot recall asset in '${asset.status}' status. Must be ASSIGNED or IN_USE.` },
+      { error: `Cannot recall asset in '${asset.status}' status. Must be ASSIGNED.` },
       { status: 400 }
     );
   }
 
-  validateTransition(asset.status, AssetStatus.PURCHASED);
+  validateTransition(asset.status, AssetStatus.AVAILABLE);
 
   const [updated] = await prisma.$transaction([
     prisma.asset.update({
       where: { id },
       data: {
-        status: AssetStatus.PURCHASED,
+        status: AssetStatus.AVAILABLE,
         employeeId: null,
         assignedTo: null,
         assignedDate: null,
@@ -47,7 +47,7 @@ export async function POST(req: NextRequest, { params }: Params) {
         assetId: id,
         eventType: AssetEventType.RECALLED,
         fromStatus: asset.status,
-        toStatus: AssetStatus.PURCHASED,
+        toStatus: AssetStatus.AVAILABLE,
         description: parsed.data.description ?? "Asset recalled (unassigned)",
         performedBy: session.user.id,
       },

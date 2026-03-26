@@ -368,7 +368,7 @@ Defines custom fields scoped to a category.
 
 | Enum                   | Values                                                                                                                                                  | Used By                                      |
 | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
-| **AssetStatus**        | `PURCHASED` · `ASSIGNED` · `IN_USE` · `MAINTENANCE` · `RETIRED` · `DISPOSED`                                                                            | Asset.status, AssetEvent.fromStatus/toStatus |
+| **AssetStatus**        | `AVAILABLE` · `ASSIGNED` · `MAINTENANCE` · `RETIRED` · `DISPOSED`                                                                            | Asset.status, AssetEvent.fromStatus/toStatus |
 | **AssetEventType**     | `CREATED` · `STATUS_CHANGE` · `ASSIGNED` · `RECALLED` · `MAINTENANCE_CREATED` · `MAINTENANCE_COMPLETED` · `ATTRIBUTE_UPDATED` · `DISPOSED` · `RESTORED` | AssetEvent.eventType                         |
 | **MaintenanceType**    | `PREVENTIVE` · `CORRECTIVE` · `UPGRADE`                                                                                                                 | Maintenance.type                             |
 | **MaintenanceStatus**  | `SCHEDULED` · `IN_PROGRESS` · `COMPLETED` · `CANCELLED`                                                                                                 | Maintenance.status                           |
@@ -412,15 +412,13 @@ API route → setAuditContext({ userId, ipAddress, userAgent })
 `lib/fsm.ts` implements a custom finite state machine for `Asset.status`. No external library (xstate not used).
 
 ```
-PURCHASED ──assign──▶ ASSIGNED ──mark in use──▶ IN_USE
-                                             │
-                            ◀──maintenance───┼──send to maintenance──▶ MAINTENANCE
-                                              │
-                                              └───maintenance complete───┘
+AVAILABLE ──assign──▶ ASSIGNED ──maintenance──▶ MAINTENANCE
+                                             ◀──complete───┘
 
-IN_USE ──retire──▶ RETIRED ──dispose──▶ DISPOSED
-                                            │
-                              ◀──restore────┘
+ASSIGNED ──retire──▶ RETIRED ──dispose──▶ DISPOSED
+                                        ◀──restore───┘
+
+ASSIGNED ──recall──▶ AVAILABLE
 
 ASSIGNED ──recall──▶ PURCHASED
 ```

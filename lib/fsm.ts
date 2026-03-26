@@ -1,7 +1,8 @@
 import { AssetStatus, AssetEventType } from "@prisma/client";
 
 // FSM state machine for asset lifecycle
-// States: PURCHASED → ASSIGNED → IN_USE ↔ MAINTENANCE → RETIRED → DISPOSED
+// States: AVAILABLE → ASSIGNED ↔ MAINTENANCE → RETIRED → DISPOSED
+// RECALLED: ASSIGNED → AVAILABLE  RESTORED: DISPOSED → RETIRED
 
 export type FSMTransition = {
   from: AssetStatus;
@@ -12,27 +13,22 @@ export type FSMTransition = {
 
 // Allowed transitions with event types
 export const ASSET_TRANSITIONS: FSMTransition[] = [
-  // Purchase → assign
-  { from: AssetStatus.PURCHASED, to: AssetStatus.ASSIGNED, eventType: AssetEventType.ASSIGNED, label: "Assign to employee/department" },
-  // Assign → in use
-  { from: AssetStatus.ASSIGNED, to: AssetStatus.IN_USE, eventType: AssetEventType.STATUS_CHANGE, label: "Mark as in use" },
-  // In use → maintenance
-  { from: AssetStatus.IN_USE, to: AssetStatus.MAINTENANCE, eventType: AssetEventType.MAINTENANCE_CREATED, label: "Send to maintenance" },
-  // Maintenance → in use
-  { from: AssetStatus.MAINTENANCE, to: AssetStatus.IN_USE, eventType: AssetEventType.MAINTENANCE_COMPLETED, label: "Maintenance complete" },
-  // In use → retired
-  { from: AssetStatus.IN_USE, to: AssetStatus.RETIRED, eventType: AssetEventType.STATUS_CHANGE, label: "Retire asset" },
+  // Available → assign
+  { from: AssetStatus.AVAILABLE, to: AssetStatus.ASSIGNED, eventType: AssetEventType.ASSIGNED, label: "Assign to employee/department" },
+  // Assigned → maintenance
+  { from: AssetStatus.ASSIGNED, to: AssetStatus.MAINTENANCE, eventType: AssetEventType.MAINTENANCE_CREATED, label: "Send to maintenance" },
+  // Maintenance → assigned (back from maintenance)
+  { from: AssetStatus.MAINTENANCE, to: AssetStatus.ASSIGNED, eventType: AssetEventType.MAINTENANCE_COMPLETED, label: "Maintenance complete" },
   // Assigned → retired
   { from: AssetStatus.ASSIGNED, to: AssetStatus.RETIRED, eventType: AssetEventType.STATUS_CHANGE, label: "Retire asset" },
-  // Purchased → retired
-  { from: AssetStatus.PURCHASED, to: AssetStatus.RETIRED, eventType: AssetEventType.STATUS_CHANGE, label: "Retire asset" },
+  // Available → retired
+  { from: AssetStatus.AVAILABLE, to: AssetStatus.RETIRED, eventType: AssetEventType.STATUS_CHANGE, label: "Retire asset" },
   // Retired → disposed
   { from: AssetStatus.RETIRED, to: AssetStatus.DISPOSED, eventType: AssetEventType.DISPOSED, label: "Dispose asset" },
   // Disposed → retired (restore)
   { from: AssetStatus.DISPOSED, to: AssetStatus.RETIRED, eventType: AssetEventType.RESTORED, label: "Restore from disposal" },
-  // Recall: ASSIGNED/IN_USE → PURCHASED
-  { from: AssetStatus.ASSIGNED, to: AssetStatus.PURCHASED, eventType: AssetEventType.RECALLED, label: "Recall (unassign)" },
-  { from: AssetStatus.IN_USE, to: AssetStatus.PURCHASED, eventType: AssetEventType.RECALLED, label: "Recall (unassign)" },
+  // Recall: ASSIGNED → AVAILABLE
+  { from: AssetStatus.ASSIGNED, to: AssetStatus.AVAILABLE, eventType: AssetEventType.RECALLED, label: "Recall (unassign)" },
 ];
 
 export function canTransition(
@@ -74,8 +70,8 @@ export const STATUS_CONFIG: Record<
   string,
   { label: string; color: string; bgClass: string; textClass: string }
 > = {
-  PURCHASED: {
-    label: "Purchased",
+  AVAILABLE: {
+    label: "Available",
     color: "#3b82f6",
     bgClass: "bg-blue-50 dark:bg-blue-950",
     textClass: "text-blue-700 dark:text-blue-300",
@@ -85,12 +81,6 @@ export const STATUS_CONFIG: Record<
     color: "#8b5cf6",
     bgClass: "bg-violet-50 dark:bg-violet-950",
     textClass: "text-violet-700 dark:text-violet-300",
-  },
-  IN_USE: {
-    label: "In Use",
-    color: "#22c55e",
-    bgClass: "bg-green-50 dark:bg-green-950",
-    textClass: "text-green-700 dark:text-green-300",
   },
   MAINTENANCE: {
     label: "Maintenance",
