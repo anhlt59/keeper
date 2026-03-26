@@ -26,6 +26,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useLanguage } from "@/context/language-context";
 
 interface AuditLog {
   id: string;
@@ -69,6 +70,7 @@ function formatDateTime(d: string): string {
 }
 
 function AuditLogsContent() {
+  const { t } = useLanguage();
   const router = useRouter();
   const searchParams = useSearchParams();
   const entityType = searchParams.get("entityType") ?? "";
@@ -110,10 +112,10 @@ function AuditLogsContent() {
       <div className="flex flex-wrap gap-2">
         <Select value={entityType} onValueChange={(v) => updateParam("entityType", v ?? null)}>
           <SelectTrigger className="w-36">
-            <SelectValue placeholder="Entity Type" />
+            <SelectValue placeholder={t("auditLogs.entityType")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem>All Entities</SelectItem>
+            <SelectItem>{t("auditLogs.allEntities")}</SelectItem>
             {ENTITY_OPTIONS.map((e) => (
               <SelectItem key={e} value={e}>{e}</SelectItem>
             ))}
@@ -122,10 +124,10 @@ function AuditLogsContent() {
 
         <Select value={action} onValueChange={(v) => updateParam("action", v ?? null)}>
           <SelectTrigger className="w-44">
-            <SelectValue placeholder="Action Type" />
+            <SelectValue placeholder={t("auditLogs.actionType")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem>All Actions</SelectItem>
+            <SelectItem>{t("auditLogs.allActions")}</SelectItem>
             {ACTION_OPTIONS.map((a) => (
               <SelectItem key={a} value={a}>{a.replace(/_/g, " ")}</SelectItem>
             ))}
@@ -138,11 +140,11 @@ function AuditLogsContent() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Timestamp</TableHead>
-              <TableHead>User</TableHead>
-              <TableHead>Action</TableHead>
-              <TableHead>Entity</TableHead>
-              <TableHead>Description</TableHead>
+              <TableHead>{t("auditLogs.timestamp")}</TableHead>
+              <TableHead>{t("auditLogs.user")}</TableHead>
+              <TableHead>{t("auditLogs.action")}</TableHead>
+              <TableHead>{t("auditLogs.entity")}</TableHead>
+              <TableHead>{t("common.description")}</TableHead>
             </TableRow>
           </TableHeader>
           {isLoading ? (
@@ -160,8 +162,8 @@ function AuditLogsContent() {
               <TableRow>
                 <TableCell colSpan={5} className="text-center py-12 text-muted-foreground">
                   <ScrollTextIcon className="h-10 w-10 mx-auto mb-3 opacity-30" />
-                  <p className="font-medium">No audit logs found</p>
-                  <p className="text-sm mt-1">Try adjusting your filters.</p>
+                  <p className="font-medium">{t("auditLogs.noLogs")}</p>
+                  <p className="text-sm mt-1">{t("auditLogs.noLogsHint")}</p>
                 </TableCell>
               </TableRow>
             </TableBody>
@@ -175,7 +177,7 @@ function AuditLogsContent() {
                       {formatDateTime(log.createdAt)}
                     </TableCell>
                     <TableCell className="text-sm">
-                      {log.user?.name ?? "System"}
+                      {log.user?.name ?? t("auditLogs.system")}
                       {log.user?.email && (
                         <div className="text-xs text-muted-foreground">{log.user.email}</div>
                       )}
@@ -206,7 +208,10 @@ function AuditLogsContent() {
       {data && data.totalPages > 1 && (
         <div className="flex items-center justify-between">
           <p className="text-sm text-muted-foreground">
-            Page {data.page} of {data.totalPages} — {data.total} results
+            {t("pagination.pageOf")
+              .replace("{page}", String(data.page))
+              .replace("{total}", String(data.totalPages))
+              .replace("{count}", String(data.total))}
           </p>
           <div className="flex gap-2">
             <Button variant="outline" size="icon-sm" onClick={() => goPage(page - 1)} disabled={page <= 1}>
@@ -248,11 +253,12 @@ function TableSkeleton() {
 }
 
 export default function AuditLogsPage() {
+  const { t } = useLanguage();
   return (
     <div className="space-y-4">
       <div>
-        <h2 className="text-2xl font-bold tracking-tight">Audit Logs</h2>
-        <p className="text-muted-foreground text-sm">System-wide activity history</p>
+        <h2 className="text-2xl font-bold tracking-tight">{t("nav.auditLogs")}</h2>
+        <p className="text-muted-foreground text-sm">{t("auditLogs.subtitle")}</p>
       </div>
       <Suspense fallback={<TableSkeleton />}>
         <AuditLogsContent />

@@ -19,6 +19,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { DefinitionForm } from "@/components/attributes/definition-form";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { AttributeFieldType } from "@prisma/client";
+import { useLanguage } from "@/context/language-context";
 
 const FIELD_TYPE_COLORS: Record<AttributeFieldType, string> = {
   TEXT: "bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300",
@@ -49,6 +50,7 @@ interface Category {
 }
 
 export default function AttributesPage() {
+  const { t } = useLanguage();
   const queryClient = useQueryClient();
   const [editDef, setEditDef] = useState<Definition | null>(null);
   const [showForm, setShowForm] = useState(false);
@@ -78,20 +80,20 @@ export default function AttributesPage() {
       if (!res.ok) throw new Error("Delete failed");
     },
     onSuccess: () => {
-      toast.success("Definition deleted");
+      toast.success(t("attributes.deleted"));
       queryClient.invalidateQueries({ queryKey: ["attribute-definitions"] });
       setDeleteTarget(null);
     },
-    onError: () => toast.error("Failed to delete definition"),
+    onError: () => toast.error(t("attributes.deleteFailed")),
   });
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">Attribute Definitions</h2>
+          <h2 className="text-2xl font-bold tracking-tight">{t("attributes.title")}</h2>
           <p className="text-muted-foreground text-sm mt-1">
-            Define custom fields per asset category.
+            {t("attributes.subtitle")}
           </p>
         </div>
         <Button
@@ -99,7 +101,7 @@ export default function AttributesPage() {
           size="sm"
         >
           <PlusIcon className="h-4 w-4" />
-          New Attribute
+          {t("attributes.newAttribute")}
         </Button>
       </div>
 
@@ -107,12 +109,12 @@ export default function AttributesPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Type</TableHead>
-              <TableHead>Category</TableHead>
-              <TableHead>Required</TableHead>
-              <TableHead>Description</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead>{t("common.name")}</TableHead>
+              <TableHead>{t("attributes.fieldType")}</TableHead>
+              <TableHead>{t("common.category")}</TableHead>
+              <TableHead>{t("common.required")}</TableHead>
+              <TableHead>{t("common.description")}</TableHead>
+              <TableHead className="text-right">{t("common.actions")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -131,13 +133,13 @@ export default function AttributesPage() {
                 <TableRow>
                   <TableCell colSpan={COL_COUNT} className="text-center py-12 text-muted-foreground">
                     <Settings2Icon className="h-10 w-10 mx-auto mb-3 opacity-30" />
-                    <p className="font-medium">No attribute definitions yet</p>
+                    <p className="font-medium">{t("attributes.noAttributes")}</p>
                     <p className="text-sm mt-1">
-                      Create custom fields like RAM, Storage, or Color per category.
+                      {t("attributes.noAttributesHint")}
                     </p>
                     <Button className="mt-4" size="sm" onClick={() => { setEditDef(null); setShowForm(true); }}>
                       <PlusIcon className="h-4 w-4" />
-                      Create First Attribute
+                      {t("attributes.createFirst")}
                     </Button>
                   </TableCell>
                 </TableRow>
@@ -151,12 +153,12 @@ export default function AttributesPage() {
                     </span>
                   </TableCell>
                   <TableCell className="text-muted-foreground text-sm">
-                    {def.category?.name ?? "Global"}
+                    {def.category?.name ?? t("attributes.global")}
                   </TableCell>
                   <TableCell className="text-sm">
                     {def.required
-                      ? <span className="text-destructive font-medium">Yes</span>
-                      : <span className="text-muted-foreground">No</span>}
+                      ? <span className="text-destructive font-medium">{t("common.yes")}</span>
+                      : <span className="text-muted-foreground">{t("common.no")}</span>}
                   </TableCell>
                   <TableCell className="text-muted-foreground text-sm max-w-[200px] truncate">
                     {def.description ?? "—"}
@@ -191,11 +193,11 @@ export default function AttributesPage() {
       <ConfirmDialog
         open={!!deleteTarget}
         onOpenChange={(v) => { if (!v) setDeleteTarget(null); }}
-        title="Delete Attribute Definition"
+        title={t("attributes.deleteTitle")}
         description={`Delete "${deleteTarget?.name}"? Existing asset values for this field will be preserved but the schema definition will be removed.`}
         onConfirm={() => deleteTarget && deleteMutation.mutate(deleteTarget.id)}
         loading={deleteMutation.isPending}
-        confirmLabel="Delete"
+        confirmLabel={t("common.delete")}
         variant="destructive"
       />
     </div>

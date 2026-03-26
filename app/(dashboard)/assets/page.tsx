@@ -4,6 +4,7 @@ import { Suspense, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useLanguage } from "@/context/language-context";
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
@@ -64,6 +65,7 @@ function formatDate(dateStr: string | null): string {
 }
 
 function AssetsContent() {
+  const { t } = useLanguage();
   const router = useRouter();
   const searchParams = useSearchParams();
   const [search, setSearch] = useState(searchParams.get("search") ?? "");
@@ -124,22 +126,22 @@ function AssetsContent() {
             <SearchIcon className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               className="pl-8"
-              placeholder="Search by name or code..."
+              placeholder={t("assets.searchPlaceholder")}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
-          <Button type="submit" variant="outline">Search</Button>
+          <Button type="submit" variant="outline">{t("common.search")}</Button>
         </form>
 
         <Select value={categoryId} onValueChange={(v) => updateParam("categoryId", v ?? "")}>
           <SelectTrigger className="w-40">
             <SelectValue>
-              {categoryId ? categories.find((c) => c.id === categoryId)?.name : "All Categories"}
+              {categoryId ? categories.find((c) => c.id === categoryId)?.name : t("assets.allCategories")}
             </SelectValue>
           </SelectTrigger>
           <SelectContent>
-            <SelectItem>All Categories</SelectItem>
+            <SelectItem>{t("assets.allCategories")}</SelectItem>
             {categories.map((c) => (
               <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
             ))}
@@ -148,16 +150,16 @@ function AssetsContent() {
 
         <Select value={status} onValueChange={(v) => updateParam("status", v ?? "")}>
           <SelectTrigger className="w-36">
-            <SelectValue placeholder="All Status" />
+            <SelectValue placeholder={t("common.allStatus")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem>All Status</SelectItem>
-            <SelectItem value="PURCHASED">Purchased</SelectItem>
-            <SelectItem value="ASSIGNED">Assigned</SelectItem>
-            <SelectItem value="IN_USE">In Use</SelectItem>
-            <SelectItem value="MAINTENANCE">Maintenance</SelectItem>
-            <SelectItem value="RETIRED">Retired</SelectItem>
-            <SelectItem value="DISPOSED">Disposed</SelectItem>
+            <SelectItem>{t("common.allStatus")}</SelectItem>
+            <SelectItem value="PURCHASED">{t("status.PURCHASED")}</SelectItem>
+            <SelectItem value="ASSIGNED">{t("status.ASSIGNED")}</SelectItem>
+            <SelectItem value="IN_USE">{t("status.IN_USE")}</SelectItem>
+            <SelectItem value="MAINTENANCE">{t("status.MAINTENANCE")}</SelectItem>
+            <SelectItem value="RETIRED">{t("status.RETIRED")}</SelectItem>
+            <SelectItem value="DISPOSED">{t("status.DISPOSED")}</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -167,13 +169,13 @@ function AssetsContent() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Code</TableHead>
-              <TableHead>Name</TableHead>
-              <TableHead>Category</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Assigned To</TableHead>
-              <TableHead>Purchase Date</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead>{t("common.code")}</TableHead>
+              <TableHead>{t("common.name")}</TableHead>
+              <TableHead>{t("common.category")}</TableHead>
+              <TableHead>{t("common.status")}</TableHead>
+              <TableHead>{t("assets.assignedTo")}</TableHead>
+              <TableHead>{t("assets.purchaseDate")}</TableHead>
+              <TableHead className="text-right">{t("common.actions")}</TableHead>
             </TableRow>
           </TableHeader>
           {isLoading ? (
@@ -191,8 +193,8 @@ function AssetsContent() {
               <TableRow>
                 <TableCell colSpan={7} className="text-center py-12 text-muted-foreground">
                   <PackageIcon className="h-10 w-10 mx-auto mb-3 opacity-30" />
-                  <p className="font-medium">No assets found</p>
-                  <p className="text-sm mt-1">Try adjusting your filters or create a new asset.</p>
+                  <p className="font-medium">{t("assets.noAssets")}</p>
+                  <p className="text-sm mt-1">{t("assets.noAssetsHint")}</p>
                 </TableCell>
               </TableRow>
             </TableBody>
@@ -219,12 +221,12 @@ function AssetsContent() {
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-1">
                       <Link href={`/assets/${asset.id}`}>
-                        <Button variant="ghost" size="icon-sm" title="View">
+                        <Button variant="ghost" size="icon-sm" title={t("common.view")}>
                           <EyeIcon className="h-4 w-4" />
                         </Button>
                       </Link>
                       <Link href={`/assets/${asset.id}/edit`}>
-                        <Button variant="ghost" size="icon-sm" title="Edit">
+                        <Button variant="ghost" size="icon-sm" title={t("common.edit")}>
                           <EditIcon className="h-4 w-4" />
                         </Button>
                       </Link>
@@ -241,7 +243,7 @@ function AssetsContent() {
       {data && data.totalPages > 1 && (
         <div className="flex items-center justify-between">
           <p className="text-sm text-muted-foreground">
-            Page {data.page} of {data.totalPages} — {data.total} results
+            {t("pagination.pageOf").replace("{page}", String(data.page)).replace("{total}", String(data.totalPages)).replace("{count}", String(data.total))}
           </p>
           <div className="flex gap-2">
             <Button variant="outline" size="icon-sm" onClick={() => goPage(page - 1)} disabled={page <= 1}>
@@ -283,11 +285,12 @@ function TableSkeleton() {
 }
 
 export default function AssetsPage() {
+  const { t } = useLanguage();
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">Assets</h2>
+          <h2 className="text-2xl font-bold tracking-tight">{t("assets.title")}</h2>
           <Suspense fallback={<Skeleton className="h-4 w-24 mt-1" />}>
             <AssetsContentHeader />
           </Suspense>
@@ -295,7 +298,7 @@ export default function AssetsPage() {
         <Link href="/assets/new">
           <Button>
             <PlusIcon className="h-4 w-4" />
-            New Asset
+            {t("assets.newAsset")}
           </Button>
         </Link>
       </div>
@@ -309,9 +312,10 @@ export default function AssetsPage() {
 
 // Separate header to read searchParams inside Suspense
 function AssetsContentHeader() {
+  const { t } = useLanguage();
   return (
     <p className="text-muted-foreground text-sm">
-      All assets
+      {t("assets.allAssets")}
     </p>
   );
 }

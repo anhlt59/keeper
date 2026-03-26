@@ -4,6 +4,7 @@ import { Label } from "@/components/ui/label";
 import { PackageIcon } from "lucide-react";
 import { EditableAssetRow, type EditableAsset } from "@/components/invoices/editable-asset-row";
 import { EditableInvoiceRow } from "@/components/invoices/editable-invoice-row";
+import { useLanguage } from "@/context/language-context";
 
 interface ExtractedAsset {
   name: string;
@@ -49,6 +50,7 @@ export function InvoicePreview({
   onAssetRemove,
   categories,
 }: InvoicePreviewProps) {
+  const { t } = useLanguage();
   const overallPct = Math.round(confidence * 100);
   const overallCls =
     overallPct >= 90 ? "border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950"
@@ -60,9 +62,9 @@ export function InvoicePreview({
       {/* Overall confidence banner */}
       <div className={`rounded-lg border p-4 ${overallCls}`}>
         <p className="text-sm font-medium">
-          OCR Confidence: <span className="font-bold">{overallPct}%</span>
+          {t("invoiceUpload.ocrConfidence")}: <span className="font-bold">{overallPct}%</span>
           {overallPct < 70 && (
-            <span className="ml-2 text-destructive"> — Please review low-confidence fields (marked in amber/red)</span>
+            <span className="ml-2 text-destructive">{t("invoiceUpload.lowConfidence")}</span>
           )}
         </p>
       </div>
@@ -88,7 +90,7 @@ export function InvoicePreview({
         <div className="space-y-3">
           <Label className="text-xs font-bold uppercase tracking-wide text-muted-foreground flex items-center gap-1.5">
             <PackageIcon className="h-3.5 w-3.5" />
-            Detected Assets ({editableAssets.length})
+            {t("invoiceUpload.detectedAssets")} ({editableAssets.length})
           </Label>
           <div className="space-y-3">
             {editableAssets.map((asset, i) => (

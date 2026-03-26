@@ -61,9 +61,9 @@ export async function GET(req: NextRequest) {
       _sum: { cost: true },
     }),
 
-    // Recent 10 events
+    // Recent 5 events
     prisma.assetEvent.findMany({
-      take: 10,
+      take: 5,
       orderBy: { createdAt: "desc" },
       where: { isDeleted: false },
       include: { asset: { select: { id: true, name: true, code: true } } },

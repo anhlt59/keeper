@@ -4,6 +4,7 @@ import { use, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { apiFetch } from "@/lib/api-fetch";
+import { useLanguage } from "@/context/language-context";
 import Link from "next/link";
 import {
   ChevronLeftIcon,
@@ -86,17 +87,18 @@ function formatVND(v: string | number | null): string {
   return new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND", maximumFractionDigits: 0 }).format(num);
 }
 
-const MAINTENANCE_TYPE_LABEL: Record<string, string> = {
-  PREVENTIVE: "Preventive",
-  CORRECTIVE: "Corrective",
-  UPGRADE: "Upgrade",
+// Labels resolved via t() in component body
+const MAINT_TYPE_KEYS: Record<string, string> = {
+  PREVENTIVE: "maint.type.PREVENTIVE",
+  CORRECTIVE: "maint.type.CORRECTIVE",
+  UPGRADE: "maint.type.UPGRADE",
 };
 
-const MAINTENANCE_STATUS_LABEL: Record<string, string> = {
-  SCHEDULED: "Scheduled",
-  IN_PROGRESS: "In Progress",
-  COMPLETED: "Completed",
-  CANCELLED: "Cancelled",
+const MAINT_STATUS_KEYS: Record<string, string> = {
+  SCHEDULED: "maint.status.SCHEDULED",
+  IN_PROGRESS: "maint.status.IN_PROGRESS",
+  COMPLETED: "maint.status.COMPLETED",
+  CANCELLED: "maint.status.CANCELLED",
 };
 
 const MAINT_STATUS_CLASS: Record<string, string> = {
@@ -107,6 +109,7 @@ const MAINT_STATUS_CLASS: Record<string, string> = {
 };
 
 export default function AssetDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { t } = useLanguage();
   const { id } = use(params);
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -172,11 +175,11 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
         const data = await res.json();
         throw new Error(data.error ?? "Recall failed");
       }
-      toast.success("Asset recalled (unassigned)");
+      toast.success(t("assetDetail.recalled"));
       queryClient.invalidateQueries({ queryKey: ["asset", id] });
       refetchEvents();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Recall failed");
+      toast.error(err instanceof Error ? err.message : t("assetDetail.recallFailed"));
     } finally {
       setTransitioning(false);
     }
@@ -194,11 +197,11 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
         const data = await res.json();
         throw new Error(data.error ?? "Transition failed");
       }
-      toast.success(`Asset ${label.toLowerCase()}`);
+      toast.success(t("assetDetail.statusChanged"));
       queryClient.invalidateQueries({ queryKey: ["asset", id] });
       refetchEvents();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Transition failed");
+      toast.error(err instanceof Error ? err.message : t("assetDetail.transitionFailed"));
     } finally {
       setTransitioning(false);
     }
@@ -212,11 +215,11 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
         const data = await res.json();
         throw new Error(data.error ?? "Failed to delete");
       }
-      toast.success("Asset deleted");
+      toast.success(t("assetDetail.deleted"));
       router.refresh();
       router.push("/assets");
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to delete");
+      toast.error(err instanceof Error ? err.message : t("assetDetail.deleteFailed"));
       setDeleting(false);
     }
   };
@@ -251,7 +254,7 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
         <Link href="/assets" className="hover:text-foreground flex items-center gap-1">
           <ChevronLeftIcon className="h-4 w-4" />
-          Assets
+          {t("assets.title")}
         </Link>
         <span>/</span>
         <span className="text-foreground font-medium truncate">{asset.name}</span>
@@ -272,13 +275,13 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
           <Link href={`/assets/${id}/edit`}>
             <Button variant="outline" size="sm">
               <EditIcon className="h-4 w-4" />
-              Edit
+              {t("common.edit")}
             </Button>
           </Link>
 
           <Button variant="outline" size="sm" onClick={() => setQrModalOpen(true)}>
             <QrCodeIcon className="h-4 w-4" />
-            QR
+            {t("assetDetail.qr")}
           </Button>
 
           {transitions.map((t) => {
@@ -376,7 +379,7 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
               onClick={() => setDeleteDialogOpen(true)}
             >
               <Trash2Icon className="h-4 w-4" />
-              Delete
+              {t("common.delete")}
             </Button>
           )}
         </div>
@@ -385,31 +388,31 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
       {/* Tabs */}
       <Tabs defaultValue="info">
         <TabsList>
-          <TabsTrigger value="info">Info</TabsTrigger>
-          <TabsTrigger value="attributes">Attributes</TabsTrigger>
-          <TabsTrigger value="timeline">Timeline</TabsTrigger>
-          <TabsTrigger value="maintenance">Maintenance ({maintenance.length})</TabsTrigger>
+          <TabsTrigger value="info">{t("assetDetail.info")}</TabsTrigger>
+          <TabsTrigger value="attributes">{t("assetDetail.attributes")}</TabsTrigger>
+          <TabsTrigger value="timeline">{t("assets.timeline")}</TabsTrigger>
+          <TabsTrigger value="maintenance">{t("assetDetail.maintenanceTab")} ({maintenance.length})</TabsTrigger>
         </TabsList>
 
         {/* Info Tab */}
         <TabsContent value="info" className="mt-4">
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Asset Details</CardTitle>
+              <CardTitle className="text-base">{t("assets.details")}</CardTitle>
             </CardHeader>
             <CardContent>
               <dl className="grid grid-cols-2 gap-x-8 gap-y-4 text-sm">
                 {[
-                  { label: "Name", value: asset.name },
-                  { label: "Code", value: asset.code },
-                  { label: "Category", value: asset.category.name },
-                  { label: "Status", value: <StatusBadge status={asset.status} /> },
-                  { label: "Assigned To", value: asset.assignedTo ?? "—" },
-                  { label: "Purchase Date", value: formatDate(asset.purchaseDate) },
-                  { label: "Purchase Price", value: formatVND(asset.purchasePrice) },
-                  { label: "Vendor", value: asset.vendor ?? "—" },
-                  { label: "Warranty", value: asset.warrantyMonths ? `${asset.warrantyMonths} months` : "—" },
-                  { label: "Description", value: asset.description ?? "—" },
+                  { label: t("common.name"), value: asset.name },
+                  { label: t("common.code"), value: asset.code },
+                  { label: t("common.category"), value: asset.category.name },
+                  { label: t("common.status"), value: <StatusBadge status={asset.status} /> },
+                  { label: t("assets.assignedTo"), value: asset.assignedTo ?? "—" },
+                  { label: t("assets.purchaseDate"), value: formatDate(asset.purchaseDate) },
+                  { label: t("assetDetail.purchasePrice"), value: formatVND(asset.purchasePrice) },
+                  { label: t("assetDetail.vendor"), value: asset.vendor ?? "—" },
+                  { label: t("assetDetail.warranty"), value: asset.warrantyMonths ? `${asset.warrantyMonths} months` : "—" },
+                  { label: t("common.description"), value: asset.description ?? "—" },
                 ].map(({ label, value }) => (
                   <div key={label} className="space-y-1">
                     <dt className="text-muted-foreground text-xs font-medium uppercase tracking-wide">{label}</dt>
@@ -425,12 +428,12 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
         <TabsContent value="attributes" className="mt-4">
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Custom Attributes</CardTitle>
+              <CardTitle className="text-base">{t("assets.customAttributes")}</CardTitle>
             </CardHeader>
             <CardContent>
               {attrDefinitions.length === 0 ? (
                 <p className="text-sm text-muted-foreground py-4 text-center">
-                  No custom attributes defined for this category.
+                  {t("assets.noAttributes")}
                 </p>
               ) : (
                 <dl className="grid grid-cols-2 gap-x-8 gap-y-4 text-sm">
@@ -455,7 +458,7 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
         <TabsContent value="timeline" className="mt-4">
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Lifecycle Timeline</CardTitle>
+              <CardTitle className="text-base">{t("assets.timeline")}</CardTitle>
             </CardHeader>
             <CardContent>
               <AssetTimeline events={events as unknown as Parameters<typeof AssetTimeline>[0]["events"]} />
@@ -474,7 +477,7 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
                 trigger={
                   <Button size="sm">
                     <WrenchIcon className="h-4 w-4" />
-                    Add Record
+                    {t("assetDetail.addRecord")}
                   </Button>
                 }
                 onSuccess={() => {
@@ -488,31 +491,31 @@ export default function AssetDetailPage({ params }: { params: Promise<{ id: stri
               {maintenance.length === 0 ? (
                 <div className="py-8 text-center text-muted-foreground">
                   <WrenchIcon className="h-8 w-8 mx-auto mb-2 opacity-30" />
-                  <p className="text-sm">No maintenance records</p>
+                  <p className="text-sm">{t("assetDetail.noMaintenance")}</p>
                 </div>
               ) : (
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Type</TableHead>
-                      <TableHead>Description</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Start Date</TableHead>
-                      <TableHead>End Date</TableHead>
-                      <TableHead>Cost</TableHead>
-                      <TableHead>Performed By</TableHead>
+                      <TableHead>{t("common.type")}</TableHead>
+                      <TableHead>{t("common.description")}</TableHead>
+                      <TableHead>{t("common.status")}</TableHead>
+                      <TableHead>{t("assetDetail.startDate")}</TableHead>
+                      <TableHead>{t("assetDetail.endDate")}</TableHead>
+                      <TableHead>{t("maintForm.costLabel")}</TableHead>
+                      <TableHead>{t("assetDetail.performedBy")}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {maintenance.map((r) => (
                       <TableRow key={r.id}>
                         <TableCell>
-                          <span className="text-xs font-medium">{MAINTENANCE_TYPE_LABEL[r.type] ?? r.type}</span>
+                          <span className="text-xs font-medium">{MAINT_TYPE_KEYS[r.type] ? t(MAINT_TYPE_KEYS[r.type]) : r.type}</span>
                         </TableCell>
                         <TableCell className="max-w-[200px] truncate text-sm">{r.description}</TableCell>
                         <TableCell>
                           <span className={`inline-flex h-5 items-center rounded-4xl border px-2 py-0.5 text-xs font-medium ${MAINT_STATUS_CLASS[r.status] ?? ""}`}>
-                            {MAINTENANCE_STATUS_LABEL[r.status] ?? r.status}
+                            {MAINT_STATUS_KEYS[r.status] ? t(MAINT_STATUS_KEYS[r.status]) : r.status}
                           </span>
                         </TableCell>
                         <TableCell className="text-muted-foreground text-sm">{formatDate(r.startDate)}</TableCell>

@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { InvoiceStatus } from "@prisma/client";
+import { useLanguage } from "@/context/language-context";
 
 interface InvoiceOcrExtraction {
   id: string;
@@ -49,13 +50,13 @@ const STATUS_CLASS: Record<InvoiceStatus, string> = {
   REJECTED: "bg-red-50 text-red-700 dark:bg-red-950 dark:text-red-300",
 };
 
-
 function formatDate(d: string | null): string {
   if (!d) return "—";
   return new Date(d).toLocaleDateString("vi-VN");
 }
 
 export default function InvoiceDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { t } = useLanguage();
   const { id } = use(params);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -84,7 +85,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
       if (!res.ok) throw new Error("Delete failed");
       window.location.href = "/invoices";
     } catch {
-      toast.error("Failed to delete");
+      toast.error(t("invoices.deleteFailed"));
       setDeleting(false);
     }
   }
@@ -100,10 +101,10 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
         body: JSON.stringify({ status: "CONFIRMED" }),
       });
       if (!res.ok) throw new Error("Confirm failed");
-      toast.success("Invoice confirmed");
+      toast.success(t("invoiceDetail.confirmSuccess"));
       await refetch();
     } catch {
-      toast.error("Failed to confirm invoice");
+      toast.error(t("invoiceDetail.confirmFailed"));
     } finally {
       setConfirming(false);
     }
@@ -113,13 +114,12 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
   if (error || !data) {
     return (
       <Alert variant="destructive">
-        <AlertDescription>Invoice not found.</AlertDescription>
+        <AlertDescription>{t("invoiceDetail.notFound")}</AlertDescription>
       </Alert>
     );
   }
 
   const invoice: InvoiceDetail = data;
-  const ed = invoice.ocrExtraction?.extractedData;
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
@@ -127,10 +127,10 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
         <Link href="/invoices" className="hover:text-foreground flex items-center gap-1">
           <ChevronLeftIcon className="h-4 w-4" />
-          Invoices
+          {t("nav.invoices")}
         </Link>
         <span>/</span>
-        <span className="text-foreground font-medium">Invoice Details</span>
+        <span className="text-foreground font-medium">{t("invoiceDetail.title")}</span>
       </div>
 
       {/* Heading */}
@@ -145,8 +145,8 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
         </div>
         <p className="text-muted-foreground text-sm">
           {invoice.status === "CONFIRMED"
-            ? "Confirmed invoice with extracted data."
-            : "Review invoice details and OCR extraction."}
+            ? t("invoiceDetail.confirmed")
+            : t("invoiceDetail.review")}
         </p>
       </div>
 
@@ -162,12 +162,12 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
               {invoice.status === "PENDING" && (
                 <Button size="sm" onClick={() => setConfirmOpen(true)} disabled={confirming}>
                   <CheckCircleIcon className="h-4 w-4" />
-                  Confirm
+                  {t("common.confirm")}
                 </Button>
               )}
               <Button variant="destructive" size="sm" onClick={() => setDeleteOpen(true)}>
                 <Trash2Icon className="h-4 w-4" />
-                Delete
+                {t("common.delete")}
               </Button>
             </div>
           </div>
@@ -175,10 +175,10 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
         <CardContent>
           <dl className="grid grid-cols-2 gap-x-8 gap-y-4 text-sm">
             {[
-              { label: "Invoice Number", value: invoice.invoiceNumber },
-              { label: "Vendor", value: invoice.vendor },
-              { label: "Invoice Date", value: formatDate(invoice.invoiceDate) },
-              { label: "Total Amount", value: invoice.totalAmount ? `${parseFloat(invoice.totalAmount).toLocaleString()} VND` : null },
+              { label: t("invoiceDetail.invoiceNumber"), value: invoice.invoiceNumber },
+              { label: t("invoices.vendor"), value: invoice.vendor },
+              { label: t("invoiceDetail.invoiceDate"), value: formatDate(invoice.invoiceDate) },
+              { label: t("invoiceDetail.totalAmount"), value: invoice.totalAmount ? `${parseFloat(invoice.totalAmount).toLocaleString()} VND` : null },
             ].map(({ label, value }) => (
               <div key={label} className="space-y-1">
                 <dt className="text-muted-foreground text-xs font-medium uppercase">{label}</dt>
@@ -186,15 +186,15 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
               </div>
             ))}
             <div className="space-y-1">
-              <dt className="text-muted-foreground text-xs font-medium uppercase">Created</dt>
+              <dt className="text-muted-foreground text-xs font-medium uppercase">{t("invoices.created")}</dt>
               <dd className="font-medium">{new Date(invoice.createdAt).toLocaleString("vi-VN")}</dd>
             </div>
             {invoice.filePath ? (
               <div className="space-y-1">
-                <dt className="text-muted-foreground text-xs font-medium uppercase">Invoice Image</dt>
+                <dt className="text-muted-foreground text-xs font-medium uppercase">{t("invoiceDetail.invoiceImage")}</dt>
                 <Button variant="outline" size="sm" onClick={() => setImgOpen(true)}>
                   <ImageIcon className="h-4 w-4" />
-                  View Image
+                  {t("invoiceDetail.viewImage")}
                 </Button>
               </div>
             ) : <div />}
@@ -204,19 +204,19 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
           {invoice.ocrExtraction != null ? (
             <div className="mt-6 border-t pt-5 space-y-4">
               <div className="flex items-center gap-2">
-                <CardTitle className="text-base">OCR Extraction Data</CardTitle>
+                <CardTitle className="text-base">{t("invoiceDetail.ocrData")}</CardTitle>
                 <span className="text-xs text-muted-foreground font-normal">
-                  confidence: {Math.round(invoice.ocrExtraction.confidence * 100)}%
+                  {t("invoiceDetail.confidence")}: {Math.round(invoice.ocrExtraction.confidence * 100)}%
                 </span>
                 {invoice.ocrExtraction.confirmed ? (
-                  <Badge variant="outline" className="text-xs">Confirmed</Badge>
+                  <Badge variant="outline" className="text-xs">{t("invoice.status.CONFIRMED")}</Badge>
                 ) : null}
               </div>
 
               {invoice.ocrExtraction.rawResponse != null ? (
                 <details className="text-sm">
                   <summary className="cursor-pointer text-muted-foreground hover:text-foreground font-medium">
-                     OCR Response
+                    {t("invoiceDetail.ocrResponse")}
                   </summary>
                   <pre className="mt-2 p-3 bg-muted rounded-lg text-xs overflow-auto max-h-64">
                     {JSON.stringify(invoice.ocrExtraction.rawResponse, null, 2)}
@@ -238,7 +238,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
             </CardTitle>
             {invoice.assets && invoice.assets.length > 0 && (
               <span className="text-xs text-muted-foreground">
-                {invoice.assets.length} asset{invoice.assets.length !== 1 ? "s" : ""} created
+                {invoice.assets.length} {t("invoiceDetail.assetsCreated")}
               </span>
             )}
           </div>
@@ -246,7 +246,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
         <CardContent>
           {!invoice.assets || invoice.assets.length === 0 ? (
             <p className="text-sm text-muted-foreground">
-              No assets were created from this invoice.
+              {t("invoiceDetail.noAssets")}
             </p>
           ) : (
             <ul className="space-y-2">
@@ -262,7 +262,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
                     href={`/assets/${asset.id}`}
                     className="text-sm text-primary hover:underline ml-2 shrink-0"
                   >
-                    View →
+                    {t("common.view")} →
                   </Link>
                 </li>
               ))}
@@ -275,10 +275,10 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
       <Dialog open={imgOpen} onOpenChange={setImgOpen}>
         <DialogContent className="w-auto flex flex-col">
           <DialogHeader>
-            <DialogTitle>Invoice Image</DialogTitle>
+            <DialogTitle>{t("invoiceDetail.invoiceImage")}</DialogTitle>
           </DialogHeader>
           {imgError ? (
-            <p className="text-sm text-muted-foreground py-4">Image could not be loaded.</p>
+            <p className="text-sm text-muted-foreground py-4">{t("invoiceDetail.imageError")}</p>
           ) : (
             <div className="flex items-center justify-center overflow-hidden">
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -296,7 +296,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
       <ConfirmDialog
         open={deleteOpen}
         onOpenChange={setDeleteOpen}
-        title="Delete Invoice"
+        title={t("invoices.deleteTitle")}
         description={
           invoice.assets && invoice.assets.length > 0
             ? `This will delete the invoice and ${invoice.assets.length} related asset${invoice.assets.length !== 1 ? "s" : ""}. This cannot be undone.`
@@ -304,18 +304,18 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
         }
         onConfirm={handleDelete}
         loading={deleting}
-        confirmLabel="Delete"
+        confirmLabel={t("common.delete")}
         variant="destructive"
       />
 
       <ConfirmDialog
         open={confirmOpen}
         onOpenChange={setConfirmOpen}
-        title="Confirm Invoice"
-        description="Mark this invoice as confirmed? This action cannot be undone."
+        title={t("invoiceDetail.confirmTitle")}
+        description={t("invoiceDetail.confirmDesc")}
         onConfirm={handleConfirm}
         loading={confirming}
-        confirmLabel="Confirm"
+        confirmLabel={t("common.confirm")}
       />
     </div>
   );

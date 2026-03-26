@@ -8,6 +8,7 @@ import { AssetStatusChart } from "@/components/dashboard/asset-status-chart";
 import { RecentEvents } from "@/components/dashboard/recent-events";
 import { MaintenanceCostChart } from "@/components/dashboard/maintenance-cost-chart";
 import { AssetStatus } from "@prisma/client";
+import { useLanguage } from "@/context/language-context";
 
 interface DashboardData {
   totalAssets: number;
@@ -32,6 +33,7 @@ function formatVND(value: number | string): string {
 }
 
 export default function DashboardPage() {
+  const { t } = useLanguage();
   const { data, isLoading } = useQuery<DashboardData>({
     queryKey: ["dashboard"],
     queryFn: async () => {
@@ -53,37 +55,37 @@ export default function DashboardPage() {
       {/* KPI Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
         <KpiCard
-          label="Total Assets"
+          label={t("kpi.totalAssets")}
           value={isLoading ? "—" : data?.totalAssets ?? 0}
-          subtext="Active assets"
+          subtext={t("kpi.activeAssets")}
           icon={<PackageIcon />}
           loading={isLoading}
         />
         <KpiCard
-          label="Total Value"
+          label={t("kpi.totalValue")}
           value={isLoading ? "—" : formatVND(totalValue)}
-          subtext="All assets"
+          subtext={t("kpi.allAssets")}
           icon={<DollarSignIcon />}
           loading={isLoading}
         />
         <KpiCard
-          label="Maintenance Cost (MTD)"
+          label={t("kpi.maintenanceCostMTD")}
           value={isLoading ? "—" : formatVND(maintenanceCost)}
-          subtext="This month"
+          subtext={t("kpi.thisMonth")}
           icon={<WrenchIcon />}
           loading={isLoading}
         />
         <KpiCard
-          label="Total Maintenance"
+          label={t("kpi.totalMaintenance")}
           value={isLoading ? "—" : formatVND(totalMaintenance)}
-          subtext="All time"
+          subtext={t("kpi.allTime")}
           icon={<CalculatorIcon />}
           loading={isLoading}
         />
         <KpiCard
-          label="In Maintenance"
+          label={t("kpi.inMaintenance")}
           value={isLoading ? "—" : pendingCount}
-          subtext="Pending assets"
+          subtext={t("kpi.pendingAssets")}
           icon={<ClockIcon />}
           loading={isLoading}
         />

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { useLanguage } from "@/context/language-context";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import {
@@ -33,6 +34,7 @@ interface AssignDialogProps {
 }
 
 export function AssignDialog({ assetId, assetName, trigger, onSuccess }: AssignDialogProps) {
+  const { t } = useLanguage();
   const [open, setOpen] = useState(false);
   const [employeeId, setEmployeeId] = useState<string | null>(null);
   const [employees, setEmployees] = useState<Employee[]>([]);
@@ -47,12 +49,12 @@ export function AssignDialog({ assetId, assetName, trigger, onSuccess }: AssignD
         return res.json();
       })
       .then((data) => setEmployees(data))
-      .catch(() => toast.error("Failed to load employees"));
+      .catch(() => toast.error(t("assign.loadFailed")));
   }, [open]);
 
   const handleAssign = async () => {
     if (!employeeId) {
-      toast.error("Please select an employee");
+      toast.error(t("assign.selectEmployee"));
       return;
     }
     setLoading(true);
@@ -67,12 +69,12 @@ export function AssignDialog({ assetId, assetName, trigger, onSuccess }: AssignD
         throw new Error(data.error ?? "Failed to assign");
       }
       const selected = employees.find((e) => e.id === employeeId);
-      toast.success(`Asset assigned to ${selected?.name ?? "employee"}`);
+      toast.success(t("assign.success").replace("{name}", selected?.name ?? t("assign.employee")));
       setOpen(false);
       setEmployeeId(null);
       onSuccess?.();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to assign asset");
+      toast.error(err instanceof Error ? err.message : t("assign.failed"));
     } finally {
       setLoading(false);
     }
@@ -83,21 +85,21 @@ export function AssignDialog({ assetId, assetName, trigger, onSuccess }: AssignD
       <div onClick={() => setOpen(true)}>{trigger}</div>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Assign Asset</DialogTitle>
+          <DialogTitle>{t("assign.title")}</DialogTitle>
           <DialogDescription>
             Assign <strong>{assetName}</strong> to an employee.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-2">
-          <Label>Employee</Label>
+          <Label>{t("assign.employee")}</Label>
           <Select value={employeeId} onValueChange={setEmployeeId}>
             <SelectTrigger className="w-full">
-              <SelectValue placeholder="Select an employee" />
+              <SelectValue placeholder={t("assign.selectEmployee")} />
             </SelectTrigger>
             <SelectContent>
               {employees.length === 0 ? (
                 <div className="px-2 py-4 text-center text-sm text-muted-foreground">
-                  No employees found
+                  {t("assign.noEmployees")}
                 </div>
               ) : (
                 employees.map((emp) => (
@@ -111,10 +113,10 @@ export function AssignDialog({ assetId, assetName, trigger, onSuccess }: AssignD
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)} disabled={loading}>
-            Cancel
+            {t("common.cancel")}
           </Button>
           <Button onClick={handleAssign} disabled={loading || !employeeId}>
-            {loading ? "Assigning..." : "Assign"}
+            {loading ? t("assign.assigning") : t("assign.assign")}
           </Button>
         </DialogFooter>
       </DialogContent>

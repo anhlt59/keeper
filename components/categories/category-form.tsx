@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,6 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useLanguage } from "@/context/language-context";
 
 interface Category {
   id: string;
@@ -46,6 +46,7 @@ export function CategoryForm({
   initialData,
   mode = "create",
 }: CategoryFormProps) {
+  const { t } = useLanguage();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
@@ -53,7 +54,6 @@ export function CategoryForm({
     description: initialData?.description ?? "",
     parentId: initialData?.parent?.id ?? "",
   });
-  const router = useRouter();
 
   const queryClient = useQueryClient();
 
@@ -71,7 +71,7 @@ export function CategoryForm({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.name.trim()) {
-      toast.error("Category name is required");
+      toast.error(t("catForm.nameRequired"));
       return;
     }
     setLoading(true);
@@ -92,14 +92,14 @@ export function CategoryForm({
       });
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error ?? "Failed to save category");
+        throw new Error(data.error ?? t("catForm.saveFailed"));
       }
-      toast.success(mode === "edit" ? "Category updated" : "Category created");
+      toast.success(mode === "edit" ? t("catForm.updated") : t("catForm.created"));
       await queryClient.invalidateQueries({ queryKey: ["categories"] });
       setOpen(false);
       onSuccess?.();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to save category");
+      toast.error(err instanceof Error ? err.message : t("catForm.saveFailed"));
     } finally {
       setLoading(false);
     }
@@ -111,29 +111,27 @@ export function CategoryForm({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>
-            {mode === "edit" ? "Edit Category" : "Add Category"}
+            {mode === "edit" ? t("catForm.editTitle") : t("catForm.addTitle")}
           </DialogTitle>
           <DialogDescription>
-            {mode === "edit"
-              ? "Update the category details."
-              : "Create a new asset category."}
+            {mode === "edit" ? t("catForm.editDesc") : t("catForm.addDesc")}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="cat-name">Name *</Label>
+            <Label htmlFor="cat-name">{t("common.name")} *</Label>
             <Input
               id="cat-name"
-              placeholder="e.g. Laptop"
+              placeholder={t("catForm.namePlaceholder")}
               value={form.name}
               onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="cat-desc">Description</Label>
+            <Label htmlFor="cat-desc">{t("common.description")}</Label>
             <Textarea
               id="cat-desc"
-              placeholder="Optional description..."
+              placeholder={t("catForm.descPlaceholder")}
               value={form.description ?? ""}
               onChange={(e) =>
                 setForm((f) => ({ ...f, description: e.target.value }))
@@ -142,14 +140,14 @@ export function CategoryForm({
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="cat-parent">Parent Category</Label>
+            <Label htmlFor="cat-parent">{t("catForm.parentCategory")}</Label>
             <Select
               value={form.parentId}
               onValueChange={(v) => setForm((f) => ({ ...f, parentId: v ?? "" }))}
             >
               <SelectTrigger>
                 <SelectValue>
-                  {form.parentId ? categories.find((c) => c.id === form.parentId)?.name : "None (top-level)"}
+                  {form.parentId ? categories.find((c) => c.id === form.parentId)?.name : t("catForm.noParent")}
                 </SelectValue>
               </SelectTrigger>
               <SelectContent>
@@ -170,10 +168,10 @@ export function CategoryForm({
               onClick={() => setOpen(false)}
               disabled={loading}
             >
-              Cancel
+              {t("common.cancel")}
             </Button>
             <Button type="submit" disabled={loading || !form.name.trim()}>
-              {loading ? "Saving..." : "Save"}
+              {loading ? t("common.saving") : t("common.save")}
             </Button>
           </DialogFooter>
         </form>

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useLanguage } from "@/context/language-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,6 +10,7 @@ import { CameraIcon, KeyboardIcon } from "lucide-react";
 import { toast } from "sonner";
 
 export function QRScanner() {
+  const { t } = useLanguage();
   const router = useRouter();
   const [cameraAllowed, setCameraAllowed] = useState<boolean | null>(null);
   const [manualId, setManualId] = useState("");
@@ -36,7 +38,7 @@ export function QRScanner() {
         if (mounted) {
           setCameraAllowed(false);
           setShowManual(true);
-          toast.error("No camera found on this device", { id: "camera-not-found" });
+          toast.error(t("scan.cameraNotAvailable"), { id: "camera-not-found" });
         }
         return;
       }
@@ -67,13 +69,13 @@ export function QRScanner() {
                 if (res.ok) {
                   router.push(`/assets/${assetId}/lookup`);
                 } else {
-                  toast.error("Asset not found");
+                  toast.error(t("scan.assetNotFound"));
                 }
               } catch {
-                toast.error("Failed to validate asset");
+                toast.error(t("scan.validateFailed"));
               }
             } else {
-              toast.error("Invalid QR code format");
+              toast.error(t("scan.invalidQR"));
             }
           },
           () => {} // ignore scan errors
@@ -86,7 +88,7 @@ export function QRScanner() {
         if (mounted) {
           setCameraAllowed(false);
           setShowManual(true);
-          toast.error("Camera not available", { id: "camera-not-available" });
+          toast.error(t("scan.cameraNotAvailable"), { id: "camera-not-available" });
         }
       }
     }
@@ -106,7 +108,7 @@ export function QRScanner() {
 
   function handleManualLookup() {
     const id = manualId.trim();
-    if (!id) { toast.error("Enter an asset ID"); return; }
+    if (!id) { toast.error(t("scan.enterAssetId")); return; }
     router.push(`/assets/${id}/lookup`);
   }
 
@@ -122,7 +124,7 @@ export function QRScanner() {
           />
           {cameraAllowed && (
             <p className="text-center text-xs text-muted-foreground mt-2">
-              Point camera at QR code
+              {t("scan.pointCamera")}
             </p>
           )}
         </div>
@@ -133,23 +135,23 @@ export function QRScanner() {
         <div className="w-full max-w-sm space-y-3 border rounded-lg p-4">
           <div className="flex items-center gap-2 text-sm font-medium text-destructive">
             <CameraIcon className="h-4 w-4" />
-            Camera not available
+            {t("scan.cameraNotAvailable")}
           </div>
           <p className="text-xs text-muted-foreground">
-            Allow camera access or enter the asset ID manually below.
+            {t("scan.cameraHint")}
           </p>
           <div className="space-y-1.5">
-            <Label htmlFor="manual-id">Asset ID</Label>
+            <Label htmlFor="manual-id">{t("scan.assetId")}</Label>
             <div className="flex gap-2">
               <Input
                 id="manual-id"
                 value={manualId}
                 onChange={(e) => setManualId(e.target.value)}
-                placeholder="Enter asset ID"
+                placeholder={t("scan.enterAssetId")}
                 onKeyDown={(e) => e.key === "Enter" && handleManualLookup()}
               />
               <Button onClick={handleManualLookup} size="sm">
-                Lookup
+                {t("scan.lookup")}
               </Button>
             </div>
           </div>
@@ -163,7 +165,7 @@ export function QRScanner() {
         onClick={() => setShowManual((v) => !v)}
       >
         <KeyboardIcon className="h-4 w-4" />
-        {showManual ? "Use Camera" : "Enter Manually"}
+        {showManual ? t("scan.useCamera") : t("scan.enterManually")}
       </Button>
     </div>
   );

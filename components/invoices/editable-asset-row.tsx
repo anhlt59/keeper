@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { TrashIcon, CheckCircleIcon, AlertCircleIcon } from "lucide-react";
+import { useLanguage } from "@/context/language-context";
 
 function ConfidenceBadge({ confidence }: { confidence: number | null | undefined }) {
   if (confidence == null) return null;
@@ -55,6 +56,7 @@ interface EditableAssetRowProps {
 
 /** Single editable asset row used in the invoice confirm step */
 export function EditableAssetRow({ asset, index, onChange, onRemove, confidence, categories }: EditableAssetRowProps) {
+  const { t } = useLanguage();
   return (
     <div className="border rounded-lg p-3 space-y-2 bg-muted/30">
       <div className="flex items-center justify-between gap-2">
@@ -68,7 +70,7 @@ export function EditableAssetRow({ asset, index, onChange, onRemove, confidence,
       <div className="grid grid-cols-3 gap-2">
         <div className="col-span-2 space-y-1">
           <div className="flex items-center gap-1.5">
-            <Label className="text-xs text-muted-foreground">Name *</Label>
+            <Label className="text-xs text-muted-foreground">{t("common.name")} *</Label>
             <ConfidenceBadge confidence={confidence?.name} />
           </div>
           <Input
@@ -79,10 +81,10 @@ export function EditableAssetRow({ asset, index, onChange, onRemove, confidence,
           />
         </div>
         <div className="space-y-1">
-          <Label className="text-xs text-muted-foreground">Category</Label>
+          <Label className="text-xs text-muted-foreground">{t("common.category")}</Label>
           <Select value={asset.category} onValueChange={(v) => onChange(index, "category", v ?? "")}>
             <SelectTrigger className="h-8 text-sm w-full">
-              <SelectValue placeholder="Select..." />
+              <SelectValue placeholder={t("assetForm.selectCategory")} />
             </SelectTrigger>
             <SelectContent>
               {(categories.length > 0 ? categories : FALLBACK_CATEGORIES).map((cat) => (
@@ -97,7 +99,7 @@ export function EditableAssetRow({ asset, index, onChange, onRemove, confidence,
       <div className="grid grid-cols-3 gap-2">
         <div className="space-y-1">
           <div className="flex items-center gap-1.5">
-            <Label className="text-xs text-muted-foreground">Quantity</Label>
+            <Label className="text-xs text-muted-foreground">{t("invoiceUpload.quantity")}</Label>
             <ConfidenceBadge confidence={confidence?.quantity} />
           </div>
           <Input
@@ -110,7 +112,7 @@ export function EditableAssetRow({ asset, index, onChange, onRemove, confidence,
         </div>
         <div className="space-y-1">
           <div className="flex items-center gap-1.5">
-            <Label className="text-xs text-muted-foreground">Unit Price</Label>
+            <Label className="text-xs text-muted-foreground">{t("invoiceUpload.unitPrice")}</Label>
             <ConfidenceBadge confidence={confidence?.unitPrice} />
           </div>
           <Input
@@ -122,7 +124,7 @@ export function EditableAssetRow({ asset, index, onChange, onRemove, confidence,
           />
         </div>
         <div className="space-y-1">
-          <Label className="text-xs text-muted-foreground">Warranty (months)</Label>
+          <Label className="text-xs text-muted-foreground">{t("assetForm.warrantyLabel")}</Label>
           <Input
             type="number"
             min={0}

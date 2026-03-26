@@ -3,6 +3,7 @@
 import { use, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useLanguage } from "@/context/language-context";
 import { toast } from "sonner";
 import { ChevronLeftIcon } from "lucide-react";
 import Link from "next/link";
@@ -45,6 +46,7 @@ interface AssetDetail {
 }
 
 export default function EditAssetPage({ params }: { params: Promise<{ id: string }> }) {
+  const { t } = useLanguage();
   const { id } = use(params);
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -120,8 +122,8 @@ export default function EditAssetPage({ params }: { params: Promise<{ id: string
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.name.trim()) { toast.error("Name is required"); return; }
-    if (!form.categoryId) { toast.error("Category is required"); return; }
+    if (!form.name.trim()) { toast.error(t("assetForm.nameRequired")); return; }
+    if (!form.categoryId) { toast.error(t("assetForm.categoryRequired")); return; }
 
     setLoading(true);
     try {
@@ -143,11 +145,11 @@ export default function EditAssetPage({ params }: { params: Promise<{ id: string
         const data = await res.json();
         throw new Error(data.error ?? "Failed to update asset");
       }
-      toast.success("Asset updated");
+      toast.success(t("assetForm.updated"));
       await queryClient.invalidateQueries({ queryKey: ["asset", id] });
       router.push(`/assets/${id}`);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to update asset");
+      toast.error(err instanceof Error ? err.message : t("assetForm.updateFailed"));
     } finally {
       setLoading(false);
     }
@@ -165,7 +167,7 @@ export default function EditAssetPage({ params }: { params: Promise<{ id: string
   if (error || !asset) {
     return (
       <Alert variant="destructive">
-        <AlertDescription>Asset not found.</AlertDescription>
+        <AlertDescription>{t("assetForm.notFound")}</AlertDescription>
       </Alert>
     );
   }
@@ -179,11 +181,11 @@ export default function EditAssetPage({ params }: { params: Promise<{ id: string
           {asset.name}
         </Link>
         <span>/</span>
-        <span className="text-foreground font-medium">Edit</span>
+        <span className="text-foreground font-medium">{t("common.edit")}</span>
       </div>
 
       <div>
-        <h2 className="text-2xl font-bold tracking-tight">Edit Asset</h2>
+        <h2 className="text-2xl font-bold tracking-tight">{t("assetForm.editTitle")}</h2>
         <p className="text-muted-foreground text-sm mt-1">
           Update asset <span className="font-mono">{asset.code}</span>
         </p>
@@ -192,12 +194,12 @@ export default function EditAssetPage({ params }: { params: Promise<{ id: string
       <form onSubmit={handleSubmit} className="space-y-4">
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Basic Information</CardTitle>
+            <CardTitle className="text-base">{t("assetForm.basicInfo")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="name">Name *</Label>
+                <Label htmlFor="name">{t("common.name")} *</Label>
                 <Input
                   id="name"
                   value={form.name}
@@ -205,14 +207,14 @@ export default function EditAssetPage({ params }: { params: Promise<{ id: string
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="categoryId">Category *</Label>
+                <Label htmlFor="categoryId">{t("common.category")} *</Label>
                 <Select
                   value={form.categoryId}
                   onValueChange={(v) => setForm((f) => ({ ...f, categoryId: v ?? "" }))}
                 >
                   <SelectTrigger>
                     <SelectValue>
-                      {(value) => categories.find((c) => c.id === value)?.name ?? "Select category"}
+                      {(value) => categories.find((c) => c.id === value)?.name ?? t("assetForm.selectCategory")}
                     </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
@@ -238,7 +240,7 @@ export default function EditAssetPage({ params }: { params: Promise<{ id: string
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Purchase Information</CardTitle>
+            <CardTitle className="text-base">{t("assetForm.purchaseInfo")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
@@ -287,7 +289,7 @@ export default function EditAssetPage({ params }: { params: Promise<{ id: string
         {attrDefinitions.length > 0 && (
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Custom Attributes</CardTitle>
+              <CardTitle className="text-base">{t("assets.customAttributes")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <DynamicFieldRenderer
@@ -301,10 +303,10 @@ export default function EditAssetPage({ params }: { params: Promise<{ id: string
 
         <div className="flex justify-end gap-3">
           <Link href={`/assets/${id}`}>
-            <Button type="button" variant="outline">Cancel</Button>
+            <Button type="button" variant="outline">{t("common.cancel")}</Button>
           </Link>
           <Button type="submit" disabled={loading || !form.name.trim() || !form.categoryId}>
-            {loading ? "Saving..." : "Save Changes"}
+            {loading ? t("common.saving") : t("assetForm.saveBtn")}
           </Button>
         </div>
       </form>

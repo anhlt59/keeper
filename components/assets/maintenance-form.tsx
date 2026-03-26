@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
+import { useLanguage } from "@/context/language-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -35,6 +36,7 @@ export function MaintenanceForm({
   trigger,
   onSuccess,
 }: MaintenanceFormProps) {
+  const { t } = useLanguage();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
@@ -47,7 +49,7 @@ export function MaintenanceForm({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.description.trim()) {
-      toast.error("Description is required");
+      toast.error(t("maintForm.descRequired"));
       return;
     }
     setLoading(true);
@@ -68,12 +70,12 @@ export function MaintenanceForm({
         const data = await res.json();
         throw new Error(data.error ?? "Failed to create maintenance record");
       }
-      toast.success("Maintenance record created");
+      toast.success(t("maintForm.createSuccess"));
       setOpen(false);
       setForm({ type: "PREVENTIVE", description: "", startDate: new Date().toISOString().split("T")[0], cost: "", performedBy: "" });
       onSuccess?.();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to create maintenance");
+      toast.error(err instanceof Error ? err.message : t("maintForm.createFailed"));
     } finally {
       setLoading(false);
     }
@@ -84,14 +86,14 @@ export function MaintenanceForm({
       <div onClick={() => setOpen(true)}>{trigger}</div>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Add Maintenance Record</DialogTitle>
+          <DialogTitle>{t("maintForm.title")}</DialogTitle>
           <DialogDescription>
             Record maintenance for <strong>{assetName}</strong>.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="type">Type</Label>
+            <Label htmlFor="type">{t("common.type")}</Label>
             <Select
               value={form.type}
               onValueChange={(v) => setForm((f) => ({ ...f, type: v as "PREVENTIVE" | "CORRECTIVE" | "UPGRADE" }))}
@@ -100,15 +102,15 @@ export function MaintenanceForm({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="PREVENTIVE">Preventive</SelectItem>
-                <SelectItem value="CORRECTIVE">Corrective</SelectItem>
-                <SelectItem value="UPGRADE">Upgrade</SelectItem>
+                <SelectItem value="PREVENTIVE">{t("maint.type.PREVENTIVE")}</SelectItem>
+                <SelectItem value="CORRECTIVE">{t("maint.type.CORRECTIVE")}</SelectItem>
+                <SelectItem value="UPGRADE">{t("maint.type.UPGRADE")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="description">Description *</Label>
+            <Label htmlFor="description">{t("common.description")} *</Label>
             <Textarea
               id="description"
               placeholder="Describe the maintenance work..."
@@ -120,7 +122,7 @@ export function MaintenanceForm({
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
-              <Label htmlFor="startDate">Start Date</Label>
+              <Label htmlFor="startDate">{t("assetDetail.startDate")}</Label>
               <Input
                 id="startDate"
                 type="date"
@@ -129,7 +131,7 @@ export function MaintenanceForm({
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="cost">Cost (VND)</Label>
+              <Label htmlFor="cost">{t("maintForm.costLabel")}</Label>
               <Input
                 id="cost"
                 type="number"
@@ -141,7 +143,7 @@ export function MaintenanceForm({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="performedBy">Performed By</Label>
+            <Label htmlFor="performedBy">{t("assetDetail.performedBy")}</Label>
             <Input
               id="performedBy"
               placeholder="e.g. IT Support"
@@ -152,10 +154,10 @@ export function MaintenanceForm({
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => setOpen(false)} disabled={loading}>
-              Cancel
+              {t("common.cancel")}
             </Button>
             <Button type="submit" disabled={loading || !form.description.trim()}>
-              {loading ? "Creating..." : "Create Record"}
+              {loading ? t("common.creating") : t("maintForm.createRecord")}
             </Button>
           </DialogFooter>
         </form>

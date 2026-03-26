@@ -1,0 +1,229 @@
+import { translationsExtended } from "./translations-extended";
+
+export type Lang = "en" | "vi";
+
+/** Flat translation dictionary keyed by dot-notation IDs */
+export const translations: Record<string, Record<Lang, string>> = {
+  ...translationsExtended,
+  // ── Navigation ──
+  "nav.dashboard": { en: "Dashboard", vi: "Trang chủ" },
+  "nav.assets": { en: "Assets", vi: "Tài sản" },
+  "nav.categories": { en: "Categories", vi: "Danh mục" },
+  "nav.attributes": { en: "Attributes", vi: "Thuộc tính" },
+  "nav.maintenance": { en: "Maintenance", vi: "Bảo trì" },
+  "nav.invoices": { en: "Invoices", vi: "Hóa đơn" },
+  "nav.auditLogs": { en: "Audit Logs", vi: "Nhật ký" },
+  "nav.scan": { en: "Scan", vi: "Quét mã" },
+
+  // ── Page titles ──
+  "page.dashboard": { en: "Dashboard", vi: "Trang chủ" },
+  "page.assets": { en: "Asset Management", vi: "Quản lý tài sản" },
+  "page.categories": { en: "Categories", vi: "Danh mục" },
+  "page.attributes": { en: "Attributes", vi: "Thuộc tính" },
+  "page.maintenance": { en: "Maintenance", vi: "Bảo trì" },
+  "page.invoices": { en: "Invoices", vi: "Hóa đơn" },
+  "page.auditLogs": { en: "Audit Logs", vi: "Nhật ký kiểm toán" },
+  "page.scan": { en: "Scan QR", vi: "Quét mã QR" },
+
+  // ── User menu ──
+  "user.myAccount": { en: "My Account", vi: "Tài khoản" },
+  "user.signOut": { en: "Sign Out", vi: "Đăng xuất" },
+
+  // ── Common actions ──
+  "common.cancel": { en: "Cancel", vi: "Hủy" },
+  "common.confirm": { en: "Confirm", vi: "Xác nhận" },
+  "common.processing": { en: "Processing...", vi: "Đang xử lý..." },
+  "common.save": { en: "Save", vi: "Lưu" },
+  "common.saving": { en: "Saving...", vi: "Đang lưu..." },
+  "common.delete": { en: "Delete", vi: "Xóa" },
+  "common.edit": { en: "Edit", vi: "Sửa" },
+  "common.add": { en: "Add", vi: "Thêm" },
+  "common.search": { en: "Search", vi: "Tìm kiếm" },
+  "common.view": { en: "View", vi: "Xem" },
+  "common.create": { en: "Create", vi: "Tạo" },
+  "common.creating": { en: "Creating...", vi: "Đang tạo..." },
+  "common.actions": { en: "Actions", vi: "Thao tác" },
+  "common.name": { en: "Name", vi: "Tên" },
+  "common.description": { en: "Description", vi: "Mô tả" },
+  "common.status": { en: "Status", vi: "Trạng thái" },
+  "common.type": { en: "Type", vi: "Loại" },
+  "common.date": { en: "Date", vi: "Ngày" },
+  "common.cost": { en: "Cost", vi: "Chi phí" },
+  "common.yes": { en: "Yes", vi: "Có" },
+  "common.no": { en: "No", vi: "Không" },
+  "common.allStatus": { en: "All Status", vi: "Tất cả trạng thái" },
+  "common.noResults": { en: "No results found", vi: "Không tìm thấy kết quả" },
+  "common.required": { en: "Required", vi: "Bắt buộc" },
+  "common.category": { en: "Category", vi: "Danh mục" },
+  "common.code": { en: "Code", vi: "Mã" },
+
+  // ── Asset statuses ──
+  "status.PURCHASED": { en: "Purchased", vi: "Đã mua" },
+  "status.ASSIGNED": { en: "Assigned", vi: "Đã giao" },
+  "status.IN_USE": { en: "In Use", vi: "Đang dùng" },
+  "status.MAINTENANCE": { en: "Maintenance", vi: "Bảo trì" },
+  "status.RETIRED": { en: "Retired", vi: "Đã thanh lý" },
+  "status.DISPOSED": { en: "Disposed", vi: "Đã xử lý" },
+
+  // ── Maintenance statuses ──
+  "maint.status.SCHEDULED": { en: "Scheduled", vi: "Đã lên lịch" },
+  "maint.status.IN_PROGRESS": { en: "In Progress", vi: "Đang thực hiện" },
+  "maint.status.COMPLETED": { en: "Completed", vi: "Hoàn thành" },
+  "maint.status.CANCELLED": { en: "Cancelled", vi: "Đã hủy" },
+
+  // ── Maintenance types ──
+  "maint.type.PREVENTIVE": { en: "Preventive", vi: "Phòng ngừa" },
+  "maint.type.CORRECTIVE": { en: "Corrective", vi: "Sửa chữa" },
+  "maint.type.UPGRADE": { en: "Upgrade", vi: "Nâng cấp" },
+
+  // ── Invoice statuses ──
+  "invoice.status.PENDING": { en: "Pending", vi: "Chờ duyệt" },
+  "invoice.status.CONFIRMED": { en: "Confirmed", vi: "Đã xác nhận" },
+  "invoice.status.REJECTED": { en: "Rejected", vi: "Đã từ chối" },
+
+  // ── Time ──
+  "time.justNow": { en: "just now", vi: "vừa xong" },
+  "time.mAgo": { en: "{n}m ago", vi: "{n} phút trước" },
+  "time.hAgo": { en: "{n}h ago", vi: "{n} giờ trước" },
+  "time.dAgo": { en: "{n}d ago", vi: "{n} ngày trước" },
+
+  // ── Dashboard KPI ──
+  "kpi.totalAssets": { en: "Total Assets", vi: "Tổng tài sản" },
+  "kpi.totalValue": { en: "Total Value", vi: "Tổng giá trị" },
+  "kpi.maintenanceCostMTD": { en: "Maintenance Cost (MTD)", vi: "Chi phí bảo trì (tháng)" },
+  "kpi.totalMaintenance": { en: "Total Maintenance", vi: "Tổng bảo trì" },
+  "kpi.inMaintenance": { en: "In Maintenance", vi: "Đang bảo trì" },
+  "kpi.activeAssets": { en: "Active assets", vi: "Tài sản hoạt động" },
+  "kpi.allAssets": { en: "All assets", vi: "Tất cả tài sản" },
+  "kpi.thisMonth": { en: "This month", vi: "Tháng này" },
+  "kpi.allTime": { en: "All time", vi: "Tất cả thời gian" },
+  "kpi.pendingAssets": { en: "Pending assets", vi: "Tài sản chờ xử lý" },
+
+  // ── Dashboard charts ──
+  "chart.statusDistribution": { en: "Status Distribution", vi: "Phân bố trạng thái" },
+  "chart.maintenanceCosts": { en: "Maintenance Costs (Last 6 Months)", vi: "Chi phí bảo trì (6 tháng gần nhất)" },
+  "chart.noData": { en: "No data available", vi: "Không có dữ liệu" },
+  "chart.noMaintenanceData": { en: "No maintenance data available", vi: "Không có dữ liệu bảo trì" },
+
+  // ── Dashboard recent activity ──
+  "activity.title": { en: "Recent Activity", vi: "Hoạt động gần đây" },
+  "activity.noActivity": { en: "No recent activity", vi: "Không có hoạt động gần đây" },
+
+  // ── Assets page ──
+  "assets.title": { en: "Assets", vi: "Tài sản" },
+  "assets.allAssets": { en: "All assets", vi: "Tất cả tài sản" },
+  "assets.newAsset": { en: "New Asset", vi: "Tài sản mới" },
+  "assets.searchPlaceholder": { en: "Search by name or code...", vi: "Tìm theo tên hoặc mã..." },
+  "assets.allCategories": { en: "All Categories", vi: "Tất cả danh mục" },
+  "assets.noAssets": { en: "No assets found", vi: "Không tìm thấy tài sản" },
+  "assets.noAssetsHint": { en: "Try adjusting your filters or create a new asset.", vi: "Thử điều chỉnh bộ lọc hoặc tạo tài sản mới." },
+  "assets.assignedTo": { en: "Assigned To", vi: "Giao cho" },
+  "assets.purchaseDate": { en: "Purchase Date", vi: "Ngày mua" },
+  "assets.purchasePrice": { en: "Purchase Price", vi: "Giá mua" },
+  "assets.vendor": { en: "Vendor", vi: "Nhà cung cấp" },
+  "assets.warranty": { en: "Warranty", vi: "Bảo hành" },
+  "assets.warrantyMonths": { en: "{n} months", vi: "{n} tháng" },
+  "assets.details": { en: "Asset Details", vi: "Chi tiết tài sản" },
+  "assets.customAttributes": { en: "Custom Attributes", vi: "Thuộc tính tùy chỉnh" },
+  "assets.timeline": { en: "Lifecycle Timeline", vi: "Lịch sử vòng đời" },
+  "assets.noEvents": { en: "No events yet", vi: "Chưa có sự kiện" },
+  "assets.noAttributes": { en: "No custom attributes defined for this category.", vi: "Chưa có thuộc tính tùy chỉnh cho danh mục này." },
+
+  // ── Asset form ──
+  "assetForm.createTitle": { en: "New Asset", vi: "Tài sản mới" },
+  "assetForm.createSubtitle": { en: "Create a new asset record.", vi: "Tạo bản ghi tài sản mới." },
+  "assetForm.editTitle": { en: "Edit Asset", vi: "Sửa tài sản" },
+  "assetForm.basicInfo": { en: "Basic Information", vi: "Thông tin cơ bản" },
+  "assetForm.purchaseInfo": { en: "Purchase Information", vi: "Thông tin mua hàng" },
+  "assetForm.namePlaceholder": { en: "e.g. MacBook Pro 14 M3", vi: "VD: MacBook Pro 14 M3" },
+  "assetForm.codeLabel": { en: "Asset Code (auto-generated)", vi: "Mã tài sản (tự động)" },
+  "assetForm.codeHint": { en: "A unique code will be assigned on creation.", vi: "Mã duy nhất sẽ được gán khi tạo." },
+  "assetForm.descPlaceholder": { en: "Optional description...", vi: "Mô tả (tùy chọn)..." },
+  "assetForm.pricePlaceholder": { en: "Purchase Price (VND)", vi: "Giá mua (VND)" },
+  "assetForm.vendorPlaceholder": { en: "e.g. Apple Store VN", vi: "VD: Apple Store VN" },
+  "assetForm.warrantyPlaceholder": { en: "12", vi: "12" },
+  "assetForm.warrantyLabel": { en: "Warranty (months)", vi: "Bảo hành (tháng)" },
+  "assetForm.selectCategory": { en: "Select category", vi: "Chọn danh mục" },
+  "assetForm.createBtn": { en: "Create Asset", vi: "Tạo tài sản" },
+  "assetForm.saveBtn": { en: "Save Changes", vi: "Lưu thay đổi" },
+  "assetForm.nameRequired": { en: "Name is required", vi: "Tên là bắt buộc" },
+  "assetForm.categoryRequired": { en: "Category is required", vi: "Danh mục là bắt buộc" },
+  "assetForm.created": { en: "Asset created successfully", vi: "Tạo tài sản thành công" },
+  "assetForm.updated": { en: "Asset updated", vi: "Cập nhật tài sản thành công" },
+  "assetForm.createFailed": { en: "Failed to create asset", vi: "Tạo tài sản thất bại" },
+  "assetForm.updateFailed": { en: "Failed to update asset", vi: "Cập nhật tài sản thất bại" },
+  "assetForm.notFound": { en: "Asset not found.", vi: "Không tìm thấy tài sản." },
+
+  // ── Asset detail ──
+  "assetDetail.info": { en: "Info", vi: "Thông tin" },
+  "assetDetail.attributes": { en: "Attributes", vi: "Thuộc tính" },
+  "assetDetail.maintenanceTab": { en: "Maintenance", vi: "Bảo trì" },
+  "assetDetail.addRecord": { en: "Add Record", vi: "Thêm bản ghi" },
+  "assetDetail.noMaintenance": { en: "No maintenance records", vi: "Không có bản ghi bảo trì" },
+  "assetDetail.startDate": { en: "Start Date", vi: "Ngày bắt đầu" },
+  "assetDetail.endDate": { en: "End Date", vi: "Ngày kết thúc" },
+  "assetDetail.performedBy": { en: "Performed By", vi: "Thực hiện bởi" },
+  "assetDetail.qr": { en: "QR", vi: "QR" },
+  "assetDetail.deleteTitle": { en: "Delete Asset", vi: "Xóa tài sản" },
+  "assetDetail.deleteDesc": { en: "Are you sure you want to permanently delete this asset? This cannot be undone.", vi: "Bạn có chắc muốn xóa vĩnh viễn tài sản này? Không thể hoàn tác." },
+  "assetDetail.retireTitle": { en: "Retire Asset", vi: "Thanh lý tài sản" },
+  "assetDetail.retireDesc": { en: "Are you sure you want to retire this asset?", vi: "Bạn có chắc muốn thanh lý tài sản này?" },
+  "assetDetail.retire": { en: "Retire", vi: "Thanh lý" },
+  "assetDetail.deleted": { en: "Asset deleted", vi: "Đã xóa tài sản" },
+  "assetDetail.deleteFailed": { en: "Failed to delete", vi: "Xóa thất bại" },
+  "assetDetail.recalled": { en: "Asset recalled (unassigned)", vi: "Đã thu hồi tài sản" },
+  "assetDetail.recallFailed": { en: "Recall failed", vi: "Thu hồi thất bại" },
+  "assetDetail.transitionFailed": { en: "Transition failed", vi: "Chuyển trạng thái thất bại" },
+
+  // ── Assign dialog ──
+  "assign.title": { en: "Assign Asset", vi: "Giao tài sản" },
+  "assign.employee": { en: "Employee", vi: "Nhân viên" },
+  "assign.selectEmployee": { en: "Select an employee", vi: "Chọn nhân viên" },
+  "assign.noEmployees": { en: "No employees found", vi: "Không tìm thấy nhân viên" },
+  "assign.assigning": { en: "Assigning...", vi: "Đang giao..." },
+  "assign.assign": { en: "Assign", vi: "Giao" },
+  "assign.selectRequired": { en: "Please select an employee", vi: "Vui lòng chọn nhân viên" },
+  "assign.success": { en: "Asset assigned", vi: "Đã giao tài sản" },
+  "assign.failed": { en: "Failed to assign asset", vi: "Giao tài sản thất bại" },
+
+  // ── Maintenance form ──
+  "maintForm.title": { en: "Add Maintenance Record", vi: "Thêm bản ghi bảo trì" },
+  "maintForm.descPlaceholder": { en: "Describe the maintenance work...", vi: "Mô tả công việc bảo trì..." },
+  "maintForm.costLabel": { en: "Cost (VND)", vi: "Chi phí (VND)" },
+  "maintForm.performedByPlaceholder": { en: "e.g. IT Support", vi: "VD: Bộ phận IT" },
+  "maintForm.createRecord": { en: "Create Record", vi: "Tạo bản ghi" },
+  "maintForm.descRequired": { en: "Description is required", vi: "Mô tả là bắt buộc" },
+  "maintForm.created": { en: "Maintenance record created", vi: "Đã tạo bản ghi bảo trì" },
+  "maintForm.createFailed": { en: "Failed to create maintenance record", vi: "Tạo bản ghi bảo trì thất bại" },
+
+  // ── QR ──
+  "qr.generating": { en: "Generating...", vi: "Đang tạo..." },
+  "qr.scanDesc": { en: "Scan to view asset details without logging in.", vi: "Quét để xem chi tiết tài sản mà không cần đăng nhập." },
+  "qr.downloadPNG": { en: "Download PNG", vi: "Tải PNG" },
+  "qr.printLabel": { en: "Print Label", vi: "In nhãn" },
+
+  // ── Categories page ──
+  "categories.subtitle": { en: "Manage asset categories and groupings", vi: "Quản lý danh mục và nhóm tài sản" },
+  "categories.addCategory": { en: "Add Category", vi: "Thêm danh mục" },
+  "categories.parent": { en: "Parent", vi: "Danh mục cha" },
+  "categories.assetsCount": { en: "Assets", vi: "Tài sản" },
+  "categories.noCategories": { en: "No categories yet", vi: "Chưa có danh mục" },
+  "categories.noCategoriesHint": { en: "Create your first category to organize assets.", vi: "Tạo danh mục đầu tiên để tổ chức tài sản." },
+  "categories.deleted": { en: "Category deleted", vi: "Đã xóa danh mục" },
+  "categories.deleteFailed": { en: "Failed to delete category", vi: "Xóa danh mục thất bại" },
+  "categories.deleteTitle": { en: "Delete Category", vi: "Xóa danh mục" },
+
+  // ── Category form ──
+  "catForm.editTitle": { en: "Edit Category", vi: "Sửa danh mục" },
+  "catForm.addTitle": { en: "Add Category", vi: "Thêm danh mục" },
+  "catForm.editDesc": { en: "Update the category details.", vi: "Cập nhật thông tin danh mục." },
+  "catForm.addDesc": { en: "Create a new asset category.", vi: "Tạo danh mục tài sản mới." },
+  "catForm.namePlaceholder": { en: "e.g. Laptop", vi: "VD: Laptop" },
+  "catForm.descPlaceholder": { en: "Optional description...", vi: "Mô tả (tùy chọn)..." },
+  "catForm.parentCategory": { en: "Parent Category", vi: "Danh mục cha" },
+  "catForm.noParent": { en: "None (top-level)", vi: "Không (cấp cao nhất)" },
+  "catForm.nameRequired": { en: "Category name is required", vi: "Tên danh mục là bắt buộc" },
+  "catForm.updated": { en: "Category updated", vi: "Cập nhật danh mục thành công" },
+  "catForm.created": { en: "Category created", vi: "Tạo danh mục thành công" },
+  "catForm.saveFailed": { en: "Failed to save category", vi: "Lưu danh mục thất bại" },
+};

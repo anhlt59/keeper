@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { useQuery } from "@tanstack/react-query";
+import { useLanguage } from "@/context/language-context";
 import { toast } from "sonner";
 import { apiFetch } from "@/lib/api-fetch";
 import { ChevronLeftIcon } from "lucide-react";
@@ -35,6 +36,7 @@ function generatePreviewCode(): string {
 }
 
 export default function NewAssetPage() {
+  const { t } = useLanguage();
   const router = useRouter();
   const queryClient = useQueryClient();
   const [loading, setLoading] = useState(false);
@@ -77,8 +79,8 @@ export default function NewAssetPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.name.trim()) { toast.error("Name is required"); return; }
-    if (!form.categoryId) { toast.error("Category is required"); return; }
+    if (!form.name.trim()) { toast.error(t("assetForm.nameRequired")); return; }
+    if (!form.categoryId) { toast.error(t("assetForm.categoryRequired")); return; }
 
     setLoading(true);
     try {
@@ -101,12 +103,12 @@ export default function NewAssetPage() {
         throw new Error(data.error ?? "Failed to create asset");
       }
       const asset = await res.json();
-      toast.success("Asset created successfully");
+      toast.success(t("assetForm.createSuccess"));
       await queryClient.invalidateQueries({ queryKey: ["assets"] });
       router.refresh();
       router.push(`/assets/${asset.id}`);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to create asset");
+      toast.error(err instanceof Error ? err.message : t("assetForm.createFailed"));
     } finally {
       setLoading(false);
     }
@@ -118,42 +120,42 @@ export default function NewAssetPage() {
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
         <Link href="/assets" className="hover:text-foreground flex items-center gap-1">
           <ChevronLeftIcon className="h-4 w-4" />
-          Assets
+          {t("assets.title")}
         </Link>
         <span>/</span>
-        <span className="text-foreground font-medium">New Asset</span>
+        <span className="text-foreground font-medium">{t("assetForm.createTitle")}</span>
       </div>
 
       <div>
-        <h2 className="text-2xl font-bold tracking-tight">New Asset</h2>
-        <p className="text-muted-foreground text-sm mt-1">Create a new asset record.</p>
+        <h2 className="text-2xl font-bold tracking-tight">{t("assetForm.createTitle")}</h2>
+        <p className="text-muted-foreground text-sm mt-1">{t("assetForm.createSubtitle")}</p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Basic Information</CardTitle>
+            <CardTitle className="text-base">{t("assetForm.basicInfo")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="name">Name *</Label>
+                <Label htmlFor="name">{t("common.name")} *</Label>
                 <Input
                   id="name"
-                  placeholder="e.g. MacBook Pro 14 M3"
+                  placeholder={t("assetForm.namePlaceholder")}
                   value={form.name}
                   onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="categoryId">Category *</Label>
+                <Label htmlFor="categoryId">{t("common.category")} *</Label>
                 <Select
                   value={form.categoryId}
                   onValueChange={(v) => setForm((f) => ({ ...f, categoryId: v ?? "" }))}
                 >
                   <SelectTrigger>
                     <SelectValue>
-                      {(value) => categories.find((c) => c.id === value)?.name ?? "Select category"}
+                      {(value) => categories.find((c) => c.id === value)?.name ?? t("assetForm.selectCategory")}
                     </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
@@ -166,7 +168,7 @@ export default function NewAssetPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="code-preview">Asset Code (auto-generated)</Label>
+              <Label htmlFor="code-preview">{t("assetForm.codeLabel")}</Label>
               <Input
                 id="code-preview"
                 value={codePreview}
@@ -174,7 +176,7 @@ export default function NewAssetPage() {
                 className="font-mono text-sm bg-muted/50"
               />
               <p className="text-xs text-muted-foreground">
-                A unique code will be assigned on creation.
+                {t("assetForm.codeHint")}
               </p>
             </div>
 
@@ -193,7 +195,7 @@ export default function NewAssetPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Purchase Information</CardTitle>
+            <CardTitle className="text-base">{t("assetForm.purchaseInfo")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
@@ -244,7 +246,7 @@ export default function NewAssetPage() {
         {attrDefinitions.length > 0 && (
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Custom Attributes</CardTitle>
+              <CardTitle className="text-base">{t("assets.customAttributes")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <DynamicFieldRenderer
@@ -258,10 +260,10 @@ export default function NewAssetPage() {
 
         <div className="flex justify-end gap-3">
           <Link href="/assets">
-            <Button type="button" variant="outline">Cancel</Button>
+            <Button type="button" variant="outline">{t("common.cancel")}</Button>
           </Link>
           <Button type="submit" disabled={loading || !form.name.trim() || !form.categoryId}>
-            {loading ? "Creating..." : "Create Asset"}
+            {loading ? t("common.creating") : t("assetForm.createBtn")}
           </Button>
         </div>
       </form>

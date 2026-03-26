@@ -8,11 +8,12 @@ import { PlusIcon, Trash2Icon, FileTextIcon, EyeIcon } from "lucide-react";
 import { apiFetch } from "@/lib/api-fetch";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from "@/components/ui/table";
 import { InvoiceStatus } from "@prisma/client";
+import { useLanguage } from "@/context/language-context";
 
 interface Invoice {
   id: string;
@@ -29,11 +30,6 @@ const STATUS_CLASS: Record<InvoiceStatus, string> = {
   PENDING: "bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-300",
   CONFIRMED: "bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300",
   REJECTED: "bg-red-50 text-red-700 dark:bg-red-950 dark:text-red-300",
-};
-const STATUS_LABEL: Record<InvoiceStatus, string> = {
-  PENDING: "Pending",
-  CONFIRMED: "Confirmed",
-  REJECTED: "Rejected",
 };
 
 function formatDate(d: string | null): string {
@@ -52,6 +48,7 @@ function formatVND(v: string | null): string {
 }
 
 export default function InvoicesPage() {
+  const { t } = useLanguage();
   const router = useRouter();
   const queryClient = useQueryClient();
   const [deleteTarget, setDeleteTarget] = useState<Invoice | null>(null);
@@ -71,27 +68,33 @@ export default function InvoicesPage() {
       if (!res.ok) throw new Error("Delete failed");
     },
     onSuccess: () => {
-      toast.success("Invoice deleted");
+      toast.success(t("invoices.deleted"));
       queryClient.invalidateQueries({ queryKey: ["invoices"] });
       setDeleteTarget(null);
     },
-    onError: () => toast.error("Failed to delete invoice"),
+    onError: () => toast.error(t("invoices.deleteFailed")),
   });
 
   const invoices = data?.items ?? [];
+
+  const STATUS_LABEL: Record<InvoiceStatus, string> = {
+    PENDING: t("invoice.status.PENDING"),
+    CONFIRMED: t("invoice.status.CONFIRMED"),
+    REJECTED: t("invoice.status.REJECTED"),
+  };
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">Invoices</h2>
+          <h2 className="text-2xl font-bold tracking-tight">{t("nav.invoices")}</h2>
           <p className="text-muted-foreground text-sm mt-1">
-            Upload and manage purchase invoices with OCR extraction.
+            {t("invoices.subtitle")}
           </p>
         </div>
         <Button onClick={() => router.push("/invoices/new")} size="sm">
           <PlusIcon className="h-4 w-4" />
-          Upload Invoice
+          {t("invoices.upload")}
         </Button>
       </div>
 
@@ -103,13 +106,13 @@ export default function InvoicesPage() {
         <Card>
           <CardContent className="py-12 text-center">
             <FileTextIcon className="h-10 w-10 mx-auto mb-3 text-muted-foreground/40" />
-            <p className="font-medium">No invoices yet</p>
+            <p className="font-medium">{t("invoices.noInvoices")}</p>
             <p className="text-sm text-muted-foreground mt-1">
-              Upload a photo of an invoice to extract data automatically.
+              {t("invoices.noInvoicesHint")}
             </p>
             <Button className="mt-4" size="sm" onClick={() => router.push("/invoices/new")}>
               <PlusIcon className="h-4 w-4" />
-              Upload First Invoice
+              {t("invoices.uploadFirst")}
             </Button>
           </CardContent>
         </Card>
@@ -118,12 +121,12 @@ export default function InvoicesPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Date</TableHead>
-                <TableHead>Vendor</TableHead>
-                <TableHead>Amount</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Created</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead>{t("common.date")}</TableHead>
+                <TableHead>{t("invoices.vendor")}</TableHead>
+                <TableHead>{t("invoices.amount")}</TableHead>
+                <TableHead>{t("common.status")}</TableHead>
+                <TableHead>{t("invoices.created")}</TableHead>
+                <TableHead className="text-right">{t("common.actions")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -165,11 +168,11 @@ export default function InvoicesPage() {
       <ConfirmDialog
         open={!!deleteTarget}
         onOpenChange={(v) => { if (!v) setDeleteTarget(null); }}
-        title="Delete Invoice"
+        title={t("invoices.deleteTitle")}
         description={`Delete invoice from ${deleteTarget?.vendor ?? "unknown vendor"}? This cannot be undone.`}
         onConfirm={() => deleteTarget && deleteMutation.mutate(deleteTarget.id)}
         loading={deleteMutation.isPending}
-        confirmLabel="Delete"
+        confirmLabel={t("common.delete")}
         variant="destructive"
       />
     </div>

@@ -8,11 +8,11 @@ import { apiFetch } from "@/lib/api-fetch";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
 import { InvoiceUpload } from "@/components/invoices/invoice-upload";
 import { InvoicePreview } from "@/components/invoices/invoice-preview";
 import { InvoiceForm } from "@/components/invoices/invoice-form";
 import { type EditableAsset } from "@/components/invoices/editable-asset-row";
+import { useLanguage } from "@/context/language-context";
 
 interface ExtractedAsset {
   name: string;
@@ -47,6 +47,7 @@ interface OcrResult {
 type Step = "upload" | "preview" | "confirm";
 
 export default function NewInvoicePage() {
+  const { t } = useLanguage();
   const router = useRouter();
   const [step, setStep] = useState<Step>("upload");
   const [ocrResult, setOcrResult] = useState<OcrResult | null>(null);
@@ -60,7 +61,7 @@ export default function NewInvoicePage() {
   }
 
   async function handleUpload() {
-    if (!file) { toast.error("Please select an image first"); return; }
+    if (!file) { toast.error(t("invoiceUpload.selectImage")); return; }
     setUploading(true);
     try {
       const fd = new FormData();
@@ -68,7 +69,7 @@ export default function NewInvoicePage() {
       const res = await apiFetch("/api/invoices/ocr", { method: "POST", body: fd });
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error ?? "OCR extraction failed");
+        throw new Error(data.error ?? t("invoiceUpload.ocrFailed"));
       }
       const result: OcrResult = await res.json();
       setOcrResult(result);
@@ -86,9 +87,9 @@ export default function NewInvoicePage() {
         totalAmount: result.extracted.totalAmount != null ? String(result.extracted.totalAmount) : "",
       });
       setStep("preview");
-      toast.success("Invoice data extracted");
+      toast.success(t("invoiceUpload.extracted"));
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "OCR failed");
+      toast.error(err instanceof Error ? err.message : t("invoiceUpload.ocrFailed"));
     } finally {
       setUploading(false);
     }
@@ -106,24 +107,30 @@ export default function NewInvoicePage() {
     setEditableAssets((prev) => prev.filter((_, i) => i !== index));
   }
 
+  const STEP_LABELS: Record<Step, string> = {
+    upload: t("invoiceUpload.step1"),
+    preview: t("invoiceUpload.step2"),
+    confirm: t("invoiceUpload.step3"),
+  };
+
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
         <Link href="/invoices" className="hover:text-foreground flex items-center gap-1">
           <ChevronLeftIcon className="h-4 w-4" />
-          Invoices
+          {t("nav.invoices")}
         </Link>
         <span>/</span>
         <span className="text-foreground font-medium">
-          {step === "upload" ? "Upload Invoice" : step === "preview" ? "Review & Confirm" : "Confirm"}
+          {t("invoices.upload")}
         </span>
       </div>
 
       <div>
-        <h2 className="text-2xl font-bold tracking-tight">Upload Invoice</h2>
+        <h2 className="text-2xl font-bold tracking-tight">{t("invoiceUpload.title")}</h2>
         <p className="text-muted-foreground text-sm mt-1">
-          Take a photo or upload an image of your invoice. The data will be extracted automatically.
+          {t("invoiceUpload.subtitle")}
         </p>
       </div>
 
@@ -139,7 +146,7 @@ export default function NewInvoicePage() {
               {i + 1}
             </span>
             <span className={step === s ? "font-medium" : "text-muted-foreground"}>
-              {s === "upload" ? "Upload" : s === "preview" ? "Review" : "Confirm"}
+              {STEP_LABELS[s]}
             </span>
             {i < 2 && <span className="text-muted-foreground mx-1">›</span>}
           </div>
@@ -150,13 +157,13 @@ export default function NewInvoicePage() {
       {step === "upload" && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Step 1: Upload Image</CardTitle>
+            <CardTitle className="text-base">{t("invoiceUpload.step1Title")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <InvoiceUpload onFileSelected={handleFileSelected} />
             <div className="flex justify-end">
               <Button onClick={handleUpload} disabled={!file || uploading}>
-                {uploading ? "Extracting..." : "Extract Data →"}
+                {uploading ? t("invoiceUpload.extracting") : t("invoiceUpload.extractBtn")}
               </Button>
             </div>
           </CardContent>
@@ -167,7 +174,7 @@ export default function NewInvoicePage() {
       {step === "preview" && ocrResult && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Step 2: Review Extracted Data</CardTitle>
+            <CardTitle className="text-base">{t("invoiceUpload.step2Title")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
             {file && (
@@ -191,10 +198,10 @@ export default function NewInvoicePage() {
             />
             <div className="flex justify-between">
               <Button variant="outline" onClick={() => setStep("upload")}>
-                ← Re-upload
+                {t("invoiceUpload.reupload")}
               </Button>
               <Button onClick={() => setStep("confirm")}>
-                Looks Good →
+                {t("invoiceUpload.looksGood")}
               </Button>
             </div>
           </CardContent>
@@ -207,7 +214,7 @@ export default function NewInvoicePage() {
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2">
               <CheckCircleIcon className="h-4 w-4 text-green-600" />
-              Step 3: Confirm & Save
+              {t("invoiceUpload.step3Title")}
             </CardTitle>
           </CardHeader>
           <CardContent>

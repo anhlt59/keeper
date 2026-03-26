@@ -14,6 +14,8 @@ import {
   Settings2Icon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/context/language-context";
+import { LanguageToggle } from "@/components/shared/language-toggle";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -26,18 +28,19 @@ import {
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 const navItems = [
-  { href: "/", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/assets", label: "Assets", icon: Package },
-  { href: "/categories", label: "Categories", icon: Tags },
-  { href: "/attributes", label: "Attributes", icon: Settings2Icon },
-  { href: "/maintenance", label: "Maintenance", icon: Wrench },
-  { href: "/invoices", label: "Invoices", icon: FileText },
-  { href: "/audit-logs", label: "Audit Logs", icon: ScrollText },
-  { href: "/scan", label: "Scan", icon: QrCodeIcon },
+  { href: "/", labelKey: "nav.dashboard", icon: LayoutDashboard },
+  { href: "/assets", labelKey: "nav.assets", icon: Package },
+  { href: "/categories", labelKey: "nav.categories", icon: Tags },
+  { href: "/attributes", labelKey: "nav.attributes", icon: Settings2Icon },
+  { href: "/maintenance", labelKey: "nav.maintenance", icon: Wrench },
+  { href: "/invoices", labelKey: "nav.invoices", icon: FileText },
+  { href: "/audit-logs", labelKey: "nav.auditLogs", icon: ScrollText },
+  { href: "/scan", labelKey: "nav.scan", icon: QrCodeIcon },
 ];
 
 function Sidebar() {
   const pathname = usePathname();
+  const { t } = useLanguage();
 
   return (
     <aside className="hidden lg:flex flex-col w-64 border-r bg-slate-50 dark:bg-slate-900 min-h-screen">
@@ -68,7 +71,7 @@ function Sidebar() {
               )}
             >
               <item.icon className="h-4 w-4" />
-              {item.label}
+              {t(item.labelKey)}
             </Link>
           );
         })}
@@ -93,7 +96,7 @@ function Sidebar() {
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48">
             <DropdownMenuGroup>
-              <DropdownMenuLabel>My Account</DropdownMenuLabel>
+              <DropdownMenuLabel>{t("user.myAccount")}</DropdownMenuLabel>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem
@@ -102,7 +105,7 @@ function Sidebar() {
                 window.location.href = "/login";
               }}
             >
-              Sign Out
+              {t("user.signOut")}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -113,6 +116,7 @@ function Sidebar() {
 
 function MobileNav() {
   const pathname = usePathname();
+  const { t } = useLanguage();
 
   return (
     <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-background border-t flex">
@@ -133,7 +137,7 @@ function MobileNav() {
             )}
           >
             <item.icon className="h-5 w-5" />
-            <span>{item.label}</span>
+            <span>{t(item.labelKey)}</span>
           </Link>
         );
       })}
@@ -141,41 +145,43 @@ function MobileNav() {
   );
 }
 
-const pageConfig: Record<string, { title: string; action?: { label: string; href: string } }> = {
-  "/": { title: "Dashboard" },
-  "/assets": { title: "Asset Management"},
-  "/categories": { title: "Categories" },
-  "/attributes": { title: "Attributes" },
-  "/maintenance": { title: "Maintenance" },
-  "/invoices": { title: "Invoices" },
-  "/audit-logs": { title: "Audit Logs" },
-  "/scan": { title: "Scan QR" },
+const pageConfig: Record<string, { titleKey: string; action?: { label: string; href: string } }> = {
+  "/": { titleKey: "page.dashboard" },
+  "/assets": { titleKey: "page.assets" },
+  "/categories": { titleKey: "page.categories" },
+  "/attributes": { titleKey: "page.attributes" },
+  "/maintenance": { titleKey: "page.maintenance" },
+  "/invoices": { titleKey: "page.invoices" },
+  "/audit-logs": { titleKey: "page.auditLogs" },
+  "/scan": { titleKey: "page.scan" },
 };
 
 function PageHeader() {
   const pathname = usePathname();
+  const { t } = useLanguage();
 
   // Match the most specific route
   const config =
     Object.entries(pageConfig)
       .filter(([key]) => (key === "/" ? pathname === "/" : pathname.startsWith(key)))
-      .sort((a, b) => b[0].length - a[0].length)[0]?.[1] ?? { title: "Zoo" };
+      .sort((a, b) => b[0].length - a[0].length)[0]?.[1] ?? { titleKey: "Zoo" };
 
   return (
     <header className="sticky top-0 z-10 flex items-center justify-between px-6 h-16 border-b bg-background">
       <div className="flex items-center gap-4">
-        <h1 className="text-lg font-semibold">{config.title}</h1>
+        <h1 className="text-lg font-semibold">{t(config.titleKey)}</h1>
       </div>
-      {config.action && (
-        <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3">
+        {config.action && (
           <Link
             href={config.action.href}
             className="inline-flex shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground h-7 gap-1 px-2.5 text-[0.8rem] font-medium hover:bg-primary/80 transition-colors cursor-pointer"
           >
             {config.action.label}
           </Link>
-        </div>
-      )}
+        )}
+        <LanguageToggle />
+      </div>
     </header>
   );
 }

@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/select";
 import { AttributeFieldType } from "@prisma/client";
 import { parseOptions } from "@/lib/validators/dynamic-attrs";
+import { useLanguage } from "@/context/language-context";
 
 interface DynamicFieldProps {
   name: string;
@@ -35,6 +36,7 @@ export function DynamicField({
   error,
   onChange,
 }: DynamicFieldProps) {
+  const { t } = useLanguage();
   const opts = parseOptions(options);
 
   function handleChange(raw: unknown) {
@@ -88,7 +90,7 @@ export function DynamicField({
             />
           </button>
           <span className="text-sm text-muted-foreground">
-            {(value as boolean) ? "Yes" : "No"}
+            {(value as boolean) ? t("common.yes") : t("common.no")}
           </span>
         </div>
       )}
@@ -109,7 +111,7 @@ export function DynamicField({
           onValueChange={(v) => handleChange(v)}
         >
           <SelectTrigger id={name} aria-invalid={!!error}>
-            <SelectValue placeholder="Select option" />
+            <SelectValue placeholder={t("attrForm.selectOption")} />
           </SelectTrigger>
           <SelectContent>
             {opts.map((opt) => (

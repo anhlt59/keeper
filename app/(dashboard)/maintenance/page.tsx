@@ -29,6 +29,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { MaintenanceStatus } from "@prisma/client";
+import { useLanguage } from "@/context/language-context";
 
 interface MaintenanceRecord {
   id: string;
@@ -50,19 +51,6 @@ interface ListResponse {
   totalPages: number;
 }
 
-const TYPE_LABEL: Record<string, string> = {
-  PREVENTIVE: "Preventive",
-  CORRECTIVE: "Corrective",
-  UPGRADE: "Upgrade",
-};
-
-const STATUS_LABEL: Record<string, string> = {
-  SCHEDULED: "Scheduled",
-  IN_PROGRESS: "In Progress",
-  COMPLETED: "Completed",
-  CANCELLED: "Cancelled",
-};
-
 const STATUS_STYLE: Record<string, { bg: string; text: string }> = {
   SCHEDULED: { bg: "bg-blue-50 dark:bg-blue-950", text: "text-blue-700 dark:text-blue-300" },
   IN_PROGRESS: { bg: "bg-amber-50 dark:bg-amber-950", text: "text-amber-700 dark:text-amber-300" },
@@ -82,6 +70,7 @@ function formatVND(v: string | number | null): string {
 }
 
 function MaintenanceContent() {
+  const { t } = useLanguage();
   const router = useRouter();
   const searchParams = useSearchParams();
   const status = searchParams.get("status") ?? "";
@@ -121,14 +110,14 @@ function MaintenanceContent() {
       <div className="flex gap-2 items-center">
         <Select value={status} onValueChange={updateStatus}>
           <SelectTrigger className="w-44">
-            <SelectValue placeholder="All Status" />
+            <SelectValue placeholder={t("common.allStatus")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem>All Status</SelectItem>
-            <SelectItem value="SCHEDULED">Scheduled</SelectItem>
-            <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
-            <SelectItem value="COMPLETED">Completed</SelectItem>
-            <SelectItem value="CANCELLED">Cancelled</SelectItem>
+            <SelectItem>{t("common.allStatus")}</SelectItem>
+            <SelectItem value="SCHEDULED">{t("maint.status.SCHEDULED")}</SelectItem>
+            <SelectItem value="IN_PROGRESS">{t("maint.status.IN_PROGRESS")}</SelectItem>
+            <SelectItem value="COMPLETED">{t("maint.status.COMPLETED")}</SelectItem>
+            <SelectItem value="CANCELLED">{t("maint.status.CANCELLED")}</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -138,13 +127,13 @@ function MaintenanceContent() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Asset</TableHead>
-              <TableHead>Type</TableHead>
-              <TableHead>Description</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Start Date</TableHead>
-              <TableHead>Cost</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead>{t("maintenance.asset")}</TableHead>
+              <TableHead>{t("common.type")}</TableHead>
+              <TableHead>{t("common.description")}</TableHead>
+              <TableHead>{t("common.status")}</TableHead>
+              <TableHead>{t("assetDetail.startDate")}</TableHead>
+              <TableHead>{t("common.cost")}</TableHead>
+              <TableHead className="text-right">{t("common.actions")}</TableHead>
             </TableRow>
           </TableHeader>
           {isLoading ? (
@@ -162,7 +151,7 @@ function MaintenanceContent() {
               <TableRow>
                 <TableCell colSpan={7} className="text-center py-12 text-muted-foreground">
                   <WrenchIcon className="h-10 w-10 mx-auto mb-3 opacity-30" />
-                  <p className="font-medium">No maintenance records found</p>
+                  <p className="font-medium">{t("maintenance.noRecords")}</p>
                 </TableCell>
               </TableRow>
             </TableBody>
@@ -179,14 +168,14 @@ function MaintenanceContent() {
                       </Link>
                     </TableCell>
                     <TableCell>
-                      <span className="text-xs font-medium">{TYPE_LABEL[r.type] ?? r.type}</span>
+                      <span className="text-xs font-medium">{t(`maint.type.${r.type}`) || r.type}</span>
                     </TableCell>
                     <TableCell className="max-w-[200px] truncate text-sm text-muted-foreground">
                       {r.description}
                     </TableCell>
                     <TableCell>
                       <span className={`inline-flex h-5 items-center rounded-4xl border px-2 py-0.5 text-xs font-medium ${style.bg} ${style.text}`}>
-                        {STATUS_LABEL[r.status] ?? r.status}
+                        {t(`maint.status.${r.status}`) || r.status}
                       </span>
                     </TableCell>
                     <TableCell className="text-muted-foreground text-sm">
@@ -195,7 +184,7 @@ function MaintenanceContent() {
                     <TableCell className="font-mono text-sm">{formatVND(r.cost)}</TableCell>
                     <TableCell className="text-right">
                       <Link href={`/assets/${r.asset.id}`}>
-                        <Button variant="ghost" size="icon-sm" title="View Asset">
+                        <Button variant="ghost" size="icon-sm" title={t("maintenance.viewAsset")}>
                           <EyeIcon className="h-4 w-4" />
                         </Button>
                       </Link>
@@ -212,7 +201,10 @@ function MaintenanceContent() {
       {data && data.totalPages > 1 && (
         <div className="flex items-center justify-between">
           <p className="text-sm text-muted-foreground">
-            Page {data.page} of {data.totalPages} — {data.total} results
+            {t("pagination.pageOf")
+              .replace("{page}", String(data.page))
+              .replace("{total}", String(data.totalPages))
+              .replace("{count}", String(data.total))}
           </p>
           <div className="flex gap-2">
             <Button variant="outline" size="icon-sm" onClick={() => goPage(page - 1)} disabled={page <= 1}>
@@ -253,11 +245,21 @@ function TableSkeleton() {
   );
 }
 
+function MaintenanceHeader() {
+  const { t } = useLanguage();
+  return (
+    <p className="text-muted-foreground text-sm">
+      {t("maintenance.subtitle")}
+    </p>
+  );
+}
+
 export default function MaintenancePage() {
+  const { t } = useLanguage();
   return (
     <div className="space-y-4">
       <div>
-        <h2 className="text-2xl font-bold tracking-tight">Maintenance</h2>
+        <h2 className="text-2xl font-bold tracking-tight">{t("nav.maintenance")}</h2>
         <Suspense fallback={<Skeleton className="h-4 w-24 mt-1" />}>
           <MaintenanceHeader />
         </Suspense>
@@ -267,13 +269,5 @@ export default function MaintenancePage() {
         <MaintenanceContent />
       </Suspense>
     </div>
-  );
-}
-
-function MaintenanceHeader() {
-  return (
-    <p className="text-muted-foreground text-sm">
-      All maintenance records
-    </p>
   );
 }

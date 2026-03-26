@@ -4,6 +4,7 @@ import { AssetStatus } from "@prisma/client";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, type PieLabelRenderProps } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { STATUS_CONFIG } from "@/lib/fsm";
+import { useLanguage } from "@/context/language-context";
 
 interface StatusData {
   status: AssetStatus;
@@ -16,13 +17,14 @@ interface AssetStatusChartProps {
 }
 
 export function AssetStatusChart({ data, loading = false }: AssetStatusChartProps) {
+  const { t } = useLanguage();
   const total = data.reduce((sum, d) => sum + d.count, 0);
 
   if (loading) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Status Distribution</CardTitle>
+          <CardTitle className="text-base">{t("chart.statusDistribution")}</CardTitle>
         </CardHeader>
         <CardContent className="flex items-center justify-center py-8">
           <div className="h-40 w-40 animate-pulse rounded-full bg-muted" />
@@ -35,10 +37,10 @@ export function AssetStatusChart({ data, loading = false }: AssetStatusChartProp
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Status Distribution</CardTitle>
+          <CardTitle className="text-base">{t("chart.statusDistribution")}</CardTitle>
         </CardHeader>
         <CardContent className="py-8 text-center text-sm text-muted-foreground">
-          No data available
+          {t("chart.noData")}
         </CardContent>
       </Card>
     );
@@ -53,7 +55,7 @@ export function AssetStatusChart({ data, loading = false }: AssetStatusChartProp
   return (
     <Card className="flex flex-col">
       <CardHeader>
-        <CardTitle className="text-base">Status Distribution</CardTitle>
+        <CardTitle className="text-base">{t("chart.statusDistribution")}</CardTitle>
       </CardHeader>
       <CardContent className="flex flex-1 items-center justify-center">
         <div className="flex items-center gap-4">

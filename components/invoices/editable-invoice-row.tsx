@@ -3,6 +3,7 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { FileTextIcon, CheckCircleIcon, AlertCircleIcon } from "lucide-react";
+import { useLanguage } from "@/context/language-context";
 
 interface EditableInvoiceRowProps {
   invoiceNumber: string;
@@ -71,13 +72,14 @@ export function EditableInvoiceRow({
   confidence,
   onChange,
 }: EditableInvoiceRowProps) {
+  const { t } = useLanguage();
   return (
     <div className="space-y-3">
       {/* Label */}
       <div className="flex items-center gap-2">
         <FileTextIcon className="h-3.5 w-3.5 text-muted-foreground" />
         <Label className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
-          Invoice Details
+          {t("invoiceUpload.invoiceDetails")}
         </Label>
       </div>
 
@@ -86,13 +88,13 @@ export function EditableInvoiceRow({
         {/* Row 1: Number + Vendor */}
         <div className="grid grid-cols-2 gap-2">
           <FieldWithBadge
-            label="Number"
+            label={t("invoiceUpload.number")}
             value={invoiceNumber}
             confidence={confidence?.invoiceNumber}
             onChange={(v) => onChange("invoiceNumber", v)}
           />
           <FieldWithBadge
-            label="Vendor"
+            label={t("invoices.vendor")}
             value={vendor}
             confidence={confidence?.vendor}
             onChange={(v) => onChange("vendor", v)}
@@ -102,14 +104,14 @@ export function EditableInvoiceRow({
         {/* Row 2: Date + Total Amount */}
         <div className="grid grid-cols-2 gap-2">
           <FieldWithBadge
-            label="Date"
+            label={t("common.date")}
             value={invoiceDate}
             confidence={confidence?.invoiceDate}
             type="date"
             onChange={(v) => onChange("invoiceDate", v)}
           />
           <FieldWithBadge
-            label={`Total Amount (${currency})`}
+            label={`${t("invoiceDetail.totalAmount")} (${currency})`}
             value={totalAmount}
             confidence={confidence?.totalAmount}
             type="number"

@@ -10,6 +10,7 @@ import {
   ClockIcon,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useLanguage } from "@/context/language-context";
 
 interface RecentEvent {
   id: string;
@@ -33,26 +34,28 @@ const EVENT_ICON_MAP: Partial<Record<string, React.ElementType>> = {
   MAINTENANCE_COMPLETED: CheckCircleIcon,
 };
 
-function formatRelativeTime(date: Date | string): string {
-  const now = new Date();
-  const d = new Date(date);
-  const diffMs = now.getTime() - d.getTime();
-  const diffMins = Math.floor(diffMs / 60000);
-  const diffHours = Math.floor(diffMs / 3600000);
-  const diffDays = Math.floor(diffMs / 86400000);
-  if (diffMins < 1) return "just now";
-  if (diffMins < 60) return `${diffMins}m ago`;
-  if (diffHours < 24) return `${diffHours}h ago`;
-  if (diffDays < 30) return `${diffDays}d ago`;
-  return d.toLocaleDateString();
-}
-
 export function RecentEvents({ events, loading = false }: RecentEventsProps) {
+  const { t } = useLanguage();
+
+  function formatRelativeTime(date: Date | string): string {
+    const now = new Date();
+    const d = new Date(date);
+    const diffMs = now.getTime() - d.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+    if (diffMins < 1) return t("time.justNow");
+    if (diffMins < 60) return t("time.mAgo").replace("{n}", String(diffMins));
+    if (diffHours < 24) return t("time.hAgo").replace("{n}", String(diffHours));
+    if (diffDays < 30) return t("time.dAgo").replace("{n}", String(diffDays));
+    return d.toLocaleDateString();
+  }
+
   if (loading) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Recent Activity</CardTitle>
+          <CardTitle className="text-base">{t("activity.title")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           {Array.from({ length: 5 }).map((_, i) => (
@@ -73,10 +76,10 @@ export function RecentEvents({ events, loading = false }: RecentEventsProps) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Recent Activity</CardTitle>
+          <CardTitle className="text-base">{t("activity.title")}</CardTitle>
         </CardHeader>
         <CardContent className="py-8 text-center text-sm text-muted-foreground">
-          No recent activity
+          {t("activity.noActivity")}
         </CardContent>
       </Card>
     );
@@ -85,7 +88,7 @@ export function RecentEvents({ events, loading = false }: RecentEventsProps) {
   return (
     <Card className="flex flex-col">
       <CardHeader>
-        <CardTitle className="text-base">Recent Activity</CardTitle>
+        <CardTitle className="text-base">{t("activity.title")}</CardTitle>
       </CardHeader>
       <CardContent className="flex-1 overflow-y-auto space-y-3">
         {events.map((event) => {

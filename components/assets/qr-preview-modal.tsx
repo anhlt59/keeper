@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useLanguage } from "@/context/language-context";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -28,6 +29,7 @@ export function QRPreviewModal({
   qrImage: qrImageProp,
   assetId,
 }: QRPreviewModalProps) {
+  const { t } = useLanguage();
   const [qrImage, setQrImage] = useState<string | null>(qrImageProp);
 
   // Fetch QR from API if not stored on asset
@@ -92,7 +94,7 @@ export function QRPreviewModal({
             />
           ) : (
             <div className="w-56 h-56 rounded-lg border bg-muted flex items-center justify-center">
-              <span className="text-muted-foreground text-sm">Generating...</span>
+              <span className="text-muted-foreground text-sm">{t("qr.generating")}</span>
             </div>
           )}
           <div className="text-center">
@@ -100,7 +102,7 @@ export function QRPreviewModal({
             <p className="font-mono text-xs text-muted-foreground">{assetCode}</p>
           </div>
           <p className="text-xs text-muted-foreground text-center">
-            Scan to view asset details without logging in.
+            {t("qr.scanDesc")}
           </p>
         </div>
 
@@ -112,7 +114,7 @@ export function QRPreviewModal({
             disabled={!qrImage}
           >
             <ArrowDownIcon className="h-4 w-4" />
-            Download PNG
+            {t("qr.downloadPNG")}
           </Button>
           <Button
             variant="outline"
@@ -121,7 +123,7 @@ export function QRPreviewModal({
             disabled={!qrImage}
           >
             <PrinterIcon className="h-4 w-4" />
-            Print Label
+            {t("qr.printLabel")}
           </Button>
         </DialogFooter>
       </DialogContent>

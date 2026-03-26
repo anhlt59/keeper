@@ -4,6 +4,7 @@ import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import { UploadCloudIcon, XIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useLanguage } from "@/context/language-context";
 
 interface InvoiceUploadProps {
   onFileSelected: (file: File) => void;
@@ -16,6 +17,7 @@ export function InvoiceUpload({
   accept = "image/jpeg,image/png,image/jpg",
   maxSizeMb = 10,
 }: InvoiceUploadProps) {
+  const { t } = useLanguage();
   const [dragging, setDragging] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
@@ -25,7 +27,7 @@ export function InvoiceUpload({
       toast.error(`File too large. Max ${maxSizeMb}MB.`);
       return;
     }
-    const allowed = accept.split(",").map((t) => t.trim());
+    const allowed = accept.split(",").map((type) => type.trim());
     if (!allowed.includes(f.type)) {
       toast.error("Unsupported file type. Please upload a JPG or PNG image.");
       return;
@@ -75,7 +77,7 @@ export function InvoiceUpload({
         >
           <UploadCloudIcon className="h-8 w-8 text-muted-foreground" />
           <span className="text-sm text-muted-foreground">
-            Drag & drop or click to upload
+            {t("invoiceUpload.dragDrop")}
           </span>
           <span className="text-xs text-muted-foreground">
             JPG, PNG · Max {maxSizeMb}MB

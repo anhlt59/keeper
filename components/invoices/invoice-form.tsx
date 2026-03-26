@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { PackageIcon } from "lucide-react";
 import { EditableAssetRow, type EditableAsset } from "@/components/invoices/editable-asset-row";
 import { EditableInvoiceRow } from "@/components/invoices/editable-invoice-row";
+import { useLanguage } from "@/context/language-context";
 
 interface InvoiceFormProps {
   initialData: {
@@ -37,6 +38,7 @@ function toEditableAssets(assets: EditableAsset[]): EditableAsset[] {
 }
 
 export function InvoiceForm({ initialData, invoiceId, ocrExtractionId, assets = [], vendor, purchaseDate, onSuccess, categories = [] }: InvoiceFormProps) {
+  const { t } = useLanguage();
   const router = useRouter();
   const [form, setForm] = useState({
     invoiceNumber: initialData.invoiceNumber ?? "",
@@ -83,13 +85,13 @@ export function InvoiceForm({ initialData, invoiceId, ocrExtractionId, assets = 
       });
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error ?? "Failed to confirm invoice");
+        throw new Error(data.error ?? t("invoiceUpload.confirmFailed"));
       }
-      toast.success("Invoice confirmed and saved");
+      toast.success(t("invoiceUpload.confirmSuccess"));
       if (onSuccess) onSuccess();
       else router.push("/invoices");
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to confirm");
+      toast.error(err instanceof Error ? err.message : t("invoiceUpload.confirmFailed"));
     } finally {
       setLoading(false);
     }
@@ -110,7 +112,7 @@ export function InvoiceForm({ initialData, invoiceId, ocrExtractionId, assets = 
         <div className="space-y-3 border-t pt-4">
           <Label className="text-xs font-medium uppercase tracking-wide text-muted-foreground flex items-center gap-1.5">
             <PackageIcon className="h-3.5 w-3.5" />
-            Assets to Create ({editableAssets.length})
+            {t("invoiceUpload.assetsToCreate")} ({editableAssets.length})
           </Label>
           <div className="space-y-3">
             {editableAssets.map((asset, i) => (
@@ -125,15 +127,15 @@ export function InvoiceForm({ initialData, invoiceId, ocrExtractionId, assets = 
             ))}
           </div>
           <p className="text-xs text-muted-foreground italic">
-            Edit asset details before confirming. Assets with empty names will be skipped.
+            {t("invoiceUpload.assetsHint")}
           </p>
         </div>
       )}
 
       <div className="flex justify-end gap-3">
-        <Button variant="outline" onClick={() => router.push("/invoices")}>Cancel</Button>
+        <Button variant="outline" onClick={() => router.push("/invoices")}>{t("common.cancel")}</Button>
         <Button onClick={handleConfirm} disabled={loading}>
-          {loading ? "Confirming..." : "Confirm Invoice"}
+          {loading ? t("invoiceUpload.confirming") : t("invoiceUpload.confirmInvoice")}
         </Button>
       </div>
     </div>

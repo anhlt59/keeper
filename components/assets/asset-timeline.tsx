@@ -1,5 +1,6 @@
 "use client";
 
+import { useLanguage } from "@/context/language-context";
 import { AssetEventType } from "@prisma/client";
 import {
   PlusCircleIcon,
@@ -54,7 +55,9 @@ const EVENT_COLOR_MAP: Partial<Record<AssetEventType, string>> = {
   RESTORED: "text-blue-500 bg-blue-50",
 };
 
-function formatRelativeTime(date: Date | string): string {
+type TFn = (key: string) => string;
+
+function formatRelativeTime(date: Date | string, t: TFn): string {
   const now = new Date();
   const d = new Date(date);
   const diffMs = now.getTime() - d.getTime();
@@ -62,10 +65,10 @@ function formatRelativeTime(date: Date | string): string {
   const diffHours = Math.floor(diffMs / 3600000);
   const diffDays = Math.floor(diffMs / 86400000);
 
-  if (diffMins < 1) return "just now";
-  if (diffMins < 60) return `${diffMins}m ago`;
-  if (diffHours < 24) return `${diffHours}h ago`;
-  if (diffDays < 30) return `${diffDays}d ago`;
+  if (diffMins < 1) return t("time.justNow");
+  if (diffMins < 60) return t("time.mAgo").replace("{n}", String(diffMins));
+  if (diffHours < 24) return t("time.hAgo").replace("{n}", String(diffHours));
+  if (diffDays < 30) return t("time.dAgo").replace("{n}", String(diffDays));
   return d.toLocaleDateString();
 }
 
@@ -79,11 +82,13 @@ function StatusChangeDescription(event: TimelineEvent): string {
 }
 
 export function AssetTimeline({ events }: AssetTimelineProps) {
+  const { t } = useLanguage();
+
   if (!events.length) {
     return (
       <div className="flex flex-col items-center justify-center py-10 text-muted-foreground">
         <ClockIcon className="h-8 w-8 mb-2 opacity-40" />
-        <p className="text-sm">No events yet</p>
+        <p className="text-sm">{t("assets.noEvents")}</p>
       </div>
     );
   }
@@ -123,7 +128,7 @@ export function AssetTimeline({ events }: AssetTimelineProps) {
                   {description}
                 </p>
                 <span className="text-xs text-muted-foreground shrink-0">
-                  {formatRelativeTime(event.createdAt)}
+                  {formatRelativeTime(event.createdAt, t)}
                 </span>
               </div>
               {event.performedByName && event.performedByName !== "system" && (

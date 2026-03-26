@@ -22,6 +22,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { CategoryForm } from "@/components/categories/category-form";
+import { useLanguage } from "@/context/language-context";
 
 interface Category {
   id: string;
@@ -32,6 +33,7 @@ interface Category {
 }
 
 export default function CategoriesPage() {
+  const { t } = useLanguage();
   const queryClient = useQueryClient();
   const [deleteTarget, setDeleteTarget] = useState<Category | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
@@ -54,10 +56,10 @@ export default function CategoriesPage() {
         const data = await res.json();
         throw new Error(data.error ?? "Failed to delete");
       }
-      toast.success("Category deleted");
+      toast.success(t("categories.deleted"));
       queryClient.invalidateQueries({ queryKey: ["categories"] });
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to delete category");
+      toast.error(err instanceof Error ? err.message : t("categories.deleteFailed"));
     } finally {
       setDeleteLoading(false);
       setDeleteTarget(null);
@@ -68,9 +70,9 @@ export default function CategoriesPage() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">Categories</h2>
+          <h2 className="text-2xl font-bold tracking-tight">{t("nav.categories")}</h2>
           <p className="text-muted-foreground text-sm">
-            Manage asset categories and groupings
+            {t("categories.subtitle")}
           </p>
         </div>
         <CategoryForm
@@ -78,7 +80,7 @@ export default function CategoriesPage() {
           trigger={
             <Button>
               <PlusIcon className="h-4 w-4" />
-              Add Category
+              {t("categories.addCategory")}
             </Button>
           }
         />
@@ -88,11 +90,11 @@ export default function CategoriesPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Description</TableHead>
-              <TableHead>Parent</TableHead>
-              <TableHead>Assets</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead>{t("common.name")}</TableHead>
+              <TableHead>{t("common.description")}</TableHead>
+              <TableHead>{t("categories.parent")}</TableHead>
+              <TableHead>{t("categories.assetsCount")}</TableHead>
+              <TableHead className="text-right">{t("common.actions")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -111,8 +113,8 @@ export default function CategoriesPage() {
                 <TableRow>
                   <TableCell colSpan={5} className="text-center py-12 text-muted-foreground">
                     <TagsIcon className="h-10 w-10 mx-auto mb-3 opacity-30" />
-                    <p className="font-medium">No categories yet</p>
-                    <p className="text-sm mt-1">Create your first category to organize assets.</p>
+                    <p className="font-medium">{t("categories.noCategories")}</p>
+                    <p className="text-sm mt-1">{t("categories.noCategoriesHint")}</p>
                   </TableCell>
                 </TableRow>
               )
@@ -135,7 +137,7 @@ export default function CategoriesPage() {
                         mode="edit"
                         initialData={cat}
                         trigger={
-                          <Button variant="ghost" size="icon-sm" title="Edit">
+                          <Button variant="ghost" size="icon-sm" title={t("common.edit")}>
                             <EditIcon className="h-4 w-4" />
                           </Button>
                         }
@@ -143,7 +145,7 @@ export default function CategoriesPage() {
                       <Button
                         variant="ghost"
                         size="icon-sm"
-                        title="Delete"
+                        title={t("common.delete")}
                         onClick={() => setDeleteTarget(cat)}
                       >
                         <Trash2Icon className="h-4 w-4" />
@@ -159,7 +161,7 @@ export default function CategoriesPage() {
       <ConfirmDialog
         open={!!deleteTarget}
         onOpenChange={(open) => { if (!open) setDeleteTarget(null); }}
-        title="Delete Category"
+        title={t("categories.deleteTitle")}
         description={
           deleteTarget
             ? `Delete "${deleteTarget.name}"? This cannot be undone.`
@@ -167,7 +169,7 @@ export default function CategoriesPage() {
         }
         onConfirm={handleDelete}
         loading={deleteLoading}
-        confirmLabel="Delete"
+        confirmLabel={t("common.delete")}
         variant="destructive"
       />
     </div>

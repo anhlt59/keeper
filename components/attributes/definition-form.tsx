@@ -21,6 +21,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { AttributeFieldType } from "@prisma/client";
+import { useLanguage } from "@/context/language-context";
 
 interface Category {
   id: string | null;
@@ -46,14 +47,6 @@ interface DefinitionFormProps {
   categories: Category[];
 }
 
-const FIELD_TYPE_LABELS: Record<AttributeFieldType, string> = {
-  TEXT: "Text",
-  NUMBER: "Number",
-  BOOLEAN: "Boolean (Yes/No)",
-  DATE: "Date",
-  SELECT: "Select (Options)",
-};
-
 export function DefinitionForm({
   open,
   onOpenChange,
@@ -62,6 +55,7 @@ export function DefinitionForm({
   definitionId,
   categories,
 }: DefinitionFormProps) {
+  const { t } = useLanguage();
   const [form, setForm] = useState<DefinitionFormData>({
     name: initialData?.name ?? "",
     description: initialData?.description ?? null,
@@ -72,6 +66,17 @@ export function DefinitionForm({
     order: initialData?.order ?? 0,
   });
   const [loading, setLoading] = useState(false);
+
+  const isEdit = !!definitionId;
+
+  // Map field types to translation keys
+  const FIELD_TYPE_LABELS: Record<AttributeFieldType, string> = {
+    TEXT: t("attrForm.typeText"),
+    NUMBER: t("attrForm.typeNumber"),
+    BOOLEAN: t("attrForm.typeBoolean"),
+    DATE: t("attrForm.typeDate"),
+    SELECT: t("attrForm.typeSelect"),
+  };
 
   // Reset form when dialog opens with new data
   useEffect(() => {
@@ -87,8 +92,6 @@ export function DefinitionForm({
       });
     }
   }, [open]);
-
-  const isEdit = !!definitionId;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -115,14 +118,14 @@ export function DefinitionForm({
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error ?? "Failed to save");
+        throw new Error(data.error ?? t("attrForm.saveFailed"));
       }
 
-      toast.success(isEdit ? "Definition updated" : "Definition created");
+      toast.success(isEdit ? t("attrForm.updated") : t("attrForm.created"));
       onOpenChange(false);
       onSuccess();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to save");
+      toast.error(err instanceof Error ? err.message : t("attrForm.saveFailed"));
     } finally {
       setLoading(false);
     }
@@ -132,23 +135,23 @@ export function DefinitionForm({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>{isEdit ? "Edit Attribute Definition" : "New Attribute Definition"}</DialogTitle>
+          <DialogTitle>{isEdit ? t("attrForm.editTitle") : t("attrForm.addTitle")}</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="def-name">Name *</Label>
+            <Label htmlFor="def-name">{t("common.name")} *</Label>
             <Input
               id="def-name"
               value={form.name}
               onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-              placeholder="e.g. RAM Size"
+              placeholder={t("attrForm.namePlaceholder")}
               required
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="def-field-type">Field Type *</Label>
+            <Label htmlFor="def-field-type">{t("attrForm.fieldTypeLabel")}</Label>
             <Select
               value={form.fieldType}
               onValueChange={(v) => setForm((f) => ({ ...f, fieldType: v as AttributeFieldType }))}
@@ -165,18 +168,18 @@ export function DefinitionForm({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="def-category">Category</Label>
+            <Label htmlFor="def-category">{t("common.category")}</Label>
             <Select
               value={form.categoryId}
               onValueChange={(v) => setForm((f) => ({ ...f, categoryId: v || null }))}
             >
               <SelectTrigger id="def-category">
                 <SelectValue>
-                  {form.categoryId ? categories.find((c) => c.id === form.categoryId)?.name : "Global (all categories)"}
+                  {form.categoryId ? categories.find((c) => c.id === form.categoryId)?.name : t("attrForm.globalCategory")}
                 </SelectValue>
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Global (all categories)</SelectItem>
+                <SelectItem value="">{t("attrForm.globalCategory")}</SelectItem>
                 {categories.map((c) => (
                   <SelectItem key={c.id!} value={c.id!}>{c.name}</SelectItem>
                 ))}
@@ -186,7 +189,7 @@ export function DefinitionForm({
 
           {form.fieldType === AttributeFieldType.SELECT && (
             <div className="space-y-2">
-              <Label htmlFor="def-options">Options (JSON array) *</Label>
+              <Label htmlFor="def-options">{t("attrForm.optionsLabel")}</Label>
               <Textarea
                 id="def-options"
                 value={form.options ?? ""}
@@ -195,17 +198,17 @@ export function DefinitionForm({
                 rows={3}
                 required
               />
-              <p className="text-xs text-muted-foreground">Enter a JSON array of string options.</p>
+              <p className="text-xs text-muted-foreground">{t("attrForm.optionsHint")}</p>
             </div>
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="def-description">Description</Label>
+            <Label htmlFor="def-description">{t("common.description")}</Label>
             <Textarea
               id="def-description"
               value={form.description ?? ""}
               onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-              placeholder="Optional help text..."
+              placeholder={t("attrForm.descPlaceholder")}
               rows={2}
             />
           </div>
@@ -218,15 +221,15 @@ export function DefinitionForm({
               onChange={(e) => setForm((f) => ({ ...f, required: e.target.checked }))}
               className="h-4 w-4 rounded border-input accent-primary"
             />
-            <Label htmlFor="def-required" className="font-normal">Required field</Label>
+            <Label htmlFor="def-required" className="font-normal">{t("attrForm.requiredField")}</Label>
           </div>
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
+              {t("common.cancel")}
             </Button>
             <Button type="submit" disabled={loading || !form.name.trim()}>
-              {loading ? "Saving..." : "Save"}
+              {loading ? t("common.saving") : t("common.save")}
             </Button>
           </DialogFooter>
         </form>

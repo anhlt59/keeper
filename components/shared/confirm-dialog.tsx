@@ -2,6 +2,7 @@
 
 import React from "react";
 import { Button } from "@/components/ui/button";
+import { useLanguage } from "@/context/language-context";
 import {
   Dialog,
   DialogContent,
@@ -29,9 +30,12 @@ export function ConfirmDialog({
   description,
   onConfirm,
   loading = false,
-  confirmLabel = "Confirm",
+  confirmLabel,
   variant = "default",
 }: ConfirmDialogProps) {
+  const { t } = useLanguage();
+  const resolvedConfirmLabel = confirmLabel ?? t("common.confirm");
+
   const handleConfirm = () => {
     onConfirm();
   };
@@ -49,14 +53,14 @@ export function ConfirmDialog({
             onClick={() => onOpenChange(false)}
             disabled={loading}
           >
-            Cancel
+            {t("common.cancel")}
           </Button>
           <Button
             variant={variant === "destructive" ? "destructive" : "default"}
             onClick={handleConfirm}
             disabled={loading}
           >
-            {loading ? "Processing..." : confirmLabel}
+            {loading ? t("common.processing") : resolvedConfirmLabel}
           </Button>
         </DialogFooter>
       </DialogContent>

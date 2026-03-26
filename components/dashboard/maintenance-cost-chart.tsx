@@ -10,6 +10,7 @@ import {
   CartesianGrid,
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useLanguage } from "@/context/language-context";
 
 interface MonthlyCost {
   month: string; // "YYYY-MM"
@@ -36,11 +37,13 @@ function formatVND(value: number): string {
 }
 
 export function MaintenanceCostChart({ data, loading = false }: MaintenanceCostChartProps) {
+  const { t } = useLanguage();
+
   if (loading) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Maintenance Costs (Last 6 Months)</CardTitle>
+          <CardTitle className="text-base">{t("chart.maintenanceCosts")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="h-[250px] w-full animate-pulse rounded bg-muted" />
@@ -53,10 +56,10 @@ export function MaintenanceCostChart({ data, loading = false }: MaintenanceCostC
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Maintenance Costs (Last 6 Months)</CardTitle>
+          <CardTitle className="text-base">{t("chart.maintenanceCosts")}</CardTitle>
         </CardHeader>
         <CardContent className="py-8 text-center text-sm text-muted-foreground">
-          No maintenance data available
+          {t("chart.noMaintenanceData")}
         </CardContent>
       </Card>
     );
@@ -70,7 +73,7 @@ export function MaintenanceCostChart({ data, loading = false }: MaintenanceCostC
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">Maintenance Costs (Last 6 Months)</CardTitle>
+        <CardTitle className="text-base">{t("chart.maintenanceCosts")}</CardTitle>
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={250}>
@@ -87,7 +90,7 @@ export function MaintenanceCostChart({ data, loading = false }: MaintenanceCostC
             <Tooltip
               formatter={(value) => [
                 new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND", maximumFractionDigits: 0 }).format(Number(value)),
-                "Cost",
+                t("common.cost"),
               ]}
               contentStyle={{ fontSize: 13 }}
             />
