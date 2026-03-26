@@ -129,7 +129,13 @@ export async function POST(req: NextRequest) {
     where: { id: invoice.id },
     data: { ocrExtractionId: ocrExtraction.id },
   });
-
+  console.log({
+    invoiceId: invoice.id,
+    ocrExtractionId: ocrExtraction.id,
+    extracted: result.extracted,
+    confidence: result.confidence,
+    raw: result.raw,
+  })
   return NextResponse.json({
     invoiceId: invoice.id,
     ocrExtractionId: ocrExtraction.id,

@@ -81,7 +81,7 @@ export function EditableAssetRow({ asset, index, onChange, onRemove, confidence,
         <div className="space-y-1">
           <Label className="text-xs text-muted-foreground">Category</Label>
           <Select value={asset.category} onValueChange={(v) => onChange(index, "category", v ?? "")}>
-            <SelectTrigger className="h-8 text-sm">
+            <SelectTrigger className="h-8 text-sm w-full">
               <SelectValue placeholder="Select..." />
             </SelectTrigger>
             <SelectContent>

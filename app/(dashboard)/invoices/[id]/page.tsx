@@ -2,7 +2,7 @@
 
 import { use, useState, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronLeftIcon, ImageIcon, Trash2Icon } from "lucide-react";
+import { CheckCircleIcon, ChevronLeftIcon, FileTextIcon, ImageIcon, Trash2Icon, PackageIcon } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -23,6 +23,12 @@ interface InvoiceOcrExtraction {
   createdAt: string;
 }
 
+interface AssetSummary {
+  id: string;
+  code: string | null;
+  name: string;
+}
+
 interface InvoiceDetail {
   id: string;
   invoiceNumber: string | null;
@@ -33,6 +39,7 @@ interface InvoiceDetail {
   filePath: string | null;
   createdAt: string;
   ocrExtraction: InvoiceOcrExtraction | null;
+  assets: AssetSummary[];
 }
 
 const STATUS_CLASS: Record<InvoiceStatus, string> = {
@@ -40,6 +47,7 @@ const STATUS_CLASS: Record<InvoiceStatus, string> = {
   CONFIRMED: "bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300",
   REJECTED: "bg-red-50 text-red-700 dark:bg-red-950 dark:text-red-300",
 };
+
 
 function formatDate(d: string | null): string {
   if (!d) return "—";
@@ -50,13 +58,15 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
   const { id } = use(params);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirming, setConfirming] = useState(false);
   const [imgError, setImgError] = useState(false);
   const [imgOpen, setImgOpen] = useState(false);
   // reset image state when navigating to a different invoice
   const prevId = useRef(id);
   if (prevId.current !== id) { prevId.current = id; setImgError(false); setImgOpen(false); }
 
-  const { data, isLoading, error } = useQuery<InvoiceDetail>({
+  const { data, isLoading, error, refetch } = useQuery<InvoiceDetail>({
     queryKey: ["invoice", id],
     queryFn: () => fetch(`/api/invoices/${id}`, { credentials: "include" }).then((r) => {
       if (!r.ok) throw new Error("Not found");
@@ -77,6 +87,27 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
     }
   }
 
+  async function handleConfirm() {
+    if (!data) return;
+    setConfirmOpen(false);
+    setConfirming(true);
+    try {
+      const res = await fetch(`/api/invoices/${data.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "CONFIRMED" }),
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error("Confirm failed");
+      toast.success("Invoice confirmed");
+      await refetch();
+    } catch {
+      toast.error("Failed to confirm invoice");
+    } finally {
+      setConfirming(false);
+    }
+  }
+
   if (isLoading) return <Skeleton className="h-48 w-full" />;
   if (error || !data) {
     return (
@@ -90,16 +121,20 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
   const ed = invoice.ocrExtraction?.extractedData;
 
   return (
-    <div className="space-y-4 max-w-2xl">
+    <div className="max-w-2xl mx-auto space-y-6">
+      {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
         <Link href="/invoices" className="hover:text-foreground flex items-center gap-1">
           <ChevronLeftIcon className="h-4 w-4" />
           Invoices
         </Link>
+        <span>/</span>
+        <span className="text-foreground font-medium">Invoice Details</span>
       </div>
 
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
+      {/* Heading */}
+      <div>
+        <div className="flex items-center gap-3 mb-1">
           <h2 className="text-2xl font-bold tracking-tight">
             {invoice.vendor ?? "Invoice"}
           </h2>
@@ -107,14 +142,35 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
             {invoice.status}
           </span>
         </div>
-        <Button variant="destructive" size="sm" onClick={() => setDeleteOpen(true)}>
-          <Trash2Icon className="h-4 w-4" />
-          Delete
-        </Button>
+        <p className="text-muted-foreground text-sm">
+          {invoice.status === "CONFIRMED"
+            ? "Confirmed invoice with extracted data."
+            : "Review invoice details and OCR extraction."}
+        </p>
       </div>
 
+      {/* Card 1: Invoice Details */}
       <Card>
-        <CardHeader><CardTitle className="text-base">Invoice Details</CardTitle></CardHeader>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-base flex items-center gap-2">
+              <FileTextIcon className="h-4 w-4" />
+              Invoice
+            </CardTitle>
+            <div className="flex gap-2">
+              {invoice.status === "PENDING" && (
+                <Button size="sm" onClick={() => setConfirmOpen(true)} disabled={confirming}>
+                  <CheckCircleIcon className="h-4 w-4" />
+                  Confirm
+                </Button>
+              )}
+              <Button variant="destructive" size="sm" onClick={() => setDeleteOpen(true)}>
+                <Trash2Icon className="h-4 w-4" />
+                Delete
+              </Button>
+            </div>
+          </div>
+        </CardHeader>
         <CardContent>
           <dl className="grid grid-cols-2 gap-x-8 gap-y-4 text-sm">
             {[
@@ -142,6 +198,75 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
               </div>
             ) : <div />}
           </dl>
+
+          {/* OCR Extraction section inside the same card */}
+          {invoice.ocrExtraction != null ? (
+            <div className="mt-6 border-t pt-5 space-y-4">
+              <div className="flex items-center gap-2">
+                <CardTitle className="text-base">OCR Extraction Data</CardTitle>
+                <span className="text-xs text-muted-foreground font-normal">
+                  confidence: {Math.round(invoice.ocrExtraction.confidence * 100)}%
+                </span>
+                {invoice.ocrExtraction.confirmed ? (
+                  <Badge variant="outline" className="text-xs">Confirmed</Badge>
+                ) : null}
+              </div>
+
+              {invoice.ocrExtraction.rawResponse != null ? (
+                <details className="text-sm">
+                  <summary className="cursor-pointer text-muted-foreground hover:text-foreground font-medium">
+                     OCR Response
+                  </summary>
+                  <pre className="mt-2 p-3 bg-muted rounded-lg text-xs overflow-auto max-h-64">
+                    {JSON.stringify(invoice.ocrExtraction.rawResponse, null, 2)}
+                  </pre>
+                </details>
+              ) : null}
+            </div>
+          ) : null}
+        </CardContent>
+      </Card>
+
+      {/* Card 2: Created Assets */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-base flex items-center gap-2">
+              <PackageIcon className="h-4 w-4" />
+              Assets ({invoice.assets?.length ?? 0})
+            </CardTitle>
+            {invoice.assets && invoice.assets.length > 0 && (
+              <span className="text-xs text-muted-foreground">
+                {invoice.assets.length} asset{invoice.assets.length !== 1 ? "s" : ""} created
+              </span>
+            )}
+          </div>
+        </CardHeader>
+        <CardContent>
+          {!invoice.assets || invoice.assets.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              No assets were created from this invoice.
+            </p>
+          ) : (
+            <ul className="space-y-2">
+              {invoice.assets.map((asset) => (
+                <li key={asset.id} className="flex items-center justify-between rounded-md border px-3 py-2">
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium truncate">{asset.name}</p>
+                    <p className="text-xs text-muted-foreground font-mono truncate">
+                      {asset.code ?? asset.id}
+                    </p>
+                  </div>
+                  <Link
+                    href={`/assets/${asset.id}`}
+                    className="text-sm text-primary hover:underline ml-2 shrink-0"
+                  >
+                    View →
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
         </CardContent>
       </Card>
 
@@ -167,58 +292,29 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
         </DialogContent>
       </Dialog>
 
-      {invoice.ocrExtraction != null ? (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2">
-              OCR Extraction Data
-              <span className="text-xs text-muted-foreground font-normal">
-                confidence: {Math.round(invoice.ocrExtraction.confidence * 100)}%
-              </span>
-              {invoice.ocrExtraction.confirmed ? (
-                <Badge variant="outline" className="text-xs">Confirmed</Badge>
-              ) : null}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {typeof ed === "object" && ed !== null ? (
-              <dl className="grid grid-cols-2 gap-x-8 gap-y-3 text-sm">
-                {Object.entries(ed)
-                  .filter(([k]) => k !== "items")
-                  .map(([key, val]) => (
-                    <div key={key} className="space-y-1">
-                      <dt className="text-muted-foreground text-xs font-medium uppercase">{key}</dt>
-                      <dd className="font-mono">{val != null ? String(val) : "—"}</dd>
-                    </div>
-                  ))}
-              </dl>
-            ) : (
-              <p className="text-sm text-muted-foreground">No OCR data available.</p>
-            )}
-          </CardContent>
-        </Card>
-      ) : null}
-
-      {invoice.ocrExtraction?.rawResponse != null ? (
-        <details className="text-sm">
-          <summary className="cursor-pointer text-muted-foreground hover:text-foreground font-medium">
-            Raw OCR Response
-          </summary>
-          <pre className="mt-2 p-3 bg-muted rounded-lg text-xs overflow-auto max-h-64">
-            {JSON.stringify(invoice.ocrExtraction.rawResponse, null, 2)}
-          </pre>
-        </details>
-      ) : null}
-
       <ConfirmDialog
         open={deleteOpen}
         onOpenChange={setDeleteOpen}
         title="Delete Invoice"
-        description="Delete this invoice? This cannot be undone."
+        description={
+          invoice.assets && invoice.assets.length > 0
+            ? `This will delete the invoice and ${invoice.assets.length} related asset${invoice.assets.length !== 1 ? "s" : ""}. This cannot be undone.`
+            : "Delete this invoice? This cannot be undone."
+        }
         onConfirm={handleDelete}
         loading={deleting}
         confirmLabel="Delete"
         variant="destructive"
+      />
+
+      <ConfirmDialog
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        title="Confirm Invoice"
+        description="Mark this invoice as confirmed? This action cannot be undone."
+        onConfirm={handleConfirm}
+        loading={confirming}
+        confirmLabel="Confirm"
       />
     </div>
   );

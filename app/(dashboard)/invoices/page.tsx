@@ -7,9 +7,10 @@ import Link from "next/link";
 import { PlusIcon, Trash2Icon, FileTextIcon, EyeIcon } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
+import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from "@/components/ui/table";
 import { InvoiceStatus } from "@prisma/client";
 
 interface Invoice {
@@ -112,56 +113,51 @@ export default function InvoicesPage() {
           </CardContent>
         </Card>
       ) : (
-        <Card>
-          <div className="divide-y">
-            {invoices.map((inv) => (
-              <div key={inv.id} className="flex items-center gap-4 px-4 py-3">
-                <div className="flex-1 min-w-0 grid grid-cols-5 gap-4">
-                  <div>
-                    <p className="text-xs text-muted-foreground font-medium uppercase">Date</p>
-                    <p className="text-sm">{formatDate(inv.invoiceDate)}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground font-medium uppercase">Vendor</p>
-                    <p className="text-sm truncate">{inv.vendor ?? "—"}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground font-medium uppercase">Amount</p>
-                    <p className="text-sm font-mono">{formatVND(inv.totalAmount)}</p>
-                  </div>
-                  <div className="flex items-center gap-2">
+        <Card className="p-0 overflow-hidden">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Date</TableHead>
+                <TableHead>Vendor</TableHead>
+                <TableHead>Amount</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Created</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {invoices.map((inv) => (
+                <TableRow key={inv.id}>
+                  <TableCell className="font-medium">{formatDate(inv.invoiceDate)}</TableCell>
+                  <TableCell className="text-muted-foreground">{inv.vendor ?? "—"}</TableCell>
+                  <TableCell className="font-mono">{formatVND(inv.totalAmount)}</TableCell>
+                  <TableCell>
                     <span className={`inline-flex h-5 items-center rounded-4xl border px-2 py-0.5 text-xs font-medium ${STATUS_CLASS[inv.status]}`}>
                       {STATUS_LABEL[inv.status]}
                     </span>
-                    {inv.ocrExtraction && (
-                      <span className="text-xs text-muted-foreground">
-                        {Math.round(inv.ocrExtraction.confidence * 100)}%
-                      </span>
-                    )}
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground font-medium uppercase">Created</p>
-                    <p className="text-sm">{formatDate(inv.createdAt)}</p>
-                  </div>
-                </div>
-                <div className="flex gap-1 shrink-0">
-                  <Link href={`/invoices/${inv.id}`}>
-                    <Button variant="ghost" size="icon-sm">
-                      <EyeIcon className="h-3.5 w-3.5" />
-                    </Button>
-                  </Link>
-                  <Button
-                    variant="ghost"
-                    size="icon-sm"
-                    onClick={() => setDeleteTarget(inv)}
-                    className="text-destructive hover:text-destructive"
-                  >
-                    <Trash2Icon className="h-3.5 w-3.5" />
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </div>
+                  </TableCell>
+                  <TableCell className="text-muted-foreground text-sm">{formatDate(inv.createdAt)}</TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex items-center justify-end gap-1">
+                      <Link href={`/invoices/${inv.id}`}>
+                        <Button variant="ghost" size="icon-sm">
+                          <EyeIcon className="h-3.5 w-3.5" />
+                        </Button>
+                      </Link>
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        onClick={() => setDeleteTarget(inv)}
+                        className="text-destructive hover:text-destructive"
+                      >
+                        <Trash2Icon className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         </Card>
       )}
 

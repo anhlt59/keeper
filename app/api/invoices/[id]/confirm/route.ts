@@ -116,6 +116,7 @@ export async function POST(req: NextRequest, { params }: Params) {
                 : undefined,
               warrantyMonths: assetData.warrantyMonths ?? undefined,
               vendor: data.vendor ?? undefined,
+              invoiceId: id,
             },
             select: { id: true, code: true, name: true },
           });
