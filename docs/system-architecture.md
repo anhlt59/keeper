@@ -43,7 +43,6 @@ assets
   ├── 1:N asset_events (append-only)
   ├── 1:N asset_attribute_values (JSONB)
   ├── 1:N maintenance_records
-  ├── 1:N asset_assignments
   └── FK: category_id → asset_categories
 
 employees                        (assignable people, soft delete)
@@ -51,14 +50,13 @@ employees                        (assignable people, soft delete)
 
 asset_events          ← append-only log
 asset_attribute_values ← JSONB per asset
-asset_assignments     ← assignment history
 maintenance_records
 invoices              ← confirmed OCR results
 invoice_ocr_extractions ← raw + confirmed (audit)
 audit_logs            ← via logAssetEvent() in lib/audit-logger.ts
 ```
 
-**Tables count: 12** (User, Session, Account, Verification, Employee, Category, Asset, AssetEvent, Maintenance, AuditLog, Invoice, OcrExtraction, AssetAttributeValue, AttributeDefinition — 14 total via Prisma schema)
+**Tables count: 14** (User, Session, Account, Verification, Employee, Category, Asset, AssetEvent, Maintenance, AuditLog, Invoice, OcrExtraction, AssetAttributeValue, AttributeDefinition)
 
 **Soft delete:** All core tables include `isDeleted Boolean @default(false)` + `deletedAt`. Prisma queries always filter `WHERE isDeleted = false`.
 
@@ -171,7 +169,7 @@ Supported languages via context. Components use translation keys rather than har
     ▼
 [POST /api/invoices/ocr]
     └── Save image to public/uploads/invoices/YYYY/MM/ (web-relative path)
-    └── Create invoice_ocr_extraction + invoice record with filePath
+    └── Call GPT-4o-mini extract → create invoice + OcrExtraction in $transaction
     │
     ▼
 [lib/ocr.ts — extractInvoiceData()]
@@ -252,10 +250,11 @@ app/api/
 │   ├── route.ts                          # GET/POST all maintenance records
 │   └── [id]/route.ts                    # GET/PUT/DELETE single record
 ├── invoices/
-│   ├── route.ts                          # GET all, POST upload (creates OCR job)
+│   ├── route.ts                          # GET all, POST (manual)
+│   ├── ocr/route.ts                     # POST: upload image + GPT-4o-mini extract (Phase 2 primary)
 │   └── [id]/
-│       ├── ocr/route.ts                  # POST: GPT-4o-mini extract
-│       └── confirm/route.ts              # POST: admin confirm (create invoice)
+│       ├── route.ts                      # GET, PATCH, DELETE
+│       └── confirm/route.ts             # POST: admin confirm (create assets + categories)
 ├── dashboard/route.ts                    # GET KPI aggregates
 └── audit-logs/route.ts                   # GET audit logs
 ```
@@ -375,9 +374,9 @@ model AuditLog {
 ```
 [Assign Form] → [Zod validate] → [Service]
     → [FSM: check transition valid]
-    → [Prisma: INSERT asset_assignments]
+    → [Prisma: UPDATE asset SET status=ASSIGNED, employeeId=X]
     → [logAssetEvent: INSERT asset_events + audit_logs]
-    → [Return assignment record]
+    → [Return updated asset]
 ```
 
 ### OCR Flow

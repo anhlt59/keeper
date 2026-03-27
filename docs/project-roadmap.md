@@ -25,7 +25,7 @@
 | Deliverable | Description |
 |---|---|
 | Next.js scaffold | App Router, TypeScript, Tailwind, ESLint |
-| Prisma schema | Full schema design (12 tables), migrate dev |
+| Prisma schema | Full schema design (14 tables), migrate dev |
 | Better Auth | Session-based, CSRF, rate limiting, single Admin role |
 | Directory structure | app/, lib/, prisma/, components/ skeleton |
 | Environment config | docker-compose.yml (PostgreSQL), .env.local |

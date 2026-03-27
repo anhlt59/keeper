@@ -152,13 +152,13 @@ The business currently manages assets and office supplies through manual, distri
 ## 7) OCR Strategy Comparison (for implementation decision)
 
 | Option                             | VN Accuracy | Contextual Layout | Cost (50 inv/mo) | Maintenance | Notes                               |
-| ---------------------------------- | ----------: | ---------------- | ----------------: | ----------- | ----------------------------------- |
-| Cloud Vision API (Textract/Vision)  |      85–92% | Good             |          ~$0.50–2 | Low         | Traditional OCR, needs post-process  |
-| Claude Vision                      |      96–99% | Excellent        |          ~$0.30–1 | Low         | Best quality for edge cases         |
-| GPT-4o / 4o-mini                   |      96–98% | Excellent        |         ~$0.15–0.50 | Low        | Best cost-performance               |
-| Gemini 2.0 Flash                   |      95–98% | Excellent        |         ~$0.05–0.15 | Low        | Cheapest                           |
-| Ollama self-hosted (Vision)        |      88–93% | Good             |       ~$20–60 (infra) | Medium-high | Cloud-independent, needs GPU        |
-| Tesseract/TrOCR self-host          |      60–75% | Low              |            Free    | High        | Not recommended as primary          |
+| ---------------------------------- | ----------: | ----------------- | ---------------: | ----------- | ----------------------------------- |
+| Cloud Vision API (Textract/Vision) |      85–92% | Good              |         ~$0.50–2 | Low         | Traditional OCR, needs post-process |
+| Claude Vision                      |      96–99% | Excellent         |         ~$0.30–1 | Low         | Best quality for edge cases         |
+| GPT-4o / 4o-mini                   |      96–98% | Excellent         |      ~$0.15–0.50 | Low         | Best cost-performance               |
+| Gemini 2.0 Flash                   |      95–98% | Excellent         |      ~$0.05–0.15 | Low         | Cheapest                            |
+| Ollama self-hosted (Vision)        |      88–93% | Good              |  ~$20–60 (infra) | Medium-high | Cloud-independent, needs GPU        |
+| Tesseract/TrOCR self-host          |      60–75% | Low               |             Free | High        | Not recommended as primary          |
 
 ### Recommendation
 

@@ -64,10 +64,10 @@ function readCSV(filename: string): Record<string, string>[] {
 async function seedAdmin() {
   const hashedPassword = await hashPassword("admin123");
   const admin = await prisma.user.upsert({
-    where: { email: "admin@zoo.local" },
+    where: { email: "admin@keeper.local" },
     update: {},
     create: {
-      email: "admin@zoo.local",
+      email: "admin@keeper.local",
       name: "Admin User",
       emailVerified: true,
     },

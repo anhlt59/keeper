@@ -27,10 +27,10 @@ Significant changes, features, and fixes are documented here. Most recent first.
 
 **Phase 1 Complete — Core Features**
 
-- **Phase 0 Done:** Next.js scaffold, Prisma schema (12 tables), Better Auth setup, directory structure, seed data.
+- **Phase 0 Done:** Next.js scaffold, Prisma schema (14 tables), Better Auth setup, directory structure, seed data.
 - **Asset CRUD:** Full create/read/update/soft-delete with categories.
 - **FSM Lifecycle:** `lib/fsm.ts` with `validateTransition()`, `canTransition()`, `getAvailableTransitions()`, `ASSET_TRANSITIONS` table.
-- **Assignment/Recall:** Assign to employee/department, recall with reason, `asset_assignments` table.
+- **Assignment/Recall:** Assign to employee/department, recall with reason, tracked via `Asset.employeeId` FK + `AssetEvent` log.
 - **Maintenance:** `Maintenance` model with type, description, vendor, cost, duration, status.
 - **Dual Audit Logging:** `AssetEvent` (lifecycle) + `AuditLog` (who/what/when) via `logAssetEvent()` in `lib/audit-logger.ts`.
 - **Dashboard KPI:** Total value, status distribution chart (Recharts), recent events, maintenance cost/month.

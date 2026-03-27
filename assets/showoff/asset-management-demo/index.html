@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="en" data-lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Keeper — Asset Management Showcase</title>
+<meta name="description" content="Keeper — centralized enterprise asset management. Full lifecycle, immutable event log, QR operations, AI invoice OCR.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Fira+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+<style>
+/* ============ TOKENS ============ */
+:root{
+  --bg:#F5F7FB; --bg2:#EDF1F7; --surface:#FFFFFF; --surface2:#F1F5F9;
+  --border:#DDE4EE; --border2:#C9D3E0;
+  --text:#131A26; --text2:#4B586C; --muted:#7C8AA0;
+  --blue:#2563EB; --blue2:#3B82F6; --orange:#F97316; --orange2:#FB923C;
+  --green:#0F9D6E; --violet:#7C3AED; --amber:#D97706; --red:#DC2626; --slate:#64748B;
+  --glow:rgba(37,99,235,.12); --terminal-bg:#0D1117; --terminal-text:#C9D4E4;
+  --shadow:0 1px 2px rgba(15,23,42,.06),0 8px 24px -8px rgba(15,23,42,.12);
+  --mono:'Fira Code',ui-monospace,monospace; --sans:'Fira Sans',system-ui,sans-serif;
+}
+[data-theme="dark"]{
+  --bg:#0B0E14; --bg2:#0F131B; --surface:#131720; --surface2:#191F2B;
+  --border:#1F2734; --border2:#2B3547;
+  --text:#E7ECF5; --text2:#A6B1C4; --muted:#71809A;
+  --blue:#3B82F6; --blue2:#60A5FA; --orange:#F97316; --orange2:#FB923C;
+  --green:#34D399; --violet:#A78BFA; --amber:#FBBF24; --red:#F87171; --slate:#94A3B8;
+  --glow:rgba(59,130,246,.16); --terminal-bg:#0D1117; --terminal-text:#C9D4E4;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 12px 32px -8px rgba(0,0,0,.5);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]):not([data-theme="dark"]){
+    --bg:#0B0E14; --bg2:#0F131B; --surface:#131720; --surface2:#191F2B;
+    --border:#1F2734; --border2:#2B3547;
+    --text:#E7ECF5; --text2:#A6B1C4; --muted:#71809A;
+    --blue:#3B82F6; --blue2:#60A5FA; --orange:#F97316; --orange2:#FB923C;
+    --green:#34D399; --violet:#A78BFA; --amber:#FBBF24; --red:#F87171; --slate:#94A3B8;
+    --glow:rgba(59,130,246,.16); --terminal-bg:#0D1117; --terminal-text:#C9D4E4;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 12px 32px -8px rgba(0,0,0,.5);
+  }
+}
+/* ============ BASE ============ */
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  font-family:var(--sans);background:var(--bg);color:var(--text);
+  line-height:1.6;overflow-x:hidden;transition:background .3s,color .3s;
+  -webkit-font-smoothing:antialiased;
+}
+::selection{background:var(--blue);color:#fff}
+img{max-width:100%;display:block}
+a{color:inherit}
+/* language switching */
+[data-lang="en"] .vi{display:none!important}
+[data-lang="vi"] .en{display:none!important}
+/* ============ NAV ============ */
+.nav{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  display:flex;align-items:center;gap:1rem;
+  padding:.65rem clamp(1rem,4vw,2.5rem);
+  background:color-mix(in srgb,var(--bg) 82%,transparent);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--border);
+}
+.nav-logo{display:flex;align-items:center;gap:.55rem;font-family:var(--mono);font-weight:700;font-size:1.02rem;text-decoration:none}
+.nav-logo .mark{
+  width:26px;height:26px;border-radius:7px;display:grid;place-items:center;
+  background:linear-gradient(135deg,var(--blue),var(--violet));color:#fff;font-size:.8rem;
+}
+.nav-links{display:flex;gap:.15rem;margin-left:auto;margin-right:.5rem}
+.nav-links a{
+  font-size:.78rem;color:var(--text2);text-decoration:none;padding:.35rem .6rem;border-radius:7px;
+  font-family:var(--mono);transition:all .2s;
+}
+.nav-links a:hover{color:var(--text);background:var(--surface2)}
+@media(max-width:900px){.nav-links{display:none}}
+.nav-controls{display:flex;gap:.45rem;margin-left:auto}
+@media(min-width:901px){.nav-controls{margin-left:0}}
+.ctrl-btn{
+  cursor:pointer;font-family:var(--mono);font-size:.74rem;font-weight:600;
+  border:1px solid var(--border2);background:var(--surface);color:var(--text);
+  border-radius:8px;padding:.38rem .7rem;display:flex;align-items:center;gap:.4rem;
+  transition:all .2s;min-height:32px;
+}
+.ctrl-btn:hover{border-color:var(--blue);box-shadow:0 0 0 3px var(--glow)}
+.ctrl-btn svg{width:14px;height:14px}
+/* ============ SECTIONS ============ */
+section{position:relative;min-height:100svh;display:flex;align-items:center;padding:clamp(4.5rem,7vh,6rem) clamp(1rem,4.5vw,3rem) clamp(2.5rem,5vh,4rem);overflow:hidden}
+.wrap{width:100%;max-width:1180px;margin:0 auto;position:relative;z-index:2}
+.kicker{
+  font-family:var(--mono);font-size:.72rem;font-weight:600;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--blue2);display:flex;align-items:center;gap:.6rem;margin-bottom:1rem;
+}
+.kicker::before{content:"";width:26px;height:2px;background:var(--orange);border-radius:2px}
+.h2{font-size:clamp(1.6rem,3.6vw,2.5rem);font-weight:800;letter-spacing:-.02em;line-height:1.14;margin-bottom:.7rem}
+.lead{color:var(--text2);font-size:clamp(.94rem,1.4vw,1.06rem);max-width:56ch}
+/* reveal */
+.rv{opacity:0;transform:translateY(26px);transition:opacity .7s cubic-bezier(.16,1,.3,1),transform .7s cubic-bezier(.16,1,.3,1)}
+.rv.in{opacity:1;transform:none}
+@media(prefers-reduced-motion:reduce){.rv{opacity:1;transform:none;transition:none}html{scroll-behavior:auto}}
+/* badges */
+.badge{
+  display:inline-flex;align-items:center;gap:.4rem;font-family:var(--mono);
+  font-size:.68rem;font-weight:600;padding:.28rem .65rem;border-radius:999px;
+  border:1px solid var(--border2);background:var(--surface);
+}
+.badge .dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 color-mix(in srgb,var(--green) 45%,transparent)}50%{box-shadow:0 0 0 5px transparent}}
+.tag{font-family:var(--mono);font-size:.64rem;font-weight:600;padding:.14rem .5rem;border-radius:6px}
+.tag.p1{background:color-mix(in srgb,var(--green) 14%,transparent);color:var(--green)}
+.tag.p2{background:color-mix(in srgb,var(--violet) 14%,transparent);color:var(--violet)}
+.tag.p3{background:color-mix(in srgb,var(--amber) 16%,transparent);color:var(--amber)}
+/* ============ HERO ============ */
+#hero{background:radial-gradient(1200px 600px at 75% -10%,var(--glow),transparent 60%),var(--bg)}
+.hero-grid-bg{
+  position:absolute;inset:0;z-index:0;opacity:.5;
+  background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);
+  background-size:44px 44px;
+  mask-image:radial-gradient(ellipse 90% 70% at 50% 30%,#000 30%,transparent 75%);
+  -webkit-mask-image:radial-gradient(ellipse 90% 70% at 50% 30%,#000 30%,transparent 75%);
+}
+.hero-orb{position:absolute;border-radius:50%;filter:blur(90px);opacity:.5;z-index:0;pointer-events:none}
+.orb-a{width:420px;height:420px;background:color-mix(in srgb,var(--blue) 26%,transparent);top:-120px;right:8%}
+.orb-b{width:300px;height:300px;background:color-mix(in srgb,var(--orange) 16%,transparent);bottom:-80px;left:-60px}
+.hero-cols{display:grid;grid-template-columns:1.15fr .85fr;gap:clamp(1.5rem,4vw,3.5rem);align-items:center}
+@media(max-width:1120px){.hero-cols{grid-template-columns:1fr;gap:2rem}}
+.hero-title{font-size:clamp(2.6rem,7vw,4.6rem);font-weight:800;letter-spacing:-.035em;line-height:1.02;margin:.9rem 0 1rem}
+.hero-title .accent{
+  background:linear-gradient(100deg,var(--blue2),var(--violet));
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.hero-sub{color:var(--text2);font-size:clamp(.95rem,1.6vw,1.12rem);max-width:52ch;margin-bottom:1.6rem}
+.hero-cta{display:flex;gap:.8rem;flex-wrap:wrap;margin-bottom:2rem}
+.btn{
+  display:inline-flex;align-items:center;gap:.5rem;font-family:var(--mono);font-weight:600;
+  font-size:.85rem;padding:.7rem 1.25rem;border-radius:10px;text-decoration:none;
+  transition:all .22s;border:1px solid transparent;cursor:pointer;
+}
+.btn-primary{background:var(--orange);color:#fff;box-shadow:0 6px 18px -6px color-mix(in srgb,var(--orange) 60%,transparent)}
+.btn-primary:hover{background:var(--orange2);transform:translateY(-2px)}
+.btn-ghost{border-color:var(--border2);color:var(--text);background:var(--surface)}
+.btn-ghost:hover{border-color:var(--blue);box-shadow:0 0 0 3px var(--glow)}
+.stats{display:grid;grid-template-columns:repeat(4,auto);gap:clamp(1rem,3vw,2.2rem);width:fit-content}
+@media(max-width:640px){.stats{grid-template-columns:repeat(2,1fr);width:100%}}
+.stat .num{font-family:var(--mono);font-weight:700;font-size:clamp(1.25rem,2.6vw,1.7rem);letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.stat .lbl{font-size:.72rem;color:var(--muted);font-family:var(--mono)}
+/* terminal */
+.terminal{
+  background:var(--terminal-bg);border:1px solid #232B3A;border-radius:14px;
+  box-shadow:0 24px 60px -18px rgba(0,0,0,.55);overflow:hidden;
+  font-family:var(--mono);font-size:.74rem;color:var(--terminal-text);
+}
+.term-head{display:flex;align-items:center;gap:.45rem;padding:.6rem .9rem;border-bottom:1px solid #1C2432;background:#101623}
+.term-head .d{width:10px;height:10px;border-radius:50%}
+.term-head .t{margin-left:.5rem;color:#8593AB;font-size:.68rem}
+.term-body{padding:.9rem 1rem 1rem;min-height:238px}
+.term-line{display:flex;gap:.6rem;padding:.22rem 0;opacity:0;transform:translateX(-6px);transition:opacity .4s,transform .4s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.term-line.show{opacity:1;transform:none}
+.term-line .ts{color:#546076;flex-shrink:0}
+.term-line .ev{font-weight:600;flex-shrink:0}
+.ev.as{color:#A78BFA}.ev.mt{color:#FBBF24}.ev.rc{color:#60A5FA}.ev.cr{color:#34D399}.ev.dp{color:#F87171}
+.term-line .ms{color:#8593AB;overflow:hidden;text-overflow:ellipsis}
+.term-cursor{display:inline-block;width:8px;height:14px;background:#60A5FA;vertical-align:-2px;animation:blink 1s steps(1) infinite;margin-top:.3rem}
+@keyframes blink{50%{opacity:0}}
+.term-foot{padding:.5rem 1rem;border-top:1px solid #1C2432;color:#546076;font-size:.66rem;display:flex;justify-content:space-between}
+.scroll-hint{position:absolute;bottom:1.1rem;left:50%;transform:translateX(-50%);color:var(--muted);font-family:var(--mono);font-size:.68rem;display:flex;flex-direction:column;align-items:center;gap:.3rem;z-index:3}
+.scroll-hint::after{content:"";width:1px;height:26px;background:linear-gradient(var(--muted),transparent);animation:drop 1.6s infinite}
+@keyframes drop{0%{transform:scaleY(0);transform-origin:top}55%{transform:scaleY(1);transform-origin:top}56%{transform-origin:bottom}100%{transform:scaleY(0);transform-origin:bottom}}
+/* ============ OVERVIEW ============ */
+#overview{background:var(--bg2)}
+.vs{display:grid;grid-template-columns:1fr 1fr;gap:1.2rem;margin-top:2rem}
+@media(max-width:860px){.vs{grid-template-columns:1fr}}
+.vs-col{border:1px solid var(--border);border-radius:14px;background:var(--surface);padding:1.4rem;box-shadow:var(--shadow);position:relative;overflow:hidden}
+.vs-col.bad::before,.vs-col.good::before{content:"";position:absolute;top:0;left:0;right:0;height:3px}
+.vs-col.bad::before{background:var(--red)}
+.vs-col.good::before{background:var(--green)}
+.vs-col h3{font-size:1rem;font-family:var(--mono);margin-bottom:.9rem;display:flex;align-items:center;gap:.5rem}
+.vs-col ul{list-style:none;display:grid;gap:.65rem}
+.vs-col li{display:flex;gap:.6rem;font-size:.88rem;color:var(--text2)}
+.vs-col li .ico{flex-shrink:0;font-family:var(--mono);font-weight:700}
+.bad .ico{color:var(--red)}.good .ico{color:var(--green)}
+.persona{
+  margin-top:1.4rem;display:flex;align-items:center;gap:1rem;border:1px dashed var(--border2);
+  border-radius:14px;padding:1rem 1.2rem;background:color-mix(in srgb,var(--surface) 60%,transparent);flex-wrap:wrap;
+}
+.persona .avatar{
+  width:44px;height:44px;border-radius:12px;display:grid;place-items:center;font-family:var(--mono);
+  font-weight:700;color:#fff;background:linear-gradient(135deg,var(--blue),var(--violet));flex-shrink:0;
+}
+.persona p{font-size:.84rem;color:var(--text2);max-width:60ch}
+.persona b{color:var(--text)}
+.cite{font-size:.72rem;color:var(--muted);vertical-align:super;text-decoration:none}
+.cite:hover{color:var(--blue2)}
+/* ============ FEATURES ============ */
+.bento{display:grid;grid-template-columns:repeat(6,1fr);gap:.9rem;margin-top:2rem}
+.f-card{
+  grid-column:span 2;border:1px solid var(--border);background:var(--surface);border-radius:14px;
+  padding:1.15rem 1.2rem;box-shadow:var(--shadow);cursor:pointer;position:relative;
+  transition:border-color .25s,box-shadow .25s,transform .25s;
+}
+.f-card:hover{border-color:var(--blue);box-shadow:0 0 0 3px var(--glow),var(--shadow);transform:translateY(-3px)}
+.f-card.wide{grid-column:span 3}
+@media(max-width:980px){.f-card,.f-card.wide{grid-column:span 3}}
+@media(max-width:640px){.f-card,.f-card.wide{grid-column:span 6}}
+.f-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:.6rem}
+.f-ico{
+  width:34px;height:34px;border-radius:9px;display:grid;place-items:center;
+  background:color-mix(in srgb,var(--blue) 12%,transparent);color:var(--blue2);
+}
+.f-ico svg{width:17px;height:17px}
+.f-card h3{font-size:.95rem;font-weight:700;margin-bottom:.3rem}
+.f-card p{font-size:.8rem;color:var(--text2)}
+.f-card .more{max-height:0;overflow:hidden;transition:max-height .4s ease}
+.f-card.open .more{max-height:120px}
+.f-card .more p{margin-top:.5rem;padding-top:.5rem;border-top:1px dashed var(--border);font-size:.76rem;color:var(--muted);font-family:var(--mono)}
+.usecases{margin-top:1.6rem;display:flex;flex-wrap:wrap;gap:.5rem;align-items:center}
+.usecases .uc{
+  font-family:var(--mono);font-size:.7rem;padding:.34rem .7rem;border-radius:999px;
+  border:1px solid var(--border2);color:var(--text2);background:var(--surface);
+}
+.usecases .arrow{color:var(--orange);font-family:var(--mono);font-weight:700}
+/* ============ WALKTHROUGH ============ */
+#walkthrough{background:var(--bg2)}
+.gallery{display:grid;grid-template-columns:200px 1fr;gap:1.1rem;margin-top:2rem;align-items:start}
+@media(max-width:860px){.gallery{grid-template-columns:1fr}}
+.g-tabs{display:grid;gap:.45rem}
+@media(max-width:860px){.g-tabs{grid-template-columns:repeat(3,1fr)}}
+.g-tab{
+  text-align:left;cursor:pointer;font-family:var(--mono);font-size:.72rem;font-weight:600;
+  padding:.6rem .75rem;border-radius:9px;border:1px solid var(--border);
+  background:var(--surface);color:var(--text2);transition:all .2s;display:flex;align-items:center;gap:.5rem;
+}
+.g-tab .n{color:var(--muted);font-size:.62rem}
+.g-tab:hover{border-color:var(--blue)}
+.g-tab.active{border-color:var(--blue);color:var(--text);background:color-mix(in srgb,var(--blue) 9%,var(--surface));box-shadow:0 0 0 3px var(--glow)}
+.g-stage{border:1px solid var(--border);border-radius:14px;overflow:hidden;background:var(--terminal-bg);box-shadow:var(--shadow)}
+.g-stage img{width:100%;aspect-ratio:16/10;object-fit:cover;object-position:top;opacity:0;transition:opacity .45s}
+.g-stage img.on{opacity:1}
+.g-cap{
+  display:flex;justify-content:space-between;gap:1rem;align-items:baseline;
+  padding:.75rem 1rem;border-top:1px solid var(--border);background:var(--surface);
+}
+.g-cap .c{font-size:.84rem;font-weight:600}
+.g-cap .path{font-family:var(--mono);font-size:.66rem;color:var(--muted);white-space:nowrap}
+/* ============ ARCHITECTURE ============ */
+.arch-cols{display:grid;grid-template-columns:.9fr 1.1fr;gap:1.2rem;margin-top:2rem;align-items:stretch}
+@media(max-width:980px){.arch-cols{grid-template-columns:1fr}}
+.arch-box{border:1px solid var(--border);border-radius:14px;background:var(--surface);padding:1.3rem;box-shadow:var(--shadow)}
+.arch-box h3{font-family:var(--mono);font-size:.85rem;margin-bottom:1rem;color:var(--text2);letter-spacing:.06em;text-transform:uppercase}
+.flow{display:grid;gap:.4rem;font-family:var(--mono);font-size:.76rem}
+.flow .node{
+  border:1px solid var(--border2);border-radius:9px;padding:.55rem .8rem;background:var(--surface2);
+  display:flex;justify-content:space-between;gap:.6rem;align-items:center;
+}
+.flow .node b{font-weight:600}
+.flow .node span{color:var(--muted);font-size:.66rem;text-align:right}
+.flow .down{color:var(--muted);text-align:center;line-height:1;font-size:.8rem}
+.flow .node.hot{border-color:color-mix(in srgb,var(--orange) 55%,var(--border2));background:color-mix(in srgb,var(--orange) 7%,var(--surface2))}
+.fsm{display:grid;gap:.55rem;font-family:var(--mono);font-size:.74rem}
+.fsm-row{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap}
+.state{
+  display:inline-flex;align-items:center;gap:.45rem;padding:.42rem .8rem;border-radius:999px;
+  border:1px solid;font-weight:600;font-size:.72rem;
+}
+.state .sd{width:7px;height:7px;border-radius:50%}
+.st-av{border-color:color-mix(in srgb,var(--blue) 45%,transparent);color:var(--blue2);background:color-mix(in srgb,var(--blue) 8%,transparent)}
+.st-av .sd{background:var(--blue2)}
+.st-as{border-color:color-mix(in srgb,var(--violet) 45%,transparent);color:var(--violet);background:color-mix(in srgb,var(--violet) 8%,transparent)}
+.st-as .sd{background:var(--violet)}
+.st-mt{border-color:color-mix(in srgb,var(--amber) 45%,transparent);color:var(--amber);background:color-mix(in srgb,var(--amber) 8%,transparent)}
+.st-mt .sd{background:var(--amber)}
+.st-rt{border-color:color-mix(in srgb,var(--slate) 45%,transparent);color:var(--slate);background:color-mix(in srgb,var(--slate) 10%,transparent)}
+.st-rt .sd{background:var(--slate)}
+.st-dp{border-color:color-mix(in srgb,var(--red) 45%,transparent);color:var(--red);background:color-mix(in srgb,var(--red) 8%,transparent)}
+.st-dp .sd{background:var(--red)}
+.tr{color:var(--muted);font-size:.68rem;display:inline-flex;align-items:center;gap:.25rem}
+.tr b{color:var(--orange);font-weight:600}
+.fsm-note{margin-top:.7rem;font-size:.7rem;color:var(--muted);border-top:1px dashed var(--border);padding-top:.7rem;font-family:var(--mono)}
+.cap-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:.8rem;margin-top:1.2rem}
+@media(max-width:860px){.cap-grid{grid-template-columns:repeat(2,1fr)}}
+.cap{border:1px solid var(--border);border-radius:11px;padding:.8rem .95rem;background:var(--surface)}
+.cap .v{font-family:var(--mono);font-weight:700;font-size:1.06rem;font-variant-numeric:tabular-nums}
+.cap .k{font-size:.68rem;color:var(--muted);font-family:var(--mono)}
+/* ============ DEMO ============ */
+#demo{background:var(--bg2)}
+.demo-cols{display:grid;grid-template-columns:1.05fr .95fr;gap:1.4rem;margin-top:2rem}
+@media(max-width:980px){.demo-cols{grid-template-columns:1fr}}
+.steps{display:grid;gap:0;position:relative}
+.step{display:flex;gap:1rem;position:relative;padding-bottom:1.15rem}
+.step:last-child{padding-bottom:0}
+.step::before{content:"";position:absolute;left:15px;top:34px;bottom:0;width:1px;background:var(--border2)}
+.step:last-child::before{display:none}
+.step .no{
+  width:32px;height:32px;border-radius:9px;flex-shrink:0;display:grid;place-items:center;
+  font-family:var(--mono);font-weight:700;font-size:.78rem;color:#fff;
+  background:linear-gradient(135deg,var(--blue),var(--violet));position:relative;z-index:1;
+}
+.step h4{font-size:.9rem;font-weight:700}
+.step p{font-size:.8rem;color:var(--text2)}
+.step .t{font-family:var(--mono);font-size:.64rem;color:var(--orange);font-weight:600}
+.out-list{display:grid;gap:.7rem}
+.out{
+  display:flex;gap:.8rem;align-items:baseline;border:1px solid var(--border);
+  border-radius:11px;padding:.85rem 1rem;background:var(--surface);
+}
+.out .v{font-family:var(--mono);font-weight:700;font-size:1.05rem;color:var(--green);flex-shrink:0;min-width:64px;font-variant-numeric:tabular-nums}
+.out p{font-size:.8rem;color:var(--text2)}
+.limits{margin-top:1.3rem;border:1px dashed var(--border2);border-radius:12px;padding:1rem 1.2rem}
+.limits h4{font-family:var(--mono);font-size:.76rem;letter-spacing:.08em;text-transform:uppercase;color:var(--amber);margin-bottom:.6rem}
+.limits p{font-size:.8rem;color:var(--text2)}
+.refs{margin-top:2.6rem;border-top:1px solid var(--border);padding-top:1.2rem}
+.refs h4{font-family:var(--mono);font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:.6rem}
+.refs ol{padding-left:1.1rem;display:grid;gap:.3rem}
+.refs li{font-size:.72rem;color:var(--muted)}
+.refs a{color:var(--blue2);text-decoration:none;word-break:break-all}
+.refs a:hover{text-decoration:underline}
+.foot{
+  margin-top:1.6rem;display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap;
+  font-family:var(--mono);font-size:.68rem;color:var(--muted);
+}
+</style>
+</head>
+<body>
+
+<!-- ============ NAV ============ -->
+<nav class="nav">
+  <a class="nav-logo" href="#hero"><span class="mark">K</span>Keeper</a>
+  <div class="nav-links">
+    <a href="#overview"><span class="en">Why</span><span class="vi">Vì sao</span></a>
+    <a href="#features"><span class="en">Features</span><span class="vi">Tính năng</span></a>
+    <a href="#walkthrough">UI</a>
+    <a href="#architecture"><span class="en">Architecture</span><span class="vi">Kiến trúc</span></a>
+    <a href="#demo">Demo</a>
+  </div>
+  <div class="nav-controls">
+    <button class="ctrl-btn" id="langBtn" aria-label="Switch language">EN</button>
+    <button class="ctrl-btn" id="themeBtn" aria-label="Switch theme"><span id="themeIcon">◐</span><span id="themeLabel">Auto</span></button>
+  </div>
+</nav>
+
+<!-- ============ 1. HERO ============ -->
+<section id="hero">
+  <div class="hero-grid-bg" data-px="0.12"></div>
+  <div class="hero-orb orb-a" data-px="0.25"></div>
+  <div class="hero-orb orb-b" data-px="0.18"></div>
+  <div class="wrap">
+    <div class="hero-cols">
+      <div>
+        <span class="badge rv"><span class="dot"></span>
+          <span class="en">Internal demo · v0.1.0 · Phase 1 &amp; 2 complete</span>
+          <span class="vi">Demo nội bộ · v0.1.0 · Hoàn thành Phase 1 &amp; 2</span>
+        </span>
+        <h1 class="hero-title rv">Keeper<br>
+          <span class="accent en">Every asset. Every event.</span>
+          <span class="accent vi">Mọi tài sản. Mọi sự kiện.</span><br>
+          <span class="en">One source of truth.</span>
+          <span class="vi">Một nguồn dữ liệu duy nhất.</span>
+        </h1>
+        <p class="hero-sub rv">
+          <span class="en">Centralized enterprise asset management that tracks the full lifecycle — from procurement to disposal — with an immutable event log, QR-powered operations, and AI invoice OCR.</span>
+          <span class="vi">Hệ thống quản lý tài sản doanh nghiệp tập trung, theo dõi toàn bộ vòng đời — từ mua sắm đến thanh lý — với nhật ký sự kiện bất biến, vận hành bằng mã QR và OCR hóa đơn bằng AI.</span>
+        </p>
+        <div class="hero-cta rv">
+          <a class="btn btn-primary" href="#walkthrough"><span class="en">Explore the demo</span><span class="vi">Khám phá demo</span> ↓</a>
+          <a class="btn btn-ghost" href="#architecture"><span class="en">How it works</span><span class="vi">Cách hoạt động</span></a>
+        </div>
+      </div>
+      <div class="rv">
+        <div class="terminal" data-px="-0.06">
+          <div class="term-head">
+            <span class="d" style="background:#F87171"></span><span class="d" style="background:#FBBF24"></span><span class="d" style="background:#34D399"></span>
+            <span class="t">asset_events — append-only</span>
+          </div>
+          <div class="term-body" id="termBody"></div>
+          <div class="term-foot">
+            <span>keeper@localhost:3000</span>
+            <span class="en">immutable · audited</span><span class="vi">bất biến · có kiểm toán</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="scroll-hint"><span class="en">scroll</span><span class="vi">cuộn</span></div>
+</section>
+
+<!-- ============ 2. OVERVIEW ============ -->
+<section id="overview">
+  <div class="wrap">
+    <div class="kicker rv">01 · <span class="en">Problem → Solution</span><span class="vi">Vấn đề → Giải pháp</span></div>
+    <h2 class="h2 rv"><span class="en">Spreadsheets lose assets.<br>Keeper never forgets.</span><span class="vi">Bảng tính làm mất tài sản.<br>Keeper không bao giờ quên.</span></h2>
+    <div class="vs">
+      <div class="vs-col bad rv">
+        <h3>✕ <span class="en">Manual tracking today</span><span class="vi">Theo dõi thủ công hiện nay</span></h3>
+        <ul>
+          <li><span class="ico">✕</span><span><span class="en">~88% of spreadsheets contain significant errors</span><span class="vi">~88% bảng tính chứa lỗi nghiêm trọng</span> <a class="cite" href="#ref-1">[1]</a></span></li>
+          <li><span class="ico">✕</span><span><span class="en">"Ghost assets" — on the books but physically missing — inflate tax &amp; insurance and break audits</span><span class="vi">"Tài sản ma" — có trên sổ sách nhưng không tìm thấy — làm tăng thuế, bảo hiểm và phá vỡ kiểm toán</span> <a class="cite" href="#ref-2">[2]</a></span></li>
+          <li><span class="ico">✕</span><span><span class="en">Manual assign/recall leaves no reliable history of who holds what</span><span class="vi">Cấp phát / thu hồi thủ công không để lại lịch sử đáng tin cậy</span></span></li>
+        </ul>
+      </div>
+      <div class="vs-col good rv">
+        <h3>✓ <span class="en">With Keeper</span><span class="vi">Với Keeper</span></h3>
+        <ul>
+          <li><span class="ico">✓</span><span><span class="en">One centralized system for the entire asset lifecycle</span><span class="vi">Một hệ thống tập trung cho toàn bộ vòng đời tài sản</span></span></li>
+          <li><span class="ico">✓</span><span><span class="en">Append-only event log — every assignment, recall, maintenance and disposal recorded forever</span><span class="vi">Nhật ký chỉ-ghi-thêm — mọi lần cấp phát, thu hồi, bảo trì, thanh lý được lưu vĩnh viễn</span></span></li>
+          <li><span class="ico">✓</span><span><span class="en">QR tags + mobile scan replace manual lookups; audits shrink from weeks to days</span><span class="vi">Tem QR + quét di động thay tra cứu thủ công; kiểm kê từ vài tuần xuống vài ngày</span> <a class="cite" href="#ref-3">[3]</a></span></li>
+        </ul>
+      </div>
+    </div>
+    <div class="persona rv">
+      <div class="avatar">AD</div>
+      <p>
+        <b><span class="en">Persona (MVP): Admin</span><span class="vi">Người dùng (MVP): Admin</span></b> —
+        <span class="en">a single role with full access: asset CRUD, assignment, maintenance, invoice OCR and dashboard. Multi-role RBAC is a designed post-MVP extension point.</span>
+        <span class="vi">một vai trò duy nhất, toàn quyền: CRUD tài sản, cấp phát, bảo trì, OCR hóa đơn và dashboard. RBAC đa vai trò là hướng mở rộng sau MVP.</span>
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 3. FEATURES ============ -->
+<section id="features">
+  <div class="wrap">
+    <div class="kicker rv">02 · <span class="en">Key features</span><span class="vi">Tính năng chính</span></div>
+    <h2 class="h2 rv"><span class="en">Nine features, two phases shipped.</span><span class="vi">Chín tính năng, hai giai đoạn đã hoàn thành.</span></h2>
+    <p class="lead rv"><span class="en">Click a card for implementation notes.</span><span class="vi">Nhấn vào thẻ để xem ghi chú triển khai.</span></p>
+    <div class="bento">
+      <div class="f-card rv"><div class="f-top"><div class="f-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 17h7M17.5 14v7"/></svg></div><span class="tag p1">Phase 1 ✓</span></div>
+        <h3><span class="en">Asset CRUD + auto QR</span><span class="vi">CRUD tài sản + QR tự động</span></h3>
+        <p><span class="en">Create assets, QR generated automatically; printable 25×25mm labels.</span><span class="vi">Tạo tài sản, QR sinh tự động; tem in 25×25mm.</span></p>
+        <div class="more"><p>qrcode 1.5.4 · ASSET-YYYYMMDD-XXXX</p></div>
+      </div>
+      <div class="f-card rv"><div class="f-top"><div class="f-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v3M21 12h-3M12 21v-3M3 12h3"/><circle cx="12" cy="12" r="5"/></svg></div><span class="tag p1">Phase 1 ✓</span></div>
+        <h3><span class="en">Lifecycle FSM</span><span class="vi">Vòng đời FSM</span></h3>
+        <p><span class="en">5 states; invalid transitions rejected at service layer.</span><span class="vi">5 trạng thái; chặn chuyển trạng thái không hợp lệ ở tầng service.</span></p>
+        <div class="more"><p>lib/fsm.ts · validateTransition()</p></div>
+      </div>
+      <div class="f-card rv"><div class="f-top"><div class="f-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 3h5v5M21 3l-7 7M8 21H3v-5M3 21l7-7"/></svg></div><span class="tag p1">Phase 1 ✓</span></div>
+        <h3><span class="en">Assign &amp; Recall</span><span class="vi">Cấp phát &amp; Thu hồi</span></h3>
+        <p><span class="en">Hand assets to employees/departments, recall with full history.</span><span class="vi">Giao tài sản cho nhân viên/phòng ban, thu hồi với lịch sử đầy đủ.</span></p>
+        <div class="more"><p>asset_events: ASSIGNED / RECALLED</p></div>
+      </div>
+      <div class="f-card rv"><div class="f-top"><div class="f-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18v3h3l6.3-6.3a4 4 0 0 0 5.4-5.4L15 12l-3-3z"/></svg></div><span class="tag p1">Phase 1 ✓</span></div>
+        <h3><span class="en">Maintenance tracking</span><span class="vi">Theo dõi bảo trì</span></h3>
+        <p><span class="en">Description, vendor, cost, result — realtime cost aggregation.</span><span class="vi">Mô tả, nhà cung cấp, chi phí, kết quả — tổng hợp chi phí realtime.</span></p>
+        <div class="more"><p>maintenance_records · MTD ₫12.6M*</p></div>
+      </div>
+      <div class="f-card rv"><div class="f-top"><div class="f-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h10"/><circle cx="19" cy="18" r="2"/></svg></div><span class="tag p1">Phase 1 ✓</span></div>
+        <h3><span class="en">Audit log</span><span class="vi">Nhật ký kiểm toán</span></h3>
+        <p><span class="en">Every business action recorded via a single service-layer pattern.</span><span class="vi">Mọi thao tác nghiệp vụ được ghi qua một pattern tầng service duy nhất.</span></p>
+        <div class="more"><p>logAssetEvent() · lib/audit-logger.ts</p></div>
+      </div>
+      <div class="f-card rv"><div class="f-top"><div class="f-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 13l4-4 4 3 5-6"/></svg></div><span class="tag p1">Phase 1 ✓</span></div>
+        <h3><span class="en">KPI Dashboard</span><span class="vi">Dashboard KPI</span></h3>
+        <p><span class="en">Total value, status distribution, 6-month maintenance cost trends.</span><span class="vi">Tổng giá trị, phân bố trạng thái, xu hướng chi phí bảo trì 6 tháng.</span></p>
+        <div class="more"><p>Recharts 3.8 · &lt;3s load target</p></div>
+      </div>
+      <div class="f-card rv"><div class="f-top"><div class="f-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7l8-4z"/><path d="M9 12l2 2 4-4"/></svg></div><span class="tag p2">Phase 2 ✓</span></div>
+        <h3><span class="en">Dynamic attributes</span><span class="vi">Thuộc tính động</span></h3>
+        <p><span class="en">Per-category custom fields, validated end-to-end.</span><span class="vi">Trường tùy chỉnh theo danh mục, kiểm tra chặt chẽ.</span></p>
+        <div class="more"><p>PostgreSQL JSONB + Zod 4</p></div>
+      </div>
+      <div class="f-card rv"><div class="f-top"><div class="f-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg></div><span class="tag p2">Phase 2 ✓</span></div>
+        <h3><span class="en">Mobile QR scan</span><span class="vi">Quét QR di động</span></h3>
+        <p><span class="en">Web scanner in the browser — no native app needed.</span><span class="vi">Quét ngay trên web mobile — không cần cài app.</span></p>
+        <div class="more"><p>html5-qrcode 2.3.8 · /scan</p></div>
+      </div>
+      <div class="f-card rv"><div class="f-top"><div class="f-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 15l2 2 4-4"/></svg></div><span class="tag p2">Phase 2 ✓</span></div>
+        <h3><span class="en">AI Invoice OCR</span><span class="vi">OCR hóa đơn AI</span></h3>
+        <p><span class="en">Semi-auto extraction, bilingual VN/EN with Vietnamese priority.</span><span class="vi">Trích xuất bán tự động, song ngữ Việt/Anh, ưu tiên tiếng Việt.</span></p>
+        <div class="more"><p>GPT-4o-mini · <span class="en">originals stored 1yr</span><span class="vi">lưu ảnh gốc 1 năm</span></p></div>
+      </div>
+    </div>
+    <div class="usecases rv">
+      <span class="uc"><span class="en">onboard equipment from invoice</span><span class="vi">nhập thiết bị từ hóa đơn</span></span><span class="arrow">→</span>
+      <span class="uc"><span class="en">assign laptop to new hire</span><span class="vi">cấp laptop cho nhân viên mới</span></span><span class="arrow">→</span>
+      <span class="uc"><span class="en">send monitor to repair</span><span class="vi">gửi màn hình đi sửa</span></span><span class="arrow">→</span>
+      <span class="uc"><span class="en">retire &amp; dispose</span><span class="vi">thanh lý</span></span><span class="arrow">→</span>
+      <span class="uc"><span class="en">audit trail for finance</span><span class="vi">truy vết cho tài chính</span></span>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 4. WALKTHROUGH ============ -->
+<section id="walkthrough">
+  <div class="wrap">
+    <div class="kicker rv">03 · <span class="en">UI walkthrough</span><span class="vi">Tham quan giao diện</span></div>
+    <h2 class="h2 rv"><span class="en">The real product, live seed data.</span><span class="vi">Sản phẩm thật, dữ liệu seed thật.</span></h2>
+    <p class="lead rv"><span class="en">Captured from the running app at localhost:3000 — dark-mode native, bilingual VI/EN built in.</span><span class="vi">Chụp từ ứng dụng đang chạy tại localhost:3000 — giao diện tối, song ngữ VI/EN tích hợp sẵn.</span></p>
+    <div class="gallery rv">
+      <div class="g-tabs" id="gTabs"></div>
+      <div>
+        <div class="g-stage"><img id="gImg" src="images/app/dashboard.png" alt="Keeper UI screenshot" class="on"></div>
+        <div class="g-cap">
+          <span class="c" id="gCap"></span>
+          <span class="path" id="gPath"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 5. ARCHITECTURE ============ -->
+<section id="architecture">
+  <div class="wrap">
+    <div class="kicker rv">04 · <span class="en">Architecture</span><span class="vi">Kiến trúc</span></div>
+    <h2 class="h2 rv"><span class="en">Boring stack, strict invariants.</span><span class="vi">Stack quen thuộc, ràng buộc nghiêm ngặt.</span></h2>
+    <div class="arch-cols">
+      <div class="arch-box rv">
+        <h3><span class="en">Request flow</span><span class="vi">Luồng xử lý</span></h3>
+        <div class="flow">
+          <div class="node"><b>Browser</b><span>RSC + TanStack Query 5</span></div>
+          <div class="down">↓</div>
+          <div class="node"><b>Next.js 16 · API routes</b><span>Better Auth session · CSRF · rate-limit</span></div>
+          <div class="down">↓</div>
+          <div class="node hot"><b>Service layer + FSM</b><span>lib/services/* · validateTransition()</span></div>
+          <div class="down">↓</div>
+          <div class="node"><b>Prisma 7</b><span>soft delete: isDeleted + deletedAt</span></div>
+          <div class="down">↓</div>
+          <div class="node"><b>PostgreSQL · 14 <span class="en">tables</span><span class="vi">bảng</span></b><span class="en">every mutation appends asset_events + audit_logs</span><span class="vi">mọi thay đổi ghi thêm asset_events + audit_logs</span></div>
+        </div>
+      </div>
+      <div class="arch-box rv">
+        <h3><span class="en">Asset lifecycle — finite state machine</span><span class="vi">Vòng đời tài sản — máy trạng thái hữu hạn</span></h3>
+        <div class="fsm">
+          <div class="fsm-row">
+            <span class="state st-av"><span class="sd"></span>AVAILABLE</span>
+            <span class="tr">—<b>assign</b>→</span>
+            <span class="state st-as"><span class="sd"></span>ASSIGNED</span>
+            <span class="tr">⇄ <b>maintenance</b></span>
+            <span class="state st-mt"><span class="sd"></span>MAINTENANCE</span>
+          </div>
+          <div class="fsm-row">
+            <span class="state st-as"><span class="sd"></span>ASSIGNED</span>
+            <span class="tr">—<b>recall</b>→</span>
+            <span class="state st-av"><span class="sd"></span>AVAILABLE</span>
+          </div>
+          <div class="fsm-row">
+            <span class="tr">—<b>retire</b>→</span>
+            <span class="state st-rt"><span class="sd"></span>RETIRED</span>
+            <span class="tr">—<b>dispose</b>→</span>
+            <span class="state st-dp"><span class="sd"></span>DISPOSED</span>
+            <span class="tr">—<b>restore</b>→ RETIRED</span>
+          </div>
+          <div class="fsm-note">
+            <span class="en">// custom FSM in lib/fsm.ts — no xstate. Invalid transitions throw before any DB write.</span>
+            <span class="vi">// FSM tự viết trong lib/fsm.ts — không dùng xstate. Chuyển trạng thái sai bị chặn trước khi ghi DB.</span>
+          </div>
+        </div>
+        <div class="cap-grid">
+          <div class="cap"><div class="v">5,000</div><div class="k"><span class="en">assets capacity</span><span class="vi">tài sản tối đa</span></div></div>
+          <div class="cap"><div class="v">200k</div><div class="k"><span class="en">lifecycle events</span><span class="vi">sự kiện vòng đời</span></div></div>
+          <div class="cap"><div class="v">&lt;500ms</div><div class="k">P95 API</div></div>
+          <div class="cap"><div class="v">99.5%</div><div class="k">uptime</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 6. DEMO ============ -->
+<section id="demo">
+  <div class="wrap">
+    <div class="kicker rv">05 · <span class="en">Demo script &amp; outcomes</span><span class="vi">Kịch bản demo &amp; kết quả</span></div>
+    <h2 class="h2 rv"><span class="en">Five minutes, end to end.</span><span class="vi">Năm phút, trọn vòng đời.</span></h2>
+    <div class="demo-cols">
+      <div class="rv">
+        <div class="steps">
+          <div class="step"><div class="no">1</div><div>
+            <h4><span class="en">Login → Dashboard</span><span class="vi">Đăng nhập → Dashboard</span> <span class="t">~1'</span></h4>
+            <p><span class="en">Read the KPIs and the recent-activity feed.</span><span class="vi">Đọc KPI và luồng hoạt động gần đây.</span></p>
+          </div></div>
+          <div class="step"><div class="no">2</div><div>
+            <h4><span class="en">Open an asset</span><span class="vi">Mở một tài sản</span> <span class="t">~1'</span></h4>
+            <p><span class="en">Walk the Info / Attributes / Lifecycle Timeline tabs.</span><span class="vi">Xem các tab Info / Attributes / Lifecycle Timeline.</span></p>
+          </div></div>
+          <div class="step"><div class="no">3</div><div>
+            <h4><span class="en">Assign to an employee</span><span class="vi">Cấp phát cho nhân viên</span> <span class="t">~1'</span></h4>
+            <p><span class="en">The new event appears in the timeline and the audit log.</span><span class="vi">Sự kiện mới hiện trong timeline và audit log.</span></p>
+          </div></div>
+          <div class="step"><div class="no">4</div><div>
+            <h4><span class="en">Print QR → scan on a phone</span><span class="vi">In QR → quét bằng điện thoại</span> <span class="t">~1'</span></h4>
+            <p><span class="en">Instant asset lookup from the printed 25×25mm label.</span><span class="vi">Tra cứu tức thì từ tem in 25×25mm.</span></p>
+          </div></div>
+          <div class="step"><div class="no">5</div><div>
+            <h4><span class="en">Upload invoice → OCR → confirm</span><span class="vi">Tải hóa đơn → OCR → xác nhận</span> <span class="t">~1'</span></h4>
+            <p><span class="en">GPT-4o-mini pre-fills the asset draft from the photo.</span><span class="vi">GPT-4o-mini điền sẵn bản nháp tài sản từ ảnh.</span></p>
+          </div></div>
+        </div>
+      </div>
+      <div class="rv">
+        <div class="out-list">
+          <div class="out"><span class="v">100%</span><p><span class="en">of new assets captured in the system (PRD target)</span><span class="vi">tài sản mới được ghi nhận qua hệ thống (mục tiêu PRD)</span></p></div>
+          <div class="out"><span class="v">≥95%</span><p><span class="en">assignment / recall log coverage</span><span class="vi">thao tác cấp phát / thu hồi có log</span></p></div>
+          <div class="out"><span class="v">≥30%</span><p><span class="en">reduction in allocation / recall operation time</span><span class="vi">giảm thời gian thao tác cấp phát / thu hồi</span></p></div>
+          <div class="out"><span class="v">~½</span><p><span class="en">industry benchmark: audit time with scan-based verification</span><span class="vi">chuẩn ngành: thời gian kiểm kê với xác minh bằng quét mã</span> <a class="cite" href="#ref-3">[3]</a></p></div>
+          <div class="out"><span class="v">15–20%</span><p><span class="en">of fixed-asset value silently drained by ghost assets — eliminated by event-logged tracking</span><span class="vi">giá trị tài sản cố định bị "tài sản ma" bào mòn — loại bỏ nhờ nhật ký sự kiện</span> <a class="cite" href="#ref-4">[4]</a></p></div>
+        </div>
+        <div class="limits">
+          <h4><span class="en">Known limitations → Phase 3 ⏳</span><span class="vi">Hạn chế → Phase 3 ⏳</span></h4>
+          <p>
+            <span class="en">Single Admin role (no RBAC) · single location · no office-supply inventory · no depreciation engine · no ERP/HRM integration. Next: periodic inventory cycle, performance hardening, Vercel deployment. Backup provider not yet selected.</span>
+            <span class="vi">Chỉ 1 vai trò Admin (chưa RBAC) · 1 địa điểm · chưa có kho văn phòng phẩm · chưa có khấu hao · chưa tích hợp ERP/HRM. Tiếp theo: kiểm kê định kỳ, tối ưu hiệu năng, triển khai Vercel. Chưa chọn nhà cung cấp backup.</span>
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="refs rv">
+      <h4><span class="en">References &amp; notes</span><span class="vi">Nguồn tham khảo &amp; ghi chú</span></h4>
+      <ol>
+        <li id="ref-1">Sage — Fixed asset management isn't built for spreadsheets: <a href="https://www.sage.com/en-us/blog/fixed-asset-management-spreadsheets/" target="_blank" rel="noopener">sage.com/…/fixed-asset-management-spreadsheets</a></li>
+        <li id="ref-2">Sage — Ghost and zombie assets: <a href="https://www.sage.com/en-us/blog/technology-mitigate-risks-ghost-zombie-assets/" target="_blank" rel="noopener">sage.com/…/technology-mitigate-risks-ghost-zombie-assets</a></li>
+        <li id="ref-3">AssetCues — QR code asset tracking: <a href="https://www.assetcues.com/blog/qr-code-asset-tracking/" target="_blank" rel="noopener">assetcues.com/blog/qr-code-asset-tracking</a></li>
+        <li id="ref-4">Wasp Barcode — Asset tracking ROI white paper: <a href="https://www.waspbarcode.com/asset-tracking/roi-white-paper" target="_blank" rel="noopener">waspbarcode.com/asset-tracking/roi-white-paper</a></li>
+        <li>* <span class="en">Numbers marked with an asterisk are live seed/demo data, not production figures. Industry statistics are external benchmarks, not measured product results.</span><span class="vi">Số liệu đánh dấu * là dữ liệu seed/demo, không phải số liệu production. Thống kê ngành là chuẩn tham chiếu bên ngoài, không phải kết quả đo của sản phẩm.</span></li>
+      </ol>
+    </div>
+    <div class="foot">
+      <span>Keeper v0.1.0 · <span class="en">built with</span><span class="vi">xây dựng với</span> Next.js 16 · Prisma 7 · PostgreSQL</span>
+      <span>docs/prd-v1.md · 2026</span>
+    </div>
+  </div>
+</section>
+
+<script>
+/* ============ language toggle ============ */
+const html=document.documentElement,langBtn=document.getElementById('langBtn');
+function setLang(l){html.dataset.lang=l;html.lang=l;langBtn.textContent=l.toUpperCase();try{localStorage.setItem('kp-lang',l)}catch(e){}}
+langBtn.addEventListener('click',()=>setLang(html.dataset.lang==='en'?'vi':'en'));
+try{setLang(localStorage.getItem('kp-lang')||'en')}catch(e){setLang('en')}
+
+/* ============ theme cycle: system → light → dark ============ */
+const themeBtn=document.getElementById('themeBtn'),themeIcon=document.getElementById('themeIcon'),themeLabel=document.getElementById('themeLabel');
+const THEMES=[['system','◐','Auto'],['light','○','Light'],['dark','●','Dark']];
+let ti=0;
+function applyTheme(){const[t,ic,lb]=THEMES[ti];
+  if(t==='system')delete html.dataset.theme;else html.dataset.theme=t;
+  themeIcon.textContent=ic;themeLabel.textContent=lb;
+  try{localStorage.setItem('kp-theme',t)}catch(e){}}
+themeBtn.addEventListener('click',()=>{ti=(ti+1)%3;applyTheme()});
+try{const s=localStorage.getItem('kp-theme');ti=Math.max(0,THEMES.findIndex(x=>x[0]===s))}catch(e){}
+applyTheme();
+
+/* ============ reveal on scroll ============ */
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{threshold:.12});
+document.querySelectorAll('.rv').forEach(el=>io.observe(el));
+
+/* ============ counters ============ */
+const cio=new IntersectionObserver(es=>es.forEach(e=>{
+  if(!e.isIntersecting)return;cio.unobserve(e.target);
+  const el=e.target,end=+el.dataset.count,t0=performance.now();
+  (function step(t){const p=Math.min((t-t0)/900,1);el.textContent=Math.round(end*(1-Math.pow(1-p,3)));if(p<1)requestAnimationFrame(step)})(t0);
+}),{threshold:.5});
+document.querySelectorAll('[data-count]').forEach(el=>cio.observe(el));
+
+/* ============ hero terminal: append-only event log loop ============ */
+const LOG=[
+  ['09:14:02','CREATED','cr','LT-MSMD15B13 — Laptop MSI Modern 15 · ₫18.490.000'],
+  ['09:14:05','QR_GENERATED','cr','label 25×25mm → print queue'],
+  ['09:31:44','ASSIGNED','as','LT-MSMD15B13 → Đinh Thị Phương Linh (HR)'],
+  ['10:02:17','MAINTENANCE','mt','MH-DEU2723D — Dell U2723D → vendor: ViewPro'],
+  ['10:02:18','AUDIT_LOG','rc','actor=admin action=maintenance.create'],
+  ['11:20:36','MAINTENANCE_DONE','cr','MH-DEU2723D — cost ₫1.250.000 · result: OK'],
+  ['14:05:51','RECALLED','rc','PC-GBBRXI7H ← IT storage · status=AVAILABLE'],
+  ['16:48:09','OCR_CONFIRMED','as','invoice #INV-0182 → 3 asset drafts (GPT-4o-mini)'],
+  ['17:30:00','DISPOSED','dp','PR-HPLJ1102W — end of life · immutable ✓'],
+];
+const term=document.getElementById('termBody');
+const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
+function renderLine(l){const d=document.createElement('div');d.className='term-line';
+  d.innerHTML='<span class="ts">'+l[0]+'</span><span class="ev '+l[2]+'">'+l[1]+'</span><span class="ms">'+l[3]+'</span>';return d}
+if(reduced){LOG.forEach(l=>{const d=renderLine(l);d.classList.add('show');term.appendChild(d)})}
+else{let i=0;const cur=document.createElement('span');cur.className='term-cursor';term.appendChild(cur);
+  (function tick(){
+    if(i>=LOG.length){setTimeout(()=>{term.querySelectorAll('.term-line').forEach(n=>n.remove());i=0;tick()},4200);return}
+    const d=renderLine(LOG[i]);term.insertBefore(d,cur);requestAnimationFrame(()=>d.classList.add('show'));
+    i++;setTimeout(tick,760);
+  })();}
+
+/* ============ parallax (hero layers) ============ */
+if(!reduced){
+  const px=[...document.querySelectorAll('[data-px]')];let raf=null;
+  addEventListener('scroll',()=>{if(raf)return;raf=requestAnimationFrame(()=>{
+    const y=scrollY;px.forEach(el=>{el.style.transform='translateY('+(y*+el.dataset.px)+'px)'});raf=null;})},{passive:true});
+}
+
+/* ============ walkthrough gallery ============ */
+const SHOTS=[
+  {img:'images/app/dashboard.png',path:'/',en:'Real-time KPI dashboard',vi:'Dashboard KPI thời gian thực'},
+  {img:'images/app/assets-list.png',path:'/assets',en:'Asset registry with FSM status badges',vi:'Sổ tài sản với nhãn trạng thái FSM'},
+  {img:'images/app/asset-detail.png',path:'/assets/[id]',en:'Full lifecycle timeline per asset',vi:'Dòng thời gian vòng đời từng tài sản'},
+  {img:'images/app/maintenance.png',path:'/maintenance',en:'Maintenance cost tracking',vi:'Theo dõi chi phí bảo trì'},
+  {img:'images/app/invoices.png',path:'/invoices',en:'AI-assisted invoice intake',vi:'Nhập hóa đơn hỗ trợ AI'},
+  {img:'images/app/scan.png',path:'/scan',en:'Scan-to-lookup on mobile',vi:'Quét-để-tra-cứu trên di động'},
+];
+const gTabs=document.getElementById('gTabs'),gImg=document.getElementById('gImg'),gCap=document.getElementById('gCap'),gPath=document.getElementById('gPath');
+SHOTS.forEach((s,idx)=>{
+  const b=document.createElement('button');b.className='g-tab'+(idx===0?' active':'');
+  b.innerHTML='<span class="n">0'+(idx+1)+'</span><span><span class="en">'+s.en+'</span><span class="vi">'+s.vi+'</span></span>';
+  b.addEventListener('click',()=>select(idx));gTabs.appendChild(b);
+});
+function select(idx){
+  const s=SHOTS[idx];
+  gTabs.querySelectorAll('.g-tab').forEach((t,j)=>t.classList.toggle('active',j===idx));
+  gImg.classList.remove('on');
+  setTimeout(()=>{gImg.src=s.img;gImg.onload=()=>gImg.classList.add('on')},180);
+  gCap.innerHTML='<span class="en">'+s.en+'</span><span class="vi">'+s.vi+'</span>';
+  gPath.textContent=s.path;
+}
+select(0);
+
+/* ============ feature card expand ============ */
+document.querySelectorAll('.f-card').forEach(c=>c.addEventListener('click',()=>c.classList.toggle('open')));
+</script>
+</body>
+</html>

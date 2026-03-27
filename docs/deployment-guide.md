@@ -215,7 +215,6 @@ pg_dump -h localhost -U zoo -d zoo_dev > backup_$(date +%Y%m%d).sql
 | `npm run dev` | Start dev server (localhost:3000, turbopack) |
 | `npm run build` | Production build |
 | `npm run lint` | ESLint check |
-| `npm run type-check` | `tsc --noEmit` |
 | `npm run db:generate` | `prisma generate` |
 | `npm run db:migrate` | `prisma migrate dev` (local only) |
 | `npm run db:push` | `prisma db push` (fast schema sync) |

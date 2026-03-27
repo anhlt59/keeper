@@ -66,10 +66,10 @@ zoo/                               # Git root
 │   │   │   └── [id]/route.ts
 │   │   ├── invoices/
 │   │   │   ├── route.ts
-│   │   │   ├── ocr/route.ts      # POST upload → GPT-4o-mini OCR
+│   │   │   ├── ocr/route.ts       # POST: upload + GPT-4o-mini OCR extraction
 │   │   │   └── [id]/
 │   │   │       ├── route.ts       # GET/PUT/DELETE invoice
-│   │   │       └── confirm/route.ts # Admin confirm OCR → create assets
+│   │   │       └── confirm/route.ts # Admin confirm OCR → create assets + categories
 │   │   ├── dashboard/
 │   │   │   └── route.ts
 │   │   └── audit-logs/

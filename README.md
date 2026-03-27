@@ -1,3 +1,26 @@
+# Keeper — Asset Management
+
+Centralized enterprise asset management: full lifecycle tracking (procurement → disposal), immutable event log, QR-powered operations, and AI invoice OCR. See the canonical PRD at [`docs/prd-v1.md`](docs/prd-v1.md).
+
+## ✨ Showcase
+
+An interactive bilingual (EN/VI) demo page lives at [`assets/showoff/asset-management-demo/index.html`](assets/showoff/asset-management-demo/index.html) — open it locally:
+
+```bash
+open assets/showoff/asset-management-demo/index.html
+```
+
+[![Keeper showcase — hero](assets/showoff/asset-management-demo/images/horizontal-hero.png)](assets/showoff/asset-management-demo/index.html)
+
+| | |
+|---|---|
+| [![Problem → Solution](assets/showoff/asset-management-demo/images/horizontal-overview.png)](assets/showoff/asset-management-demo/index.html) | [![Key features](assets/showoff/asset-management-demo/images/horizontal-features.png)](assets/showoff/asset-management-demo/index.html) |
+| [![UI walkthrough](assets/showoff/asset-management-demo/images/horizontal-walkthrough.png)](assets/showoff/asset-management-demo/index.html) | [![Architecture & FSM](assets/showoff/asset-management-demo/images/horizontal-architecture.png)](assets/showoff/asset-management-demo/index.html) |
+
+More captures (16:9 / 9:16 / 1:1) for social posts and articles: [`assets/showoff/asset-management-demo/images/`](assets/showoff/asset-management-demo/images/)
+
+---
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started
