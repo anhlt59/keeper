@@ -95,10 +95,10 @@ Mở [http://localhost:3000](http://localhost:3000) để truy cập ứng dụn
 
 ### Phase 1 — Cốt lõi ✅
 
-- **CRUD tài sản** — tạo, xem, sửa, xóa (soft delete) tài sản.
+- **CRUD tài sản** — tạo, xem, sửa, xóa tài sản.
 - **Mã QR tự động** — sinh mã QR mỗi tài sản, in nhãn 25mm × 25mm.
 - **Vòng đời tài sản (FSM)** — trạng thái chuyển đổi có kiểm soát:
-  `AVAILABLE → ASSIGNED ↔ MAINTENANCE → RETIRED / DISPOSED`
+  `AVAILABLE ↔ ASSIGNED → MAINTENANCE → AVAILABLE/ASSIGNED | RETIRED → DISPOSED`
 - **Gán / Thu hồi** — gán tài sản cho nhân viên, thu hồi khi cần.
 - **Bảo trì** — theo dõi mô tả, nhà cung cấp, chi phí, kết quả.
 - **Audit log** — log bất biến cho mọi hành động nghiệp vụ.
@@ -125,42 +125,33 @@ zoo/
 │   ├── schema.prisma          # Định nghĩa schema database
 │   ├── seed.ts                # Seed dữ liệu mẫu
 │   └── data/                  # CSV seed data
-│       ├── categories.csv
-│       ├── employees.csv
-│       └── products.csv
-├── src/
-│   ├── app/                   # Next.js App Router pages
-│   │   ├── (auth)/            # Trang login
-│   │   ├── (dashboard)/       # Trang chính (protected)
-│   │   │   ├── assets/        # CRUD tài sản
-│   │   │   ├── employees/    # Quản lý nhân viên
-│   │   │   ├── categories/   # Quản lý danh mục
-│   │   │   ├── maintenance/  # Bảo trì
-│   │   │   ├── scan/         # Quét QR
-│   │   │   ├── invoices/     # OCR hóa đơn
-│   │   │   ├── attributes/  # Thuộc tính động
-│   │   │   └── dashboard/   # Dashboard KPI
-│   │   └── api/              # API routes
-│   │       ├── auth/
-│   │       ├── assets/
-│   │       ├── employees/
-│   │       ├── categories/
-│   │       ├── maintenance/
-│   │       ├── invoices/
-│   │       └── attributes/
-│   ├── components/           # React components
-│   │   ├── ui/               # shadcn/ui base components
-│   │   ├── assets/           # Asset-specific components
-│   │   ├── dashboard/        # Dashboard widgets
-│   │   └── attributes/       # Dynamic field components
-│   ├── lib/
-│   │   ├── db.ts             # Prisma client singleton
-│   │   ├── auth.ts           # Better Auth config
-│   │   ├── fsm.ts            # Asset lifecycle FSM
-│   │   ├── validators/       # Zod schemas
-│   │   └── utils.ts          # Utility functions
-│   └── types/                # TypeScript types
-└── docs/                     # Tài liệu dự án
+├── app/                       # Next.js App Router pages (root level)
+│   ├── (auth)/                # Trang login
+│   ├── (dashboard)/           # Trang chính (protected)
+│   │   ├── assets/            # CRUD tài sản
+│   │   ├── employees/         # Quản lý nhân viên
+│   │   ├── categories/        # Quản lý danh mục
+│   │   ├── maintenance/       # Bảo trì
+│   │   ├── scan/              # Quét QR
+│   │   ├── invoices/          # OCR hóa đơn
+│   │   ├── attributes/        # Thuộc tính động
+│   │   └── dashboard/         # Dashboard KPI
+│   └── api/                   # API routes
+├── components/                # React components
+│   ├── ui/                    # shadcn/ui base components
+│   ├── assets/                # Asset-specific components
+│   ├── dashboard/             # Dashboard widgets
+│   └── attributes/            # Dynamic field components
+├── lib/
+│   ├── db.ts                  # Prisma client singleton
+│   ├── auth.ts                # Better Auth config (session, CSRF, rate limiting)
+│   ├── fsm.ts                 # Asset lifecycle FSM
+│   ├── validators/            # Zod schemas
+│   ├── services/              # Business logic services
+│   └── utils.ts               # Utility functions
+├── public/
+│   └── uploads/invoices/      # Ảnh hóa đơn (lưu 1 năm, tổ chức theo YYYY/MM/)
+└── docs/                      # Tài liệu dự án
 ```
 
 ---
@@ -179,6 +170,7 @@ Các model chính trong `prisma/schema.prisma`:
 | `Invoice` | Hóa đơn — ảnh, dữ liệu OCR, trạng thái duyệt |
 | `AttributeDefinition` | Định nghĩa thuộc tính động theo danh mục |
 | `AssetAttributeValue` | Giá trị thuộc tính động của từng tài sản |
+| `AuditLog` | Log bất biến — mọi hành động nghiệp vụ (ai, làm gì, khi nào, giá trị cũ/mới) |
 
 Xem chi tiết tại [model-design.md](../model-design.md).
 
@@ -187,29 +179,31 @@ Xem chi tiết tại [model-design.md](../model-design.md).
 ## 7. Vòng đời tài sản (FSM)
 
 ```
-                    ┌──────────────────────────────────┐
-                    │                                  │
-                    ▼                                  │
-┌─────────────┐  assign  ┌─────────────┐              │
-│ AVAILABLE  │ ────────► │  ASSIGNED   │              │
-└─────────────┘          └──────┬──────┘              │
-      ▲                        │                      │
-      │                        │ recall               │
-      │            ┌───────────┴───────────┐          │
-      │            │                       │          │
-      │      assign│                  send │▼recall   │
-      │            ▼                       ▼          │
-      │     ┌─────────────┐         ┌────────────┐   │
-      └─recall│  MAINTENANCE│◄──────│  RETIRED   │   │
-              └─────────────┘       └────────────┘   │
-                                         │            │
-                                         │ dispose    │
-                                         ▼            │
-                                   ┌────────────┐     │
-                                   │  DISPOSED  │     │
-                                   └────────────┘     │
-                                                     │
-                                         dispose─────┘
+┌─────────────┐  assign    ┌─────────────┐
+│  AVAILABLE  │──────────► │  ASSIGNED   │
+│             │◄────────── │             │
+└──────┬──────┘  recall    └──────┬──────┘
+       │                          │
+       │retire              send-to-maintenance
+       │                          │
+       │                          ▼
+       │                 ┌─────────────────┐
+       │                 │   MAINTENANCE   │
+       │                 └────────┬────────┘
+       │                          │ complete-maintenance
+       │                          │ (restore previous status)
+       │                          ▼
+       │                 AVAILABLE / ASSIGNED
+       │
+       ▼   retire (từ ASSIGNED)
+┌─────────────┐
+│   RETIRED   │
+└──────┬──────┘
+       │ dispose
+       ▼
+┌─────────────┐
+│  DISPOSED   │
+└─────────────┘
 ```
 
 - **AVAILABLE** — Sẵn sàng gán.
@@ -231,14 +225,22 @@ FSM được validate tại service layer (`src/lib/fsm.ts`), không dùng thư 
 | `/api/assets/[id]/assign` | POST | Gán tài sản cho nhân viên |
 | `/api/assets/[id]/recall` | POST | Thu hồi tài sản |
 | `/api/assets/[id]/maintenance` | POST | Gửi bảo trì |
-| `/api/assets/[id]/retire` | POST | Ngưng sử dụng |
-| `/api/assets/[id]/dispose` | POST | Thanh lý |
+| `/api/assets/[id]/events` | GET | Lịch sử vòng đời tài sản |
+| `/api/assets/[id]/lookup` | GET | Tra cứu qua QR scan |
+| `/api/assets/[id]/qr` | GET | Lấy ảnh QR code |
 | `/api/employees` | GET, POST | Danh sách / Tạo nhân viên |
 | `/api/categories` | GET, POST | Danh sách / Tạo danh mục |
+| `/api/categories/[id]` | GET, PUT, DELETE | Chi tiết / Sửa / Xóa danh mục |
 | `/api/maintenance` | GET, POST | Danh sách / Tạo bảo trì |
+| `/api/maintenance/[id]` | GET, PUT, DELETE | Chi tiết / Sửa / Xóa bảo trì |
 | `/api/attributes/definitions` | GET, POST | Danh sách / Tạo định nghĩa thuộc tính |
-| `/api/invoices` | GET, POST | Danh sách / Tạo hóa đơn (OCR) |
-| `/api/invoices/[id]/approve` | POST | Duyệt hóa đơn |
+| `/api/attributes/definitions/[id]` | GET, PUT, DELETE | Chi tiết / Sửa / Xóa định nghĩa |
+| `/api/invoices` | GET, POST | Danh sách / Tạo hóa đơn |
+| `/api/invoices/[id]` | GET, PUT, DELETE | Chi tiết / Sửa / Xóa hóa đơn |
+| `/api/invoices/[id]/confirm` | POST | Xác nhận dữ liệu OCR |
+| `/api/invoices/ocr` | POST | Xử lý OCR hóa đơn (GPT-4o-mini) |
+| `/api/dashboard` | GET | Dữ liệu KPI dashboard |
+| `/api/audit-logs` | GET | Xem audit log |
 
 ---
 
