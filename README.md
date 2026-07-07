@@ -4,20 +4,48 @@ Centralized enterprise asset management: full lifecycle tracking (procurement �
 
 ## ✨ Showcase
 
-An interactive bilingual (EN/VI) demo page lives at [`assets/showoff/asset-management-demo/index.html`](assets/showoff/asset-management-demo/index.html) — open it locally:
-
-```bash
-open assets/showoff/asset-management-demo/index.html
-```
-
 [![Keeper showcase — hero](assets/showoff/asset-management-demo/images/horizontal-hero.png)](assets/showoff/asset-management-demo/index.html)
 
-| | |
-|---|---|
-| [![Problem → Solution](assets/showoff/asset-management-demo/images/horizontal-overview.png)](assets/showoff/asset-management-demo/index.html) | [![Key features](assets/showoff/asset-management-demo/images/horizontal-features.png)](assets/showoff/asset-management-demo/index.html) |
-| [![UI walkthrough](assets/showoff/asset-management-demo/images/horizontal-walkthrough.png)](assets/showoff/asset-management-demo/index.html) | [![Architecture & FSM](assets/showoff/asset-management-demo/images/horizontal-architecture.png)](assets/showoff/asset-management-demo/index.html) |
+|                                                                                                                                               |                                                                                                                                                   |
+| --------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [![Problem → Solution](assets/showoff/asset-management-demo/images/horizontal-overview.png)](assets/showoff/asset-management-demo/index.html) | [![Key features](assets/showoff/asset-management-demo/images/horizontal-features.png)](assets/showoff/asset-management-demo/index.html)           |
+| [![UI walkthrough](assets/showoff/asset-management-demo/images/horizontal-walkthrough.png)](assets/showoff/asset-management-demo/index.html)  | [![Architecture & FSM](assets/showoff/asset-management-demo/images/horizontal-architecture.png)](assets/showoff/asset-management-demo/index.html) |
 
-More captures (16:9 / 9:16 / 1:1) for social posts and articles: [`assets/showoff/asset-management-demo/images/`](assets/showoff/asset-management-demo/images/)
+<p align="center">
+  <img src="assets/showoff/asset-management-demo/images/asset-events-terminal.svg" alt="Animated terminal replaying the append-only asset_events log: CREATED, QR_GENERATED, ASSIGNED, MAINTENANCE, AUDIT_LOG, MAINTENANCE_DONE, RECALLED, OCR_CONFIRMED, DISPOSED" width="720">
+</p>
+
+Asset lifecycle FSM (`lib/fsm.ts` — invalid transitions throw before any DB write):
+
+```mermaid
+stateDiagram-v2
+    [*] --> AVAILABLE
+    AVAILABLE --> ASSIGNED : assign
+    ASSIGNED --> AVAILABLE : recall
+    ASSIGNED --> MAINTENANCE : maintenance
+    MAINTENANCE --> ASSIGNED : complete
+    AVAILABLE --> RETIRED : retire
+    ASSIGNED --> RETIRED : retire
+    RETIRED --> DISPOSED : dispose
+    DISPOSED --> RETIRED : restore
+```
+
+<details>
+<summary><b>Nine features, two phases shipped</b> (click to expand)</summary>
+
+| Feature              | Phase | Notes                                                       |
+| -------------------- | ----- | ----------------------------------------------------------- |
+| Asset CRUD + auto QR | 1 ✓   | `qrcode` 1.5.4 · printable 25×25mm labels                   |
+| Lifecycle FSM        | 1 ✓   | 5 states · `validateTransition()` at service layer          |
+| Assign & Recall      | 1 ✓   | full history via `asset_events`                             |
+| Maintenance tracking | 1 ✓   | vendor, cost, result · realtime aggregation                 |
+| Audit log            | 1 ✓   | `logAssetEvent()` on every business action                  |
+| KPI Dashboard        | 1 ✓   | Recharts · total value, status distribution, 6-month trends |
+| Dynamic attributes   | 2 ✓   | PostgreSQL JSONB + Zod per category                         |
+| Mobile QR scan       | 2 ✓   | `html5-qrcode` in browser — no native app                   |
+| AI Invoice OCR       | 2 ✓   | GPT-4o-mini · bilingual VN/EN, Vietnamese priority          |
+
+</details>
 
 ---
 

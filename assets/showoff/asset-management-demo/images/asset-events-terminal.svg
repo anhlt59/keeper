@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 310" width="720" height="310" role="img" aria-label="Append-only asset_events terminal log: assets are created, assigned, maintained, recalled and disposed — every event recorded immutably">
+<style>
+  text { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace; font-size: 13px; }
+  .meta { font-size: 11px; fill: #546076; }
+  .ts { fill: #546076; }
+  .ms { fill: #8593AB; }
+  .ev { font-weight: 600; }
+  .as { fill: #A78BFA; } .mt { fill: #FBBF24; } .rc { fill: #60A5FA; } .cr { fill: #34D399; } .dp { fill: #F87171; }
+  /* default visible so non-animating renderers still show the log; keyframes drive 0→1 in browsers */
+  .ln { opacity: 1; }
+  .l0 { animation: k0 14s linear infinite; }
+  .l1 { animation: k1 14s linear infinite; }
+  .l2 { animation: k2 14s linear infinite; }
+  .l3 { animation: k3 14s linear infinite; }
+  .l4 { animation: k4 14s linear infinite; }
+  .l5 { animation: k5 14s linear infinite; }
+  .l6 { animation: k6 14s linear infinite; }
+  .l7 { animation: k7 14s linear infinite; }
+  .l8 { animation: k8 14s linear infinite; }
+  @keyframes k0 { 0%, 4%  { opacity:0; transform:translateX(-6px); } 7%,  90% { opacity:1; transform:translateX(0); } 95%, 100% { opacity:0; transform:translateX(0); } }
+  @keyframes k1 { 0%, 10% { opacity:0; transform:translateX(-6px); } 13%, 90% { opacity:1; transform:translateX(0); } 95%, 100% { opacity:0; transform:translateX(0); } }
+  @keyframes k2 { 0%, 16% { opacity:0; transform:translateX(-6px); } 19%, 90% { opacity:1; transform:translateX(0); } 95%, 100% { opacity:0; transform:translateX(0); } }
+  @keyframes k3 { 0%, 22% { opacity:0; transform:translateX(-6px); } 25%, 90% { opacity:1; transform:translateX(0); } 95%, 100% { opacity:0; transform:translateX(0); } }
+  @keyframes k4 { 0%, 28% { opacity:0; transform:translateX(-6px); } 31%, 90% { opacity:1; transform:translateX(0); } 95%, 100% { opacity:0; transform:translateX(0); } }
+  @keyframes k5 { 0%, 34% { opacity:0; transform:translateX(-6px); } 37%, 90% { opacity:1; transform:translateX(0); } 95%, 100% { opacity:0; transform:translateX(0); } }
+  @keyframes k6 { 0%, 40% { opacity:0; transform:translateX(-6px); } 43%, 90% { opacity:1; transform:translateX(0); } 95%, 100% { opacity:0; transform:translateX(0); } }
+  @keyframes k7 { 0%, 47% { opacity:0; transform:translateX(-6px); } 50%, 90% { opacity:1; transform:translateX(0); } 95%, 100% { opacity:0; transform:translateX(0); } }
+  @keyframes k8 { 0%, 53% { opacity:0; transform:translateX(-6px); } 56%, 90% { opacity:1; transform:translateX(0); } 95%, 100% { opacity:0; transform:translateX(0); } }
+  .cursor { animation: blink 1s steps(1) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+  @media (prefers-reduced-motion: reduce) {
+    .ln { animation: none; opacity: 1; transform: none; }
+    .cursor { animation: none; }
+  }
+</style>
+
+<!-- frame -->
+<rect x="0.5" y="0.5" width="719" height="309" rx="13" fill="#0D1117" stroke="#232B3A"/>
+<!-- header -->
+<path d="M0.5 13.5 A13 13 0 0 1 13.5 0.5 H706.5 A13 13 0 0 1 719.5 13.5 V34 H0.5 Z" fill="#101623"/>
+<line x1="0.5" y1="34" x2="719.5" y2="34" stroke="#1C2432"/>
+<circle cx="22" cy="17.5" r="5" fill="#F87171"/>
+<circle cx="40" cy="17.5" r="5" fill="#FBBF24"/>
+<circle cx="58" cy="17.5" r="5" fill="#34D399"/>
+<text x="78" y="21.5" class="meta" fill="#8593AB">asset_events — append-only</text>
+
+<!-- log lines -->
+<g class="ln l0"><text y="60"><tspan x="20" class="ts">09:14:02</tspan><tspan x="100" class="ev cr">CREATED</tspan><tspan x="248" class="ms">LT-MSMD15B13 — Laptop MSI Modern 15 · ₫18.490.000</tspan></text></g>
+<g class="ln l1"><text y="82"><tspan x="20" class="ts">09:14:05</tspan><tspan x="100" class="ev cr">QR_GENERATED</tspan><tspan x="248" class="ms">label 25×25mm → print queue</tspan></text></g>
+<g class="ln l2"><text y="104"><tspan x="20" class="ts">09:31:44</tspan><tspan x="100" class="ev as">ASSIGNED</tspan><tspan x="248" class="ms">LT-MSMD15B13 → Đinh Thị Phương Linh (HR)</tspan></text></g>
+<g class="ln l3"><text y="126"><tspan x="20" class="ts">10:02:17</tspan><tspan x="100" class="ev mt">MAINTENANCE</tspan><tspan x="248" class="ms">MH-DEU2723D — Dell U2723D → vendor: ViewPro</tspan></text></g>
+<g class="ln l4"><text y="148"><tspan x="20" class="ts">10:02:18</tspan><tspan x="100" class="ev rc">AUDIT_LOG</tspan><tspan x="248" class="ms">actor=admin action=maintenance.create</tspan></text></g>
+<g class="ln l5"><text y="170"><tspan x="20" class="ts">11:20:36</tspan><tspan x="100" class="ev cr">MAINTENANCE_DONE</tspan><tspan x="248" class="ms">MH-DEU2723D — cost ₫1.250.000 · result: OK</tspan></text></g>
+<g class="ln l6"><text y="192"><tspan x="20" class="ts">14:05:51</tspan><tspan x="100" class="ev rc">RECALLED</tspan><tspan x="248" class="ms">PC-GBBRXI7H ← IT storage · status=AVAILABLE</tspan></text></g>
+<g class="ln l7"><text y="214"><tspan x="20" class="ts">16:48:09</tspan><tspan x="100" class="ev as">OCR_CONFIRMED</tspan><tspan x="248" class="ms">invoice #INV-0182 → 3 asset drafts (GPT-4o-mini)</tspan></text></g>
+<g class="ln l8"><text y="236"><tspan x="20" class="ts">17:30:00</tspan><tspan x="100" class="ev dp">DISPOSED</tspan><tspan x="248" class="ms">PR-HPLJ1102W — end of life · immutable ✓</tspan></text></g>
+
+<!-- cursor -->
+<rect class="cursor" x="20" y="248" width="8" height="14" fill="#60A5FA"/>
+
+<!-- footer -->
+<line x1="0.5" y1="278" x2="719.5" y2="278" stroke="#1C2432"/>
+<text x="20" y="296" class="meta">keeper@localhost:3000</text>
+<text x="700" y="296" class="meta" text-anchor="end">immutable · audited</text>
+</svg>
